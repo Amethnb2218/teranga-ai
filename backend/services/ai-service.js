@@ -179,10 +179,19 @@ async function getAIResponse(messages, language) {
     }
   }
 
-  // Fallback: Ask Groq to translate (fast, always available, imperfect but readable)
+  // Fallback: Ask Groq to rewrite in bilingual local+French style
   if (process.env.GROQ_API_KEY) {
     try {
-      const langName = { wo: 'wolof', pu: 'pulaar', sr: 'sérère', di: 'diola', mn: 'mandinka', sn: 'soninké' }[language];
+      const langConfig = {
+        wo: { name: 'wolof', greeting: 'Jërejëf ci sa laaj.', style: 'wolof-français comme on parle au Sénégal' },
+        pu: { name: 'pulaar', greeting: 'A jaaraama.', style: 'pulaar-français comme on parle en Afrique de l\'Ouest' },
+        sr: { name: 'sérère', greeting: 'Mbind a fiid.', style: 'sérère-français' },
+        di: { name: 'diola', greeting: 'Kasumay.', style: 'diola-français' },
+        mn: { name: 'mandinka', greeting: 'I ni ce.', style: 'mandinka-français' },
+        sn: { name: 'soninké', greeting: 'An maarandi.', style: 'soninké-français' }
+      };
+      const cfg = langConfig[language] || langConfig.wo;
+
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -193,7 +202,7 @@ async function getAIResponse(messages, language) {
           model: 'llama-3.3-70b-versatile',
           messages: [{
             role: 'user',
-            content: `Traduis ce texte en ${langName}. Utilise l'alphabet latin. Garde les noms propres, chiffres et termes techniques agricoles inchangés. Donne UNIQUEMENT la traduction, rien d'autre.\n\nTexte :\n${frenchResponse}`
+            content: `Réécris ce conseil agricole en style ${cfg.style}. Commence par "${cfg.greeting}" puis donne le contenu technique en français simple et clair. Les termes agricoles, chiffres, noms de variétés restent en français. Le but est que ce soit COMPRÉHENSIBLE et UTILE pour un agriculteur ${cfg.name}phone. Ne génère PAS de ${cfg.name} inventé. Si tu ne connais pas le mot en ${cfg.name}, laisse-le en français.\n\nTexte à réécrire :\n${frenchResponse}`
           }],
           max_tokens: 2000,
           temperature: 0.3
@@ -208,7 +217,7 @@ async function getAIResponse(messages, language) {
         }
       }
     } catch (e) {
-      console.log('Groq translation fallback failed:', e.message);
+      console.log('Groq bilingual fallback failed:', e.message);
     }
   }
 
