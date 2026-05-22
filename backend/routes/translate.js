@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { translateText, isTranslationAvailable, NLLB_LANG_CODES, HF_API_URL } = require('../services/translate-service');
+const { translateText, isTranslationAvailable, NLLB_LANG_CODES } = require('../services/translate-service');
 
 router.post('/', async (req, res) => {
   try {
@@ -31,45 +31,17 @@ router.post('/', async (req, res) => {
 
 router.post('/debug', async (req, res) => {
   const { text = 'Bonjour', source = 'fr', target = 'wo' } = req.body;
-  const apiKey = process.env.HF_API_KEY || process.env.HUGGINGFACE_API_KEY;
-  const srcCode = NLLB_LANG_CODES[source] || 'fra_Latn';
-  const tgtCode = NLLB_LANG_CODES[target] || 'wol_Latn';
-
-  if (!apiKey) {
-    return res.json({ error: 'No API key configured', key_env: 'HF_API_KEY or HUGGINGFACE_API_KEY' });
-  }
-
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000);
-
-    const response = await fetch(HF_API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        inputs: text,
-        parameters: { src_lang: srcCode, tgt_lang: tgtCode },
-        options: { wait_for_model: true }
-      }),
-      signal: controller.signal
-    });
-
-    clearTimeout(timeout);
-    const rawBody = await response.text();
+    const result = await translateText(text, source, target);
     res.json({
-      status: response.status,
-      src_lang: srcCode,
-      tgt_lang: tgtCode,
-      api_url: HF_API_URL,
-      has_key: !!apiKey,
-      key_prefix: apiKey ? apiKey.slice(0, 6) + '...' : null,
-      raw_response: rawBody
+      input: text,
+      output: result,
+      translated: !!(result && result !== text),
+      groq_available: !!process.env.GROQ_API_KEY,
+      hf_available: !!(process.env.HF_API_KEY || process.env.HUGGINGFACE_API_KEY)
     });
   } catch (e) {
-    res.json({ error: e.message, type: e.name });
+    res.json({ error: e.message });
   }
 });
 
