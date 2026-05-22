@@ -22,8 +22,12 @@ router.post('/transcribe', async (req, res) => {
     const boundary = '----FormBoundary' + Math.random().toString(36).slice(2);
     const langCode = LANG_MAP[language] || 'fr';
 
+    const isMp4 = audioBuffer.length > 8 && audioBuffer.toString('ascii', 4, 8) === 'ftyp';
+    const ext = isMp4 ? 'mp4' : 'webm';
+    const mime = isMp4 ? 'audio/mp4' : 'audio/webm';
+
     const parts = [];
-    parts.push(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="audio.webm"\r\nContent-Type: audio/webm\r\n\r\n`);
+    parts.push(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="audio.${ext}"\r\nContent-Type: ${mime}\r\n\r\n`);
     parts.push(audioBuffer);
     parts.push(`\r\n--${boundary}\r\nContent-Disposition: form-data; name="model"\r\n\r\nwhisper-large-v3\r\n`);
     parts.push(`--${boundary}\r\nContent-Disposition: form-data; name="language"\r\n\r\n${langCode}\r\n`);

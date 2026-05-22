@@ -2,75 +2,15 @@ import { useState, useRef, useCallback } from 'react'
 import { FiSend, FiMic, FiMicOff } from 'react-icons/fi'
 import { transcribeAudio } from '../../services/api'
 
-const BROWSER_SPEECH_LANGS = { fr: 'fr-FR', en: 'en-US', ar: 'ar-SA' };
-const USES_SERVER_STT = ['wo', 'pu', 'sr', 'di', 'mn', 'sn'];
-
 function ChatInput({ onSend, loading, language }) {
   const [input, setInput] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const inputRef = useRef(null);
-  const recognitionRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
 
-  const startBrowserRecognition = useCallback(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      startServerRecording();
-      return;
-    }
-
-    try {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = true;
-      recognition.lang = BROWSER_SPEECH_LANGS[language] || 'fr-FR';
-      recognition.maxAlternatives = 1;
-
-      let finalTranscript = '';
-
-      recognition.onresult = (event) => {
-        let interim = '';
-        finalTranscript = '';
-        for (let i = 0; i < event.results.length; i++) {
-          if (event.results[i].isFinal) {
-            finalTranscript += event.results[i][0].transcript;
-          } else {
-            interim += event.results[i][0].transcript;
-          }
-        }
-        setInput(finalTranscript || interim);
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
-        recognitionRef.current = null;
-      };
-
-      recognition.onerror = (e) => {
-        console.log('Speech recognition error:', e.error);
-        setIsListening(false);
-        recognitionRef.current = null;
-        if (e.error === 'not-allowed') {
-          alert('Micro non autorisé. Cliquez sur l\'icône 🔒 dans la barre d\'adresse → Autoriser le micro.');
-        } else if (e.error === 'no-speech') {
-          // Silence, not a real error
-        } else {
-          startServerRecording();
-        }
-      };
-
-      recognitionRef.current = recognition;
-      recognition.start();
-      setIsListening(true);
-    } catch (e) {
-      console.log('SpeechRecognition failed, using server:', e);
-      startServerRecording();
-    }
-  }, [language]);
-
-  const startServerRecording = useCallback(async () => {
+  const startRecording = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm'
@@ -84,7 +24,7 @@ function ChatInput({ onSend, loading, language }) {
 
       mediaRecorder.onstop = async () => {
         stream.getTracks().forEach(t => t.stop());
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        const blob = new Blob(chunksRef.current, { type: mimeType || 'audio/webm' });
         setIsTranscribing(true);
         try {
           const buffer = await blob.arrayBuffer();
@@ -114,19 +54,12 @@ function ChatInput({ onSend, loading, language }) {
 
   const toggleListening = () => {
     if (isListening) {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
       if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
         mediaRecorderRef.current.stop();
       }
       setIsListening(false);
     } else {
-      if (USES_SERVER_STT.includes(language)) {
-        startServerRecording();
-      } else {
-        startBrowserRecognition();
-      }
+      startRecording();
     }
   };
 
