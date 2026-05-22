@@ -26,6 +26,7 @@ function ChatBubble({ message, onSpeak, onStop, isSpeaking }) {
                   h3: ({children}) => <h5 className="font-semibold text-sm text-stone-800 mt-2 mb-1">{children}</h5>,
                   p: ({children}) => <p className="mb-2 last:mb-0">{children}</p>,
                   strong: ({children}) => <strong className="font-semibold text-stone-900">{children}</strong>,
+                  a: ({href, children}) => <a href={href} target="_blank" rel="noopener noreferrer" className="text-amber-700 underline hover:text-amber-900">{children}</a>,
                   ul: ({children}) => <ul className="mb-2 space-y-1 pl-1">{children}</ul>,
                   ol: ({children}) => <ol className="mb-2 space-y-1 pl-4 list-decimal">{children}</ol>,
                   li: ({children}) => <li className="flex gap-1.5"><span className="text-amber-600 mt-0.5 flex-shrink-0">•</span><span>{children}</span></li>,

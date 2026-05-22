@@ -1,4 +1,4 @@
-import { FiMessageCircle, FiBarChart2, FiHome, FiMenu, FiX, FiTarget } from 'react-icons/fi'
+import { FiMessageCircle, FiBarChart2, FiHome, FiMenu, FiX, FiTarget, FiBookOpen } from 'react-icons/fi'
 import { useState } from 'react'
 
 const tabs = [
@@ -6,6 +6,7 @@ const tabs = [
   { id: 'chat', label: 'Conseiller', icon: FiMessageCircle, desc: 'Poser une question' },
   { id: 'dashboard', label: 'Marchés', icon: FiBarChart2, desc: 'Prix et météo' },
   { id: 'predict', label: 'Prédiction', icon: FiTarget, desc: 'Quand semer' },
+  { id: 'sources', label: 'Sources', icon: FiBookOpen, desc: 'Documentation' },
 ];
 
 function Header({ activeTab, setActiveTab }) {

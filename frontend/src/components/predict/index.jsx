@@ -7,15 +7,19 @@ import MLResults from './MLResults'
 
 const CITIES = [
   { id: 'dakar', name: 'Dakar', zone: 'Niayes' },
-  { id: 'thies', name: 'Thiès', zone: 'Bassin arachidier' },
+  { id: 'thies', name: 'Thiès', zone: 'Bassin arachidier / Niayes' },
+  { id: 'diourbel', name: 'Diourbel', zone: 'Bassin arachidier' },
   { id: 'kaolack', name: 'Kaolack', zone: 'Bassin arachidier' },
-  { id: 'saint_louis', name: 'Saint-Louis', zone: 'Fleuve' },
-  { id: 'tambacounda', name: 'Tambacounda', zone: 'Sénégal oriental' },
-  { id: 'ziguinchor', name: 'Ziguinchor', zone: 'Casamance' },
-  { id: 'kolda', name: 'Kolda', zone: 'Haute Casamance' },
+  { id: 'kaffrine', name: 'Kaffrine', zone: 'Bassin arachidier sud' },
   { id: 'fatick', name: 'Fatick', zone: 'Sine Saloum' },
-  { id: 'louga', name: 'Louga', zone: 'Sylvo-pastoral' },
-  { id: 'matam', name: 'Matam', zone: 'Fleuve' }
+  { id: 'saint_louis', name: 'Saint-Louis', zone: 'Fleuve (delta)' },
+  { id: 'matam', name: 'Matam', zone: 'Fleuve (haute vallée)' },
+  { id: 'louga', name: 'Louga', zone: 'Sylvo-pastorale' },
+  { id: 'tambacounda', name: 'Tambacounda', zone: 'Sénégal oriental' },
+  { id: 'kedougou', name: 'Kédougou', zone: 'Sénégal oriental sud' },
+  { id: 'kolda', name: 'Kolda', zone: 'Haute Casamance' },
+  { id: 'sedhiou', name: 'Sédhiou', zone: 'Moyenne Casamance' },
+  { id: 'ziguinchor', name: 'Ziguinchor', zone: 'Basse Casamance' },
 ];
 
 function Predict() {

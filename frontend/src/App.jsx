@@ -4,6 +4,7 @@ import Hero from './components/layout/Hero'
 import Chat from './components/chat/index'
 import Dashboard from './components/dashboard/index'
 import Predict from './components/predict/index'
+import Sources from './components/layout/Sources'
 import Footer from './components/layout/Footer'
 
 function App() {
@@ -13,12 +14,13 @@ function App() {
     <div className="min-h-screen bg-earth-50 flex flex-col">
       <Header activeTab={activeTab} setActiveTab={setActiveTab} />
       <main className="flex-1">
-        {activeTab === 'home' && <Hero onStart={() => setActiveTab('chat')} />}
+        {activeTab === 'home' && <Hero onStart={() => setActiveTab('chat')} onNavigate={setActiveTab} />}
         {activeTab === 'chat' && <Chat />}
         {activeTab === 'dashboard' && <Dashboard />}
         {activeTab === 'predict' && <Predict />}
+        {activeTab === 'sources' && <Sources />}
       </main>
-      <Footer />
+      <Footer onNavigate={setActiveTab} />
     </div>
   )
 }

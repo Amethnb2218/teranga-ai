@@ -1,6 +1,6 @@
 import { FiArrowRight, FiMapPin, FiSun, FiDollarSign, FiMessageCircle, FiTarget, FiMic } from 'react-icons/fi'
 
-function Hero({ onStart }) {
+function Hero({ onStart, onNavigate }) {
   return (
     <div className="relative">
       {/* Hero Section — immersive avec photo plein écran */}
@@ -95,8 +95,8 @@ function Hero({ onStart }) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Outil 1 */}
-            <div className="bg-white rounded-xl overflow-hidden border border-stone-200 group hover:shadow-md transition-shadow">
+            {/* Outil 1 — Chat */}
+            <div onClick={() => onNavigate('chat')} className="bg-white rounded-xl overflow-hidden border border-stone-200 group hover:shadow-md transition-shadow cursor-pointer">
               <div className="h-40 overflow-hidden">
                 <img
                   src="https://images.unsplash.com/photo-1523741543316-beb7fc7023d8?w=600&q=75"
@@ -115,8 +115,8 @@ function Hero({ onStart }) {
               </div>
             </div>
 
-            {/* Outil 2 */}
-            <div className="bg-white rounded-xl overflow-hidden border border-stone-200 group hover:shadow-md transition-shadow">
+            {/* Outil 2 — Prédiction */}
+            <div onClick={() => onNavigate('predict')} className="bg-white rounded-xl overflow-hidden border border-stone-200 group hover:shadow-md transition-shadow cursor-pointer">
               <div className="h-40 overflow-hidden">
                 <img
                   src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&q=75"
@@ -135,8 +135,8 @@ function Hero({ onStart }) {
               </div>
             </div>
 
-            {/* Outil 3 */}
-            <div className="bg-white rounded-xl overflow-hidden border border-stone-200 group hover:shadow-md transition-shadow">
+            {/* Outil 3 — Dashboard/Météo */}
+            <div onClick={() => onNavigate('dashboard')} className="bg-white rounded-xl overflow-hidden border border-stone-200 group hover:shadow-md transition-shadow cursor-pointer">
               <div className="h-40 overflow-hidden">
                 <img
                   src="https://images.unsplash.com/photo-1504387828636-abeb50778c0c?w=600&q=75"
@@ -155,8 +155,8 @@ function Hero({ onStart }) {
               </div>
             </div>
 
-            {/* Outil 4 */}
-            <div className="bg-white rounded-xl overflow-hidden border border-stone-200 group hover:shadow-md transition-shadow">
+            {/* Outil 4 — Dashboard/Marchés */}
+            <div onClick={() => onNavigate('dashboard')} className="bg-white rounded-xl overflow-hidden border border-stone-200 group hover:shadow-md transition-shadow cursor-pointer">
               <div className="h-40 overflow-hidden">
                 <img
                   src="https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=600&q=75"

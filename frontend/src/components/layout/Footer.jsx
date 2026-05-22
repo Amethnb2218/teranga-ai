@@ -1,4 +1,4 @@
-function Footer() {
+function Footer({ onNavigate }) {
   return (
     <footer className="bg-stone-900 border-t border-stone-800">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
@@ -18,11 +18,16 @@ function Footer() {
           </div>
           <div>
             <h4 className="font-medium text-stone-200 mb-3 text-sm">Sources de données</h4>
-            <ul className="space-y-2 text-sm text-stone-400">
-              <li>ISRA — Variétés certifiées</li>
-              <li>FAO/GIEWS — Prix et sécurité alimentaire</li>
-              <li>ANACIM — Données climatiques</li>
-              <li>CSA — Suivi des marchés</li>
+            <ul className="space-y-2 text-sm">
+              <li><a href="https://www.isra.sn" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-amber-400 transition-colors">ISRA — Variétés certifiées</a></li>
+              <li><a href="https://www.fao.org/giews" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-amber-400 transition-colors">FAO/GIEWS — Prix et sécurité alimentaire</a></li>
+              <li><a href="https://www.anacim.sn" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-amber-400 transition-colors">ANACIM — Données climatiques</a></li>
+              <li><a href="http://www.csa.sn" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-amber-400 transition-colors">CSA — Suivi des marchés</a></li>
+              <li>
+                <button onClick={() => onNavigate?.('sources')} className="text-amber-400 hover:text-amber-300 transition-colors underline underline-offset-2">
+                  Voir toutes les sources →
+                </button>
+              </li>
             </ul>
           </div>
           <div>
@@ -31,7 +36,7 @@ function Footer() {
               <li>Arachide, Mil, Sorgho</li>
               <li>Riz, Maïs, Niébé</li>
               <li>Tomate, Oignon, Chou</li>
-              <li>Mangue, Pastèque</li>
+              <li>Mangue, Pastèque, Anacarde</li>
             </ul>
           </div>
         </div>
