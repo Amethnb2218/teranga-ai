@@ -105,19 +105,27 @@ router.post('/transcribe', async (req, res) => {
     let text = '';
 
     if (MMS_MODELS[language]) {
-      try {
-        text = await transcribeWithMMS(audioBuffer, language);
-      } catch (mmsErr) {
-        console.log('MMS fallback to Whisper:', mmsErr.message);
-        if (process.env.GROQ_API_KEY) {
-          text = await transcribeWithWhisper(audioBuffer, language);
+      const hfKey = process.env.HF_API_KEY || process.env.HUGGINGFACE_API_KEY;
+      if (hfKey) {
+        try {
+          text = await transcribeWithMMS(audioBuffer, language);
+        } catch (mmsErr) {
+          console.log('MMS failed:', mmsErr.message);
         }
       }
-    } else {
-      if (!process.env.GROQ_API_KEY) {
-        return res.status(503).json({ error: 'Speech service unavailable', text: '' });
+      if (!text && process.env.GROQ_API_KEY) {
+        try {
+          text = await transcribeWithWhisper(audioBuffer, language);
+        } catch (whisperErr) {
+          console.log('Whisper fallback failed:', whisperErr.message);
+        }
       }
+    } else if (process.env.GROQ_API_KEY) {
       text = await transcribeWithWhisper(audioBuffer, language);
+    }
+
+    if (!text) {
+      return res.json({ text: '', error: 'Aucun service de transcription disponible. Vérifiez HF_API_KEY ou GROQ_API_KEY.' });
     }
 
     res.json({ text });
