@@ -170,15 +170,15 @@ async function getAIResponse(messages, language) {
 
   if (LANGS_NEED_TRANSLATION.includes(language)) {
     try {
-      const translated = await translateForChat(frenchResponse, language);
+      const translationPromise = translateForChat(frenchResponse, language);
+      const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(null), 12000));
+      const translated = await Promise.race([translationPromise, timeoutPromise]);
       if (translated && translated !== frenchResponse) {
         return translated;
       }
     } catch (e) {
       console.error('Translation failed:', e.message);
     }
-
-    // Fallback: return French response (NLLB unavailable)
     return frenchResponse;
   }
 

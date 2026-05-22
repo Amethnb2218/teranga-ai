@@ -162,8 +162,8 @@ async function translateForChat(text, targetLang) {
       .trim();
 
     // Try translating the full text first (faster, works for short responses)
-    if (cleanText.length < 300) {
-      const fullResult = await translateWithNLLB(cleanText, 'fr', targetLang, 3);
+    if (cleanText.length < 500) {
+      const fullResult = await translateWithNLLB(cleanText, 'fr', targetLang, 1);
       if (fullResult) {
         const frenchWords = fullResult.match(/\b(est|les|des|pour|dans|avec|sur|que|qui|une|pas)\b/gi) || [];
         if (frenchWords.length <= fullResult.split(' ').length * 0.3) {
@@ -181,7 +181,7 @@ async function translateForChat(text, targetLang) {
         translated.push(sentence);
         continue;
       }
-      const result = await translateWithNLLB(sentence, 'fr', targetLang, 3);
+      const result = await translateWithNLLB(sentence, 'fr', targetLang, 1);
       translated.push(result || sentence);
     }
 
