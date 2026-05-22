@@ -31,17 +31,46 @@ router.post('/', async (req, res) => {
 
 router.post('/debug', async (req, res) => {
   const { text = 'Bonjour', source = 'fr', target = 'wo' } = req.body;
+  const debugInfo = { input: text, groq_key: !!process.env.GROQ_API_KEY };
+
   try {
+    // Direct Groq test
+    const groqKey = process.env.GROQ_API_KEY;
+    if (groqKey) {
+      const langName = { wo: 'wolof', pu: 'pulaar', en: 'English', ar: 'arabe' }[target] || 'wolof';
+      const prompt = `Traduis en ${langName} : "${text}"`;
+
+      const groqResp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${groqKey}`
+        },
+        body: JSON.stringify({
+          model: 'llama-3.1-70b-versatile',
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 500,
+          temperature: 0.3
+        })
+      });
+
+      debugInfo.groq_status = groqResp.status;
+      if (groqResp.ok) {
+        const data = await groqResp.json();
+        debugInfo.groq_response = data.choices?.[0]?.message?.content;
+      } else {
+        debugInfo.groq_error = await groqResp.text();
+      }
+    }
+
     const result = await translateText(text, source, target);
-    res.json({
-      input: text,
-      output: result,
-      translated: !!(result && result !== text),
-      groq_available: !!process.env.GROQ_API_KEY,
-      hf_available: !!(process.env.HF_API_KEY || process.env.HUGGINGFACE_API_KEY)
-    });
+    debugInfo.final_output = result;
+    debugInfo.success = !!(result && result !== text);
+    res.json(debugInfo);
   } catch (e) {
-    res.json({ error: e.message });
+    debugInfo.error = e.message;
+    debugInfo.stack = e.stack?.split('\n').slice(0, 3);
+    res.json(debugInfo);
   }
 });
 
