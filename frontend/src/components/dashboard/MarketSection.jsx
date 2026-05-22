@@ -1,17 +1,17 @@
 import { FiTrendingUp, FiTrendingDown, FiMinus } from 'react-icons/fi'
 
 function getTrendIcon(trend) {
-  if (trend === 'hausse') return <FiTrendingUp className="text-red-500" />;
-  if (trend === 'baisse') return <FiTrendingDown className="text-green-600" />;
-  return <FiMinus className="text-gray-400" />;
+  if (trend === 'hausse') return <FiTrendingUp size={12} className="text-red-500" />;
+  if (trend === 'baisse') return <FiTrendingDown size={12} className="text-leaf-600" />;
+  return <FiMinus size={12} className="text-stone-300" />;
 }
 
 function getCategoryLabel(category) {
   switch (category) {
-    case 'cereales': return '🌾 Céréales';
-    case 'legumineuses': return '🫘 Légumineuses';
-    case 'maraichage': return '🥬 Maraîchage';
-    case 'fruits': return '🍎 Fruits';
+    case 'cereales': return 'Céréales';
+    case 'legumineuses': return 'Légumineuses';
+    case 'maraichage': return 'Maraîchage';
+    case 'fruits': return 'Fruits';
     default: return category;
   }
 }
@@ -21,26 +21,27 @@ function MarketSection({ market }) {
 
   return (
     <section className="mb-8">
-      <div className="flex items-center gap-2 mb-4">
-        <FiTrendingUp className="text-primary-600" />
-        <h3 className="font-semibold text-gray-900">Prix du marché (FCFA)</h3>
-        <span className="text-xs text-gray-500">Mis à jour : {market.last_updated}</span>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-semibold text-stone-900 text-sm">Prix du marché</h3>
+        <span className="text-xs text-stone-400">FCFA/kg · {market.last_updated}</span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {Object.entries(market.data).map(([category, products]) => (
           products.length > 0 && (
-            <div key={category} className="card">
-              <h4 className="font-medium text-gray-900 capitalize mb-3 pb-2 border-b border-gray-100">
-                {getCategoryLabel(category)}
-              </h4>
-              <div className="space-y-2">
+            <div key={category} className="bg-white rounded-lg border border-stone-200 overflow-hidden">
+              <div className="px-4 py-2.5 bg-stone-50 border-b border-stone-100">
+                <h4 className="text-xs font-semibold text-stone-700 uppercase tracking-wide">
+                  {getCategoryLabel(category)}
+                </h4>
+              </div>
+              <div className="divide-y divide-stone-50">
                 {products.map((product, i) => (
-                  <div key={i} className="flex items-center justify-between">
-                    <span className="text-sm text-gray-700">{product.name}</span>
+                  <div key={i} className="flex items-center justify-between px-4 py-2.5">
+                    <span className="text-sm text-stone-700">{product.name}</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-gray-900">
-                        {product.price_local} F/{product.unit}
+                      <span className="text-sm font-mono font-medium text-stone-900">
+                        {product.price_local}
                       </span>
                       {getTrendIcon(product.trend)}
                     </div>

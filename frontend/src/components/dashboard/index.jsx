@@ -9,18 +9,21 @@ function Dashboard() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-12 text-center">
-        <div className="animate-pulse text-gray-500">Chargement des données...</div>
+      <div className="max-w-6xl mx-auto px-4 py-20 text-center">
+        <div className="inline-flex items-center gap-2 text-stone-400 text-sm">
+          <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
+          Chargement des données...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Tableau de bord</h2>
-          <p className="text-gray-600 text-sm mt-1">Météo et prix du marché en temps réel</p>
+          <h2 className="text-xl font-bold text-stone-900">Marchés & Météo</h2>
+          <p className="text-stone-500 text-sm mt-0.5">Données actualisées pour votre zone</p>
         </div>
         <CitySelector city={city} onChange={setCity} />
       </div>

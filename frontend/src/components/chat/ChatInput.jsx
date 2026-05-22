@@ -20,23 +20,23 @@ function ChatInput({ onSend, loading, language }) {
   };
 
   return (
-    <div className="flex items-end gap-3 bg-white rounded-2xl border border-gray-200 p-3 shadow-sm">
+    <div className="flex items-end gap-2 bg-white rounded-xl border border-stone-200 p-2.5">
       <textarea
         ref={inputRef}
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder={language === 'fr' ? "Posez votre question agricole..." : "Laaj sa laaj ci biir tëbb..."}
+        placeholder={language === 'fr' ? "Votre question agricole..." : "Laaj sa laaj ci biir tëbb..."}
         rows={1}
-        className="flex-1 resize-none outline-none text-sm text-gray-800 placeholder-gray-400 py-2 max-h-32"
+        className="flex-1 resize-none outline-none text-sm text-stone-800 placeholder-stone-400 py-1.5 px-1 max-h-32"
         disabled={loading}
       />
       <button
         onClick={handleSend}
         disabled={!input.trim() || loading}
-        className="w-10 h-10 flex items-center justify-center rounded-xl bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+        className="w-8 h-8 flex items-center justify-center rounded-lg bg-amber-700 text-white hover:bg-amber-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
       >
-        <FiSend size={16} />
+        <FiSend size={14} />
       </button>
     </div>
   );

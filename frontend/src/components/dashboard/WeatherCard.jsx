@@ -1,24 +1,23 @@
-import { FiDroplet } from 'react-icons/fi'
-
 function getWeatherIcon(condition) {
   switch (condition) {
-    case 'rain': return '🌧️'
-    case 'cloudy': return '☁️'
-    default: return '☀️'
+    case 'rain': return '🌧'
+    case 'cloudy': return '☁'
+    default: return '☀'
   }
 }
 
-function WeatherCard({ day }) {
+function WeatherCard({ day, isToday }) {
   return (
-    <div className="card text-center p-4">
-      <div className="text-xs text-gray-500 capitalize mb-2">{day.day}</div>
-      <div className="text-2xl mb-2">{getWeatherIcon(day.condition)}</div>
-      <div className="text-sm font-semibold text-gray-900">{day.temp_max}°</div>
-      <div className="text-xs text-gray-500">{day.temp_min}°</div>
-      <div className="flex items-center justify-center gap-1 mt-2">
-        <FiDroplet size={10} className="text-blue-400" />
-        <span className="text-xs text-gray-600">{day.rain_probability}%</span>
+    <div className={`text-center p-3 rounded-lg ${isToday ? 'bg-amber-50 border border-amber-200' : 'bg-white border border-stone-100'}`}>
+      <div className="text-xs text-stone-500 capitalize mb-1.5">
+        {isToday ? 'Auj.' : day.day.slice(0, 3)}
       </div>
+      <div className="text-xl mb-1">{getWeatherIcon(day.condition)}</div>
+      <div className="text-sm font-semibold text-stone-800">{day.temp_max}°</div>
+      <div className="text-xs text-stone-400">{day.temp_min}°</div>
+      {day.rain_probability > 30 && (
+        <div className="text-xs text-blue-600 mt-1">{day.rain_probability}%</div>
+      )}
     </div>
   );
 }

@@ -5,35 +5,25 @@ function TrendsSection({ trends }) {
 
   return (
     <section>
-      <div className="flex items-center gap-2 mb-4">
-        <FiTrendingUp className="text-primary-600" />
-        <h3 className="font-semibold text-gray-900">Alertes et tendances</h3>
-      </div>
+      <h3 className="font-semibold text-stone-900 text-sm mb-3">Alertes & recommandations</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {trends.trends.map((trend, i) => (
           <div
             key={i}
-            className={`card p-4 border-l-4 ${
+            className={`rounded-lg p-3.5 border ${
               trend.trend === 'hausse'
-                ? 'border-l-orange-400 bg-orange-50/50'
-                : 'border-l-blue-400 bg-blue-50/50'
+                ? 'bg-orange-50 border-orange-200'
+                : 'bg-blue-50 border-blue-200'
             }`}
           >
             <div className="flex items-center gap-2 mb-1">
               {trend.trend === 'hausse'
-                ? <FiTrendingUp className="text-red-500" />
-                : <FiTrendingDown className="text-green-600" />
+                ? <FiTrendingUp size={13} className="text-orange-600" />
+                : <FiTrendingDown size={13} className="text-blue-600" />
               }
-              <span className="font-medium text-sm text-gray-900">{trend.product}</span>
-              <span className={`text-xs px-2 py-0.5 rounded-full ${
-                trend.trend === 'hausse'
-                  ? 'bg-orange-100 text-orange-700'
-                  : 'bg-blue-100 text-blue-700'
-              }`}>
-                {trend.trend === 'hausse' ? '↑ Hausse' : '↓ Baisse'}
-              </span>
+              <span className="font-medium text-sm text-stone-800">{trend.product}</span>
             </div>
-            <p className="text-sm text-gray-600">{trend.advice}</p>
+            <p className="text-xs text-stone-600 ml-5">{trend.advice}</p>
           </div>
         ))}
       </div>
