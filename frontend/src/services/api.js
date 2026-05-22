@@ -45,3 +45,31 @@ export async function fetchAvailableCrops() {
   if (!response.ok) throw new Error('Crops fetch failed');
   return response.json();
 }
+
+export async function fetchYieldPrediction(crop, city, month) {
+  const response = await fetch(`${API_BASE}/api/ml/predict-yield/${crop}/${city}?month=${month}`);
+  if (!response.ok) throw new Error('ML prediction failed');
+  return response.json();
+}
+
+export async function fetchOptimizeCalendar(crops, city, parcels = 3) {
+  const response = await fetch(`${API_BASE}/api/ml/optimize-calendar`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ crops, city, parcels })
+  });
+  if (!response.ok) throw new Error('Optimization failed');
+  return response.json();
+}
+
+export async function fetchMLMetrics() {
+  const response = await fetch(`${API_BASE}/api/ml/metrics`);
+  if (!response.ok) throw new Error('Metrics fetch failed');
+  return response.json();
+}
+
+export async function fetchBayesianRisk(crop, city, month) {
+  const response = await fetch(`${API_BASE}/api/ml/risk/${crop}/${city}/${month}`);
+  if (!response.ok) throw new Error('Risk fetch failed');
+  return response.json();
+}

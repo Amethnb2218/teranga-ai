@@ -2,10 +2,10 @@ import { FiMessageCircle, FiBarChart2, FiHome, FiMenu, FiX, FiTarget } from 'rea
 import { useState } from 'react'
 
 const tabs = [
-  { id: 'home', label: 'Accueil', icon: FiHome },
-  { id: 'chat', label: 'Conseiller', icon: FiMessageCircle },
-  { id: 'dashboard', label: 'Marchés & Météo', icon: FiBarChart2 },
-  { id: 'predict', label: 'Prédiction', icon: FiTarget },
+  { id: 'home', label: 'Accueil', icon: FiHome, desc: 'Page principale' },
+  { id: 'chat', label: 'Conseiller', icon: FiMessageCircle, desc: 'Poser une question' },
+  { id: 'dashboard', label: 'Marchés', icon: FiBarChart2, desc: 'Prix et météo' },
+  { id: 'predict', label: 'Prédiction', icon: FiTarget, desc: 'Quand semer' },
 ];
 
 function Header({ activeTab, setActiveTab }) {

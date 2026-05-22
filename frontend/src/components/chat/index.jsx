@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react'
-import { FiGlobe } from 'react-icons/fi'
+import { FiGlobe, FiVolume2, FiVolumeX } from 'react-icons/fi'
 import { useChat } from '../../hooks/useChat'
 import ChatBubble from './ChatBubble'
 import ChatInput from './ChatInput'
@@ -7,7 +7,11 @@ import Suggestions from './Suggestions'
 import LoadingDots from '../common/LoadingDots'
 
 function Chat() {
-  const { messages, loading, language, sendMessage, toggleLanguage } = useChat();
+  const {
+    messages, loading, language, isSpeaking, autoSpeak,
+    sendMessage, cycleLanguage, speak, stopSpeaking,
+    setAutoSpeak, LANG_LABELS
+  } = useChat();
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -21,18 +25,33 @@ function Chat() {
           <h2 className="text-base font-semibold text-stone-900">Conseiller agricole</h2>
           <p className="text-xs text-stone-400">Posez vos questions sur les cultures, maladies, irrigation...</p>
         </div>
-        <button
-          onClick={toggleLanguage}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-stone-100 hover:bg-stone-200 text-xs font-medium text-stone-600 transition-colors"
-        >
-          <FiGlobe size={12} />
-          {language === 'fr' ? 'FR' : 'WO'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              if (isSpeaking) { stopSpeaking(); }
+              else { setAutoSpeak(a => !a); }
+            }}
+            className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
+              autoSpeak || isSpeaking ? 'bg-amber-100 text-amber-800' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+            }`}
+            title={autoSpeak ? 'Désactiver la lecture vocale' : 'Activer la lecture vocale'}
+          >
+            {isSpeaking ? <FiVolumeX size={12} /> : <FiVolume2 size={12} />}
+            {isSpeaking ? 'Stop' : autoSpeak ? 'Vocal ON' : 'Vocal'}
+          </button>
+          <button
+            onClick={cycleLanguage}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-stone-100 hover:bg-stone-200 text-xs font-medium text-stone-600 transition-colors"
+          >
+            <FiGlobe size={12} />
+            {LANG_LABELS[language]}
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-3 pb-4">
         {messages.map((msg, i) => (
-          <ChatBubble key={i} message={msg} />
+          <ChatBubble key={i} message={msg} language={language} onSpeak={speak} />
         ))}
 
         {loading && (

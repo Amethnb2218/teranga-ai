@@ -3,6 +3,7 @@ import { fetchPrediction, fetchAvailableCrops } from '../../services/api'
 import RiskGauge from './RiskGauge'
 import Timeline from './Timeline'
 import WaterAnalysis from './WaterAnalysis'
+import MLResults from './MLResults'
 
 const CITIES = ['dakar', 'thies', 'kaolack', 'saint_louis', 'tambacounda', 'ziguinchor', 'kolda', 'fatick', 'louga', 'matam'];
 
@@ -100,6 +101,9 @@ function Predict() {
             optimal={prediction.optimal}
             crop={prediction.crop}
           />
+
+          {/* ML Engine */}
+          <MLResults crop={selectedCrop} city={selectedCity} />
 
           {/* Variétés recommandées */}
           <div className="bg-white rounded-xl border border-stone-200 p-5">
