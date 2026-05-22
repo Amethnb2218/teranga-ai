@@ -103,29 +103,36 @@ async function callGroqAPI(messages, language) {
   return data.choices[0].message.content;
 }
 
+const LANGS_NEED_TRANSLATION = ['wo', 'pu', 'sr', 'di', 'mn', 'sn'];
+
 async function getAIResponse(messages, language) {
   const lastUserMessage = messages.filter(m => m.role === 'user').pop()?.content || '';
 
+  let frenchResponse = '';
+
   if (process.env.GROQ_API_KEY) {
     try {
-      return await callGroqAPI(messages, language);
+      if (LANGS_NEED_TRANSLATION.includes(language)) {
+        frenchResponse = await callGroqAPI(messages, 'fr');
+      } else {
+        return await callGroqAPI(messages, language);
+      }
     } catch (error) {
       console.error('Groq API error, falling back to offline:', error.message);
     }
   }
 
-  const offlineResponse = matchOfflineResponse(lastUserMessage);
+  if (!frenchResponse) {
+    frenchResponse = matchOfflineResponse(lastUserMessage);
+  }
 
-  // If language is not French, try translation methods in order:
-  // 1. NLLB via Hugging Face (free, supports Wolof/Pulaar/etc.)
-  // 2. Groq LLM translation
-  // 3. Fallback with note
-  if (language !== 'fr') {
-    // Try NLLB first (best for African languages)
+  if (language === 'fr') return frenchResponse;
+
+  if (LANGS_NEED_TRANSLATION.includes(language)) {
     if (isTranslationAvailable()) {
       try {
-        const translated = await translateForChat(offlineResponse, language);
-        if (translated && translated !== offlineResponse) {
+        const translated = await translateForChat(frenchResponse, language);
+        if (translated && translated !== frenchResponse) {
           return translated;
         }
       } catch (e) {
@@ -133,27 +140,32 @@ async function getAIResponse(messages, language) {
       }
     }
 
-    // Try Groq LLM as fallback
     if (process.env.GROQ_API_KEY) {
       try {
-        const langName = { wo: 'wolof', pu: 'pulaar', sr: 'sérère', di: 'diola', mn: 'mandinka', sn: 'soninké', en: 'anglais', ar: 'arabe' }[language] || 'wolof';
+        const langName = { wo: 'wolof', pu: 'pulaar', sr: 'sérère', di: 'diola', mn: 'mandinka', sn: 'soninké' }[language];
         const translateMessages = [
-          { role: 'user', content: `Traduis ce texte agricole en ${langName}. Garde les noms de variétés, les chiffres et les sigles. Texte :\n\n${offlineResponse}` }
+          { role: 'user', content: `Traduis ce texte en ${langName}. Garde les noms propres, variétés, chiffres et sigles tels quels. Ne répète jamais de phrases. Sois naturel.\n\nTexte :\n${frenchResponse}` }
         ];
-        return await callGroqAPI(translateMessages, language);
+        return await callGroqAPI(translateMessages, 'fr');
       } catch (e) {
         console.error('Groq translation failed:', e.message);
       }
     }
 
-    // Final fallback
-    const langLabels = { wo: 'Wolof', pu: 'Pulaar', sr: 'Sérère', di: 'Diola', mn: 'Mandinka', sn: 'Soninké' };
-    if (langLabels[language]) {
-      return `${offlineResponse}\n\n---\n*Traduction ${langLabels[language]} bientôt disponible. Configurez HF_API_KEY pour activer NLLB.*`;
+    return frenchResponse;
+  }
+
+  if (language !== 'fr' && !LANGS_NEED_TRANSLATION.includes(language)) {
+    if (process.env.GROQ_API_KEY) {
+      try {
+        return await callGroqAPI(messages, language);
+      } catch (e) {
+        console.error('Groq API error:', e.message);
+      }
     }
   }
 
-  return offlineResponse;
+  return frenchResponse;
 }
 
 module.exports = { getAIResponse };
