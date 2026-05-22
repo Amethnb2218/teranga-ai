@@ -38,31 +38,35 @@ function parseGoogleNewsRSS(xml) {
     const item = match[1];
 
     const titleRaw = extractTag(item, 'title');
-    const link = extractTag(item, 'link');
     const pubDate = extractTag(item, 'pubDate');
     const sourceMatch = item.match(/<source[^>]*>([^<]*)<\/source>/);
 
+    // Google News RSS: le lien est entre <link> et le prochain tag
+    const linkMatch = item.match(/<link\s*\/?>\s*(https?:\/\/[^\s<]+)/);
+    const link = linkMatch ? linkMatch[1].trim() : '';
+
     if (!titleRaw) continue;
 
-    // Nettoyer le titre (enlever le nom de la source à la fin)
     let title = cleanHTML(titleRaw);
     let source = sourceMatch ? cleanHTML(sourceMatch[1]) : 'Presse';
 
-    // Google News met souvent "titre - Source" dans le title
+    // Google News: "titre - Source" format
     const dashSplit = title.split(' - ');
     if (dashSplit.length > 1) {
-      source = dashSplit.pop().trim();
-      title = dashSplit.join(' - ').trim();
+      const potentialSource = dashSplit[dashSplit.length - 1].trim();
+      if (potentialSource.length < 40) {
+        source = potentialSource;
+        title = dashSplit.slice(0, -1).join(' - ').trim();
+      }
     }
 
-    // Ne garder que les articles liés à l'agriculture
     if (!isAgriRelated(title)) continue;
 
     items.push({
       title: title.slice(0, 120),
       source,
       date: formatDate(pubDate),
-      link: cleanHTML(link || '')
+      link
     });
   }
 

@@ -1,10 +1,11 @@
-import { FiMessageCircle, FiBarChart2, FiHome, FiMenu, FiX } from 'react-icons/fi'
+import { FiMessageCircle, FiBarChart2, FiHome, FiMenu, FiX, FiTarget } from 'react-icons/fi'
 import { useState } from 'react'
 
 const tabs = [
   { id: 'home', label: 'Accueil', icon: FiHome },
   { id: 'chat', label: 'Conseiller', icon: FiMessageCircle },
   { id: 'dashboard', label: 'Marchés & Météo', icon: FiBarChart2 },
+  { id: 'predict', label: 'Prédiction', icon: FiTarget },
 ];
 
 function Header({ activeTab, setActiveTab }) {

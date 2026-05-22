@@ -33,3 +33,15 @@ export async function fetchNews() {
   if (!response.ok) throw new Error('News fetch failed');
   return response.json();
 }
+
+export async function fetchPrediction(crop, city) {
+  const response = await fetch(`${API_BASE}/api/predict/${crop}/${city}`);
+  if (!response.ok) throw new Error('Prediction fetch failed');
+  return response.json();
+}
+
+export async function fetchAvailableCrops() {
+  const response = await fetch(`${API_BASE}/api/predict/crops`);
+  if (!response.ok) throw new Error('Crops fetch failed');
+  return response.json();
+}
