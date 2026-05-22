@@ -1,7 +1,10 @@
 const express = require('express');
 const router = express.Router();
 
-const WHISPER_LANGS = { fr: 'fr', en: 'en', ar: 'ar' };
+const WHISPER_LANGS = {
+  fr: 'fr', en: 'en', ar: 'ar',
+  wo: 'wo', pu: 'ff', sr: 'fr', di: 'fr', mn: 'fr', sn: 'fr'
+};
 
 const MMS_MODELS = {
   wo: 'facebook/mms-1b-fl102',
