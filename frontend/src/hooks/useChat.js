@@ -31,6 +31,11 @@ const SPEECH_LANG_MAP = {
   ar: 'ar-SA'
 };
 
+const SPEECH_RATE_MAP = {
+  fr: 0.92, en: 0.92, ar: 0.85,
+  wo: 0.75, pu: 0.75, sr: 0.75, di: 0.75, mn: 0.75, sn: 0.75
+};
+
 export function useChat() {
   const [messages, setMessages] = useState([INITIAL_MESSAGE]);
   const [loading, setLoading] = useState(false);
@@ -43,11 +48,11 @@ export function useChat() {
     if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
 
-    const cleaned = text.replace(/[*#_`|>\-]/g, '').replace(/\[.*?\]/g, '');
+    const cleaned = text.replace(/[*#_`|>\-•]/g, '').replace(/\[.*?\]/g, '').replace(/\n+/g, '. ');
     const utterance = new SpeechSynthesisUtterance(cleaned);
     utterance.lang = SPEECH_LANG_MAP[language] || 'fr-FR';
-    utterance.rate = 0.92;
-    utterance.pitch = voiceGender === 'male' ? 0.8 : 1.1;
+    utterance.rate = SPEECH_RATE_MAP[language] || 0.92;
+    utterance.pitch = voiceGender === 'male' ? 0.85 : 1.1;
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => setIsSpeaking(false);
     utterance.onerror = () => setIsSpeaking(false);
