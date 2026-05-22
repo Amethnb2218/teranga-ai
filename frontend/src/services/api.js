@@ -73,3 +73,13 @@ export async function fetchBayesianRisk(crop, city, month) {
   if (!response.ok) throw new Error('Risk fetch failed');
   return response.json();
 }
+
+export async function transcribeAudio(audioBase64, language = 'fr') {
+  const response = await fetch(`${API_BASE}/api/speech/transcribe`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ audio: audioBase64, language })
+  });
+  if (!response.ok) throw new Error('Transcription failed');
+  return response.json();
+}

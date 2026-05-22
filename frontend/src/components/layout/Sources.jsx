@@ -1,4 +1,5 @@
-import { FiExternalLink, FiDatabase, FiBook, FiGlobe, FiBarChart2 } from 'react-icons/fi'
+import { useState } from 'react'
+import { FiExternalLink, FiDatabase, FiBook, FiGlobe, FiBarChart2, FiChevronDown } from 'react-icons/fi'
 
 const SOURCES = [
   {
@@ -98,24 +99,37 @@ const SOURCES = [
 ];
 
 function Sources() {
+  const [openSections, setOpenSections] = useState({0: true, 1: true, 2: true, 3: true});
+
+  const toggleSection = (idx) => {
+    setOpenSections(prev => ({...prev, [idx]: !prev[idx]}));
+  };
+
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
-      <div className="mb-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div className="mb-6 sm:mb-8">
         <p className="section-label mb-2">Transparence</p>
-        <h1 className="text-2xl font-bold text-stone-900 mb-2">Sources et méthodologie</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-stone-900 mb-2">Sources et méthodologie</h1>
         <p className="text-stone-600 text-sm leading-relaxed max-w-2xl">
           Toutes les données utilisées par Teranga AI proviennent de sources institutionnelles publiques et vérifiables.
           Aucune donnée n'est inventée ou générée par l'IA.
         </p>
       </div>
 
-      <div className="space-y-8">
+      <div className="space-y-4 sm:space-y-8">
         {SOURCES.map((section, si) => (
-          <div key={si}>
-            <div className="flex items-center gap-2 mb-4">
-              <section.icon className="text-amber-700" size={16} />
-              <h2 className="font-bold text-stone-900 text-base">{section.category}</h2>
-            </div>
+          <div key={si} className="bg-white sm:bg-transparent rounded-xl sm:rounded-none border sm:border-0 border-stone-200 overflow-hidden">
+            <button
+              onClick={() => toggleSection(si)}
+              className="flex items-center justify-between w-full gap-2 p-4 sm:p-0 sm:mb-4"
+            >
+              <div className="flex items-center gap-2">
+                <section.icon className="text-amber-700" size={16} />
+                <h2 className="font-bold text-stone-900 text-sm sm:text-base">{section.category}</h2>
+              </div>
+              <FiChevronDown className={`sm:hidden text-stone-400 transition-transform ${openSections[si] ? 'rotate-180' : ''}`} size={16} />
+            </button>
+            <div className={`${openSections[si] ? 'block' : 'hidden sm:block'} px-4 pb-4 sm:p-0`}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {section.items.map((source, i) => (
                 <div key={i} className="bg-white rounded-xl border border-stone-200 p-5 hover:border-amber-200 transition-colors">
@@ -143,6 +157,7 @@ function Sources() {
                   </div>
                 </div>
               ))}
+            </div>
             </div>
           </div>
         ))}

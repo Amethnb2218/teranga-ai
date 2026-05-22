@@ -7,6 +7,7 @@ const marketRoutes = require('./routes/market');
 const newsRoutes = require('./routes/news');
 const predictRoutes = require('./routes/predict');
 const mlRoutes = require('./routes/ml');
+const speechRoutes = require('./routes/speech');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 
 dotenv.config();
@@ -18,9 +19,10 @@ app.use(cors({
   origin: process.env.FRONTEND_URL || '*',
   methods: ['GET', 'POST']
 }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 app.use('/api/chat', chatRoutes);
+app.use('/api/speech', speechRoutes);
 app.use('/api/weather', weatherRoutes);
 app.use('/api/market', marketRoutes);
 app.use('/api/news', newsRoutes);

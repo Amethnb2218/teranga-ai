@@ -1,26 +1,30 @@
 import { useState, useRef, useCallback } from 'react'
 import { FiSend, FiMic, FiMicOff } from 'react-icons/fi'
+import { transcribeAudio } from '../../services/api'
 
-const LANG_SPEECH_MAP = { fr: 'fr-FR', wo: 'fr-FR', pu: 'fr-FR', sr: 'fr-FR', di: 'fr-FR', mn: 'fr-FR', sn: 'fr-FR', en: 'en-US', ar: 'ar-SA' };
+const BROWSER_SPEECH_LANGS = { fr: 'fr-FR', en: 'en-US', ar: 'ar-SA' };
+const USES_SERVER_STT = ['wo', 'pu', 'sr', 'di', 'mn', 'sn'];
 
 function ChatInput({ onSend, loading, language }) {
   const [input, setInput] = useState('');
   const [isListening, setIsListening] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   const inputRef = useRef(null);
   const recognitionRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const chunksRef = useRef([]);
 
-  const startListening = useCallback(() => {
+  const startBrowserRecognition = useCallback(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert('Votre navigateur ne supporte pas la reconnaissance vocale. Utilisez Chrome ou Edge.');
+      startServerRecording();
       return;
     }
 
-    // Create fresh instance each time (more reliable across browsers)
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = LANG_SPEECH_MAP[language] || 'fr-FR';
+    recognition.lang = BROWSER_SPEECH_LANGS[language] || 'fr-FR';
     recognition.maxAlternatives = 1;
 
     recognition.onresult = (event) => {
@@ -36,8 +40,7 @@ function ChatInput({ onSend, loading, language }) {
       recognitionRef.current = null;
     };
 
-    recognition.onerror = (e) => {
-      console.log('Speech error:', e.error);
+    recognition.onerror = () => {
       setIsListening(false);
       recognitionRef.current = null;
     };
@@ -47,18 +50,64 @@ function ChatInput({ onSend, loading, language }) {
     setIsListening(true);
   }, [language]);
 
+  const startServerRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      chunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop());
+        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        setIsTranscribing(true);
+        try {
+          const buffer = await blob.arrayBuffer();
+          const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+          const result = await transcribeAudio(base64, language);
+          if (result.text) setInput(prev => prev + result.text);
+        } catch (e) {
+          console.log('Transcription error:', e);
+        } finally {
+          setIsTranscribing(false);
+        }
+      };
+
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start(1000);
+      setIsListening(true);
+    } catch (e) {
+      alert('Impossible d\'accéder au microphone. Vérifiez vos permissions.');
+    }
+  }, [language]);
+
   const toggleListening = () => {
-    if (isListening && recognitionRef.current) {
-      recognitionRef.current.stop();
+    if (isListening) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+        mediaRecorderRef.current.stop();
+      }
       setIsListening(false);
     } else {
-      startListening();
+      if (USES_SERVER_STT.includes(language)) {
+        startServerRecording();
+      } else {
+        startBrowserRecognition();
+      }
     }
   };
 
   const handleSend = () => {
     if (!input.trim() || loading) return;
-    if (isListening) recognitionRef.current?.stop();
+    if (isListening) {
+      if (recognitionRef.current) recognitionRef.current.stop();
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') mediaRecorderRef.current.stop();
+    }
     onSend(input.trim());
     setInput('');
     inputRef.current?.focus();
@@ -87,12 +136,15 @@ function ChatInput({ onSend, loading, language }) {
     <div className="flex items-end gap-2 bg-white rounded-xl border border-stone-200 p-2.5">
       <button
         onClick={toggleListening}
+        disabled={isTranscribing}
         className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors flex-shrink-0 ${
-          isListening
+          isTranscribing
+            ? 'bg-amber-100 text-amber-600 animate-pulse'
+            : isListening
             ? 'bg-red-100 text-red-600 animate-pulse'
             : 'bg-stone-100 text-stone-500 hover:bg-stone-200 hover:text-stone-700'
         }`}
-        title={isListening ? 'Arrêter' : 'Parler'}
+        title={isTranscribing ? 'Transcription...' : isListening ? 'Arrêter' : 'Parler'}
       >
         {isListening ? <FiMicOff size={16} /> : <FiMic size={16} />}
       </button>
@@ -101,15 +153,15 @@ function ChatInput({ onSend, loading, language }) {
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder={placeholders[language] || placeholders.fr}
+        placeholder={isTranscribing ? 'Transcription en cours...' : placeholders[language] || placeholders.fr}
         rows={1}
         className="flex-1 resize-none outline-none text-sm text-stone-800 placeholder-stone-400 py-1.5 px-1 max-h-32"
-        disabled={loading}
+        disabled={loading || isTranscribing}
         dir={language === 'ar' ? 'rtl' : 'ltr'}
       />
       <button
         onClick={handleSend}
-        disabled={!input.trim() || loading}
+        disabled={!input.trim() || loading || isTranscribing}
         className="w-9 h-9 flex items-center justify-center rounded-lg bg-amber-700 text-white hover:bg-amber-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex-shrink-0"
       >
         <FiSend size={15} />

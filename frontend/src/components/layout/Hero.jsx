@@ -4,7 +4,7 @@ function Hero({ onStart, onNavigate }) {
   return (
     <div className="relative">
       {/* Hero Section — immersive avec photo plein écran */}
-      <section className="relative overflow-hidden min-h-[85vh] flex items-center">
+      <section className="relative overflow-hidden min-h-[60vh] sm:min-h-[85vh] flex items-center">
         <div className="absolute inset-0">
           <img
             src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1600&q=80"

@@ -6,6 +6,7 @@ import Dashboard from './components/dashboard/index'
 import Predict from './components/predict/index'
 import Sources from './components/layout/Sources'
 import Footer from './components/layout/Footer'
+import MobileNav from './components/layout/MobileNav'
 
 function App() {
   const [activeTab, setActiveTab] = useState('home')
@@ -13,7 +14,7 @@ function App() {
   return (
     <div className="min-h-screen bg-earth-50 flex flex-col">
       <Header activeTab={activeTab} setActiveTab={setActiveTab} />
-      <main className="flex-1">
+      <main className="flex-1 pb-16 sm:pb-0">
         {activeTab === 'home' && <Hero onStart={() => setActiveTab('chat')} onNavigate={setActiveTab} />}
         {activeTab === 'chat' && <Chat />}
         {activeTab === 'dashboard' && <Dashboard />}
@@ -21,6 +22,7 @@ function App() {
         {activeTab === 'sources' && <Sources />}
       </main>
       <Footer onNavigate={setActiveTab} />
+      <MobileNav activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>
   )
 }
