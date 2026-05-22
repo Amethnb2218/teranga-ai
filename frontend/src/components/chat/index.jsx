@@ -56,7 +56,7 @@ function Chat() {
 
       <div className="flex-1 overflow-y-auto space-y-3 pb-4">
         {messages.map((msg, i) => (
-          <ChatBubble key={i} message={msg} language={language} onSpeak={speak} />
+          <ChatBubble key={i} message={msg} language={language} onSpeak={speak} onStop={stopSpeaking} isSpeaking={isSpeaking} />
         ))}
 
         {loading && (

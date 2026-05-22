@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { FiSend, FiMic, FiMicOff } from 'react-icons/fi'
 
 const LANG_SPEECH_MAP = { fr: 'fr-FR', wo: 'fr-FR', pu: 'fr-FR', sr: 'fr-FR', di: 'fr-FR', mn: 'fr-FR', sn: 'fr-FR', en: 'en-US', ar: 'ar-SA' };
@@ -9,40 +9,50 @@ function ChatInput({ onSend, loading, language }) {
   const inputRef = useRef(null);
   const recognitionRef = useRef(null);
 
-  useEffect(() => {
+  const startListening = useCallback(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) return;
+    if (!SpeechRecognition) {
+      alert('Votre navigateur ne supporte pas la reconnaissance vocale. Utilisez Chrome ou Edge.');
+      return;
+    }
 
+    // Create fresh instance each time (more reliable across browsers)
     const recognition = new SpeechRecognition();
-    recognition.continuous = false;
+    recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = LANG_SPEECH_MAP[language] || 'fr-FR';
+    recognition.maxAlternatives = 1;
 
     recognition.onresult = (event) => {
-      const transcript = Array.from(event.results)
-        .map(r => r[0].transcript)
-        .join('');
-      setInput(transcript);
-      if (event.results[0].isFinal) {
-        setIsListening(false);
+      let transcript = '';
+      for (let i = 0; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
       }
+      setInput(transcript);
     };
 
-    recognition.onend = () => setIsListening(false);
-    recognition.onerror = () => setIsListening(false);
+    recognition.onend = () => {
+      setIsListening(false);
+      recognitionRef.current = null;
+    };
+
+    recognition.onerror = (e) => {
+      console.log('Speech error:', e.error);
+      setIsListening(false);
+      recognitionRef.current = null;
+    };
 
     recognitionRef.current = recognition;
+    recognition.start();
+    setIsListening(true);
   }, [language]);
 
   const toggleListening = () => {
-    if (!recognitionRef.current) return;
-    if (isListening) {
+    if (isListening && recognitionRef.current) {
       recognitionRef.current.stop();
       setIsListening(false);
     } else {
-      recognitionRef.current.lang = LANG_SPEECH_MAP[language] || 'fr-FR';
-      recognitionRef.current.start();
-      setIsListening(true);
+      startListening();
     }
   };
 

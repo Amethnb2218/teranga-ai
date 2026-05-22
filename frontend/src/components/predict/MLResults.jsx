@@ -32,27 +32,47 @@ function MLResults({ crop, city }) {
     }
   };
 
-  if (loading) return <div className="text-center py-8 text-sm text-stone-400">Calcul ML en cours...</div>;
+  if (loading) {
+    return (
+      <div className="bg-stone-50 rounded-xl border border-stone-200 p-8 text-center">
+        <div className="inline-block w-5 h-5 border-2 border-stone-400 border-t-transparent rounded-full animate-spin mb-2"></div>
+        <p className="text-xs text-stone-500">Exécution des modèles prédictifs...</p>
+      </div>
+    );
+  }
   if (!yieldData) return null;
 
+  const tabs = [
+    { id: 'yield', label: 'Rendement prévu' },
+    { id: 'genetic', label: 'Calendrier optimisé' },
+    { id: 'bayesian', label: 'Analyse de risques' }
+  ];
+
   return (
-    <div className="bg-white rounded-xl border border-stone-200 p-5">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-stone-900 text-sm">Moteur Machine Learning</h3>
-        <span className="text-xs bg-violet-50 text-violet-700 px-2 py-0.5 rounded-full font-medium">ML Engine v1.0</span>
+    <div className="bg-stone-50 rounded-xl border border-stone-200 overflow-hidden">
+      {/* Header sobre */}
+      <div className="px-5 pt-4 pb-3 border-b border-stone-200 bg-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-semibold text-stone-900 text-sm">Modèles prédictifs</h3>
+            <p className="text-xs text-stone-400 mt-0.5">Régression + Algorithme génétique + Réseau bayésien</p>
+          </div>
+          <span className="text-[10px] uppercase tracking-wider text-stone-400 font-medium bg-stone-100 px-2 py-1 rounded">
+            ISRA/ANACIM 2015-2024
+          </span>
+        </div>
       </div>
 
-      <div className="flex gap-1 mb-4 bg-stone-100 rounded-lg p-0.5">
-        {[
-          { id: 'yield', label: 'Prédiction rendement' },
-          { id: 'genetic', label: 'Optimisation génétique' },
-          { id: 'bayesian', label: 'Réseau bayésien' }
-        ].map(tab => (
+      {/* Tabs */}
+      <div className="flex border-b border-stone-200 bg-white">
+        {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 text-xs py-1.5 rounded-md font-medium transition-colors ${
-              activeTab === tab.id ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'
+            className={`flex-1 text-xs py-2.5 font-medium transition-colors border-b-2 ${
+              activeTab === tab.id
+                ? 'border-amber-700 text-amber-800 bg-amber-50/30'
+                : 'border-transparent text-stone-500 hover:text-stone-700'
             }`}
           >
             {tab.label}
@@ -60,117 +80,156 @@ function MLResults({ crop, city }) {
         ))}
       </div>
 
-      {activeTab === 'yield' && yieldData && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-leaf-50 rounded-lg p-3 border border-leaf-100">
-              <div className="text-xs text-leaf-600 mb-1">Régression OLS</div>
-              <div className="text-lg font-bold text-leaf-800">{yieldData.regression?.predicted_yield_kg} kg/ha</div>
-              <div className="text-xs text-stone-500 mt-1">R² = {yieldData.regression?.r_squared}</div>
-            </div>
-            <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
-              <div className="text-xs text-blue-600 mb-1">KNN (k=3)</div>
-              <div className="text-lg font-bold text-blue-800">{yieldData.knn?.predicted_yield_kg} kg/ha</div>
-              <div className="text-xs text-stone-500 mt-1">Confiance : {yieldData.knn?.confidence}</div>
-            </div>
-          </div>
-
-          {yieldData.ensemble && (
-            <div className="bg-amber-50 rounded-lg p-3 border border-amber-100">
-              <div className="flex justify-between items-center">
-                <div>
-                  <div className="text-xs text-amber-600 mb-1">Ensemble (OLS + KNN)</div>
-                  <div className="text-xl font-bold text-amber-900">{yieldData.ensemble.predicted_yield_kg} kg/ha</div>
+      <div className="p-5">
+        {activeTab === 'yield' && yieldData && (
+          <div className="space-y-4">
+            {/* Résultat principal */}
+            {yieldData.ensemble && (
+              <div className="bg-white rounded-lg p-4 border border-stone-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-stone-500 mb-1">Rendement estimé (ensemble)</p>
+                    <p className="text-2xl font-bold text-stone-900">{yieldData.ensemble.predicted_yield_kg} <span className="text-sm font-normal text-stone-400">kg/ha</span></p>
+                  </div>
+                  <div className="text-right text-xs text-stone-400 space-y-0.5">
+                    <div>Méthode : {yieldData.ensemble.method}</div>
+                    <div>Pondération : OLS {yieldData.ensemble.weights?.regression} | KNN {yieldData.ensemble.weights?.knn}</div>
+                  </div>
                 </div>
-                <div className="text-right text-xs text-stone-500">
-                  <div>Poids OLS: {yieldData.ensemble.weights?.regression}</div>
-                  <div>Poids KNN: {yieldData.ensemble.weights?.knn}</div>
+              </div>
+            )}
+
+            {/* Comparaison modèles */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-white rounded-lg p-3 border border-stone-200">
+                <p className="text-[10px] uppercase tracking-wide text-stone-400 mb-2">Régression linéaire (OLS)</p>
+                <p className="text-lg font-bold text-stone-800">{yieldData.regression?.predicted_yield_kg} kg/ha</p>
+                <div className="mt-2 text-xs text-stone-500 space-y-0.5">
+                  <div className="flex justify-between"><span>R²</span><span className="font-mono">{yieldData.regression?.r_squared}</span></div>
+                  <div className="flex justify-between"><span>Coeff. pluie</span><span className="font-mono">{yieldData.regression?.coefficients?.rain}</span></div>
+                  <div className="flex justify-between"><span>Coeff. temp</span><span className="font-mono">{yieldData.regression?.coefficients?.temperature}</span></div>
+                </div>
+              </div>
+              <div className="bg-white rounded-lg p-3 border border-stone-200">
+                <p className="text-[10px] uppercase tracking-wide text-stone-400 mb-2">K plus proches voisins (k=3)</p>
+                <p className="text-lg font-bold text-stone-800">{yieldData.knn?.predicted_yield_kg} kg/ha</p>
+                <div className="mt-2 text-xs text-stone-500 space-y-0.5">
+                  <div className="flex justify-between"><span>Confiance</span><span className="font-mono">{yieldData.knn?.confidence}</span></div>
+                  {yieldData.knn?.neighbors?.slice(0, 2).map((n, i) => (
+                    <div key={i} className="flex justify-between"><span>Voisin {i+1}</span><span className="font-mono">{n.yield} kg (w={n.weight})</span></div>
+                  ))}
                 </div>
               </div>
             </div>
-          )}
-
-          <div className="text-xs text-stone-400 bg-stone-50 rounded-lg p-3">
-            <div className="font-medium text-stone-600 mb-1">Coefficients du modèle :</div>
-            <div className="grid grid-cols-2 gap-1">
-              <span>Pluie : {yieldData.regression?.coefficients?.rain} kg/mm</span>
-              <span>Température : {yieldData.regression?.coefficients?.temperature} kg/°C</span>
-              <span>Mois semis : {yieldData.regression?.coefficients?.sow_month}</span>
-              <span>Zone : {yieldData.regression?.coefficients?.zone}</span>
-            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {activeTab === 'genetic' && optimization && (
-        <div className="space-y-4">
-          <div className="bg-violet-50 rounded-lg p-3 border border-violet-100">
-            <div className="text-xs text-violet-600 mb-2">Algorithme Génétique — Calendrier optimal</div>
-            <div className="grid grid-cols-3 gap-2 text-xs text-stone-600">
-              <div>Pop: {optimization.optimization?.parameters?.population_size}</div>
-              <div>Gén: {optimization.optimization?.parameters?.generations}</div>
-              <div>Mutation: {optimization.optimization?.parameters?.mutation_rate}</div>
+        {activeTab === 'genetic' && optimization && (
+          <div className="space-y-4">
+            <div className="bg-white rounded-lg p-4 border border-stone-200">
+              <p className="text-xs text-stone-500 mb-3">Calendrier optimisé par algorithme génétique (50 individus, 80 générations)</p>
+              <div className="space-y-3">
+                {optimization.calendar?.map((c, i) => (
+                  <div key={i} className="flex items-center gap-4 py-2 border-b border-stone-50 last:border-0">
+                    <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center text-xs font-bold text-amber-800">
+                      P{c.parcel}
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-stone-800">{c.crop}</div>
+                      <div className="text-xs text-stone-400">Semis recommandé : {c.sowMonthName}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-stone-800">{c.predictedYield} kg/ha</div>
+                      <div className="text-xs text-stone-400">{c.expectedRain}mm pluie | {c.avgTemp}°C</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            {optimization.calendar?.map((c, i) => (
-              <div key={i} className="flex items-center justify-between bg-stone-50 rounded-lg p-3">
+            {/* Paramètres de l'algo */}
+            <div className="bg-white rounded-lg p-3 border border-stone-200">
+              <p className="text-[10px] uppercase tracking-wide text-stone-400 mb-2">Paramètres d'optimisation</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                 <div>
-                  <div className="text-sm font-medium text-stone-800">Parcelle {c.parcel} — {c.crop}</div>
-                  <div className="text-xs text-stone-500">Semis : {c.sowMonthName} | Pluie attendue : {c.expectedRain}mm</div>
+                  <span className="text-stone-400 block">Sélection</span>
+                  <span className="font-medium text-stone-700">Tournoi (k=3)</span>
                 </div>
-                <div className="text-right">
-                  <div className="text-sm font-bold text-leaf-700">{c.predictedYield} kg/ha</div>
-                  <div className="text-xs text-stone-400">T° moy: {c.avgTemp}°C</div>
+                <div>
+                  <span className="text-stone-400 block">Crossover</span>
+                  <span className="font-medium text-stone-700">BLX-α (0.5)</span>
+                </div>
+                <div>
+                  <span className="text-stone-400 block">Mutation</span>
+                  <span className="font-medium text-stone-700">{optimization.optimization?.parameters?.mutation_rate}</span>
+                </div>
+                <div>
+                  <span className="text-stone-400 block">Amélioration</span>
+                  <span className="font-medium text-green-700">{optimization.optimization?.convergence?.improvement}</span>
                 </div>
               </div>
-            ))}
-          </div>
-
-          <div className="text-xs bg-stone-50 rounded-lg p-3 text-stone-500">
-            <div className="font-medium text-stone-600 mb-1">Convergence :</div>
-            <div>Fitness initiale : {optimization.optimization?.convergence?.initial_fitness}</div>
-            <div>Fitness finale : {optimization.optimization?.convergence?.final_fitness}</div>
-            <div>Amélioration : {optimization.optimization?.convergence?.improvement}</div>
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'bayesian' && bayesian && (
-        <div className="space-y-4">
-          <div className="bg-orange-50 rounded-lg p-3 border border-orange-100">
-            <div className="text-xs text-orange-600 mb-1">Réseau Bayésien — Score de sécurité</div>
-            <div className="text-2xl font-bold text-orange-900">{bayesian.safetyScore}/100</div>
-            <div className="text-xs text-stone-600 mt-1">{bayesian.recommendation}</div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            <div className="bg-stone-50 rounded-lg p-2.5">
-              <div className="text-xs text-stone-400">Sécheresse</div>
-              <div className="text-sm font-semibold text-red-600">{bayesian.factors?.drought_probability}</div>
-            </div>
-            <div className="bg-stone-50 rounded-lg p-2.5">
-              <div className="text-xs text-stone-400">Stress thermique</div>
-              <div className="text-sm font-semibold text-orange-600">{bayesian.factors?.heat_stress_probability}</div>
-            </div>
-            <div className="bg-stone-50 rounded-lg p-2.5">
-              <div className="text-xs text-stone-400">Pression parasitaire</div>
-              <div className="text-sm font-semibold text-amber-600">{bayesian.factors?.pest_pressure_probability}</div>
-            </div>
-            <div className="bg-stone-50 rounded-lg p-2.5">
-              <div className="text-xs text-stone-400">Risque inondation</div>
-              <div className="text-sm font-semibold text-blue-600">{bayesian.factors?.flood_risk_probability}</div>
             </div>
           </div>
+        )}
 
-          <div className="text-xs bg-stone-50 rounded-lg p-3 text-stone-500">
-            <div className="font-medium text-stone-600 mb-1">Probabilités inférées :</div>
-            <div>Échec cultural : {bayesian.outcomes?.crop_failure_probability}</div>
-            <div>Perte de rendement : {bayesian.outcomes?.yield_loss_probability}</div>
+        {activeTab === 'bayesian' && bayesian && (
+          <div className="space-y-4">
+            {/* Score sécurité */}
+            <div className="bg-white rounded-lg p-4 border border-stone-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-stone-500 mb-1">Score de sécurité (réseau bayésien)</p>
+                  <p className="text-2xl font-bold text-stone-900">{bayesian.safetyScore}<span className="text-sm font-normal text-stone-400">/100</span></p>
+                  <p className="text-xs text-stone-600 mt-1">{bayesian.recommendation}</p>
+                </div>
+                <div className="w-14 h-14 rounded-full border-4 flex items-center justify-center" style={{
+                  borderColor: bayesian.safetyScore >= 70 ? '#4d7c0f' : bayesian.safetyScore >= 40 ? '#b45309' : '#dc2626'
+                }}>
+                  <span className="text-sm font-bold">{bayesian.safetyScore}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Facteurs de risque */}
+            <div className="bg-white rounded-lg p-4 border border-stone-200">
+              <p className="text-[10px] uppercase tracking-wide text-stone-400 mb-3">Facteurs de risque inférés</p>
+              <div className="space-y-3">
+                {[
+                  { label: 'Sécheresse', value: bayesian.factors?.drought_probability, color: '#dc2626' },
+                  { label: 'Stress thermique', value: bayesian.factors?.heat_stress_probability, color: '#ea580c' },
+                  { label: 'Parasites', value: bayesian.factors?.pest_pressure_probability, color: '#d97706' },
+                  { label: 'Inondation', value: bayesian.factors?.flood_risk_probability, color: '#2563eb' },
+                ].map((factor, i) => {
+                  const pct = parseFloat(factor.value) || 0;
+                  return (
+                    <div key={i}>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-stone-600">{factor.label}</span>
+                        <span className="font-mono text-stone-700">{factor.value}</span>
+                      </div>
+                      <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: factor.color }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Résultats d'inférence */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-white rounded-lg p-3 border border-stone-200 text-center">
+                <p className="text-[10px] uppercase text-stone-400 mb-1">P(Échec cultural)</p>
+                <p className="text-lg font-bold text-red-700">{bayesian.outcomes?.crop_failure_probability}</p>
+              </div>
+              <div className="bg-white rounded-lg p-3 border border-stone-200 text-center">
+                <p className="text-[10px] uppercase text-stone-400 mb-1">P(Perte rendement)</p>
+                <p className="text-lg font-bold text-orange-700">{bayesian.outcomes?.yield_loss_probability}</p>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

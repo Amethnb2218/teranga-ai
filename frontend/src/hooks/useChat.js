@@ -45,15 +45,21 @@ export function useChat() {
     const cleaned = text.replace(/[*#_`|>\-]/g, '').replace(/\[.*?\]/g, '');
     const utterance = new SpeechSynthesisUtterance(cleaned);
     utterance.lang = SPEECH_LANG_MAP[language] || 'fr-FR';
-    utterance.rate = 0.9;
-    utterance.pitch = 1;
+    utterance.rate = 0.92;
+    utterance.pitch = 0.85;
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => setIsSpeaking(false);
     utterance.onerror = () => setIsSpeaking(false);
 
     const voices = window.speechSynthesis.getVoices();
-    const langVoice = voices.find(v => v.lang.startsWith(SPEECH_LANG_MAP[language]?.split('-')[0]));
-    if (langVoice) utterance.voice = langVoice;
+    const langCode = SPEECH_LANG_MAP[language]?.split('-')[0] || 'fr';
+    // Prefer male voice for a professional assistant tone
+    const maleVoice = voices.find(v =>
+      v.lang.startsWith(langCode) && (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('homme') || v.name.includes('Thomas') || v.name.includes('Daniel') || v.name.includes('Google') && !v.name.includes('Female'))
+    );
+    const fallbackVoice = voices.find(v => v.lang.startsWith(langCode));
+    if (maleVoice) utterance.voice = maleVoice;
+    else if (fallbackVoice) utterance.voice = fallbackVoice;
 
     window.speechSynthesis.speak(utterance);
   }, [language]);

@@ -1,7 +1,7 @@
 import ReactMarkdown from 'react-markdown'
-import { FiVolume2 } from 'react-icons/fi'
+import { FiVolume2, FiSquare } from 'react-icons/fi'
 
-function ChatBubble({ message, onSpeak }) {
+function ChatBubble({ message, onSpeak, onStop, isSpeaking }) {
   const isUser = message.role === 'user';
 
   return (
@@ -46,12 +46,17 @@ function ChatBubble({ message, onSpeak }) {
             </div>
             {onSpeak && (
               <button
-                onClick={() => onSpeak(message.content)}
-                className="mt-2 flex items-center gap-1 text-xs text-stone-400 hover:text-amber-700 transition-colors"
-                title="Écouter"
+                onClick={() => {
+                  if (isSpeaking) { onStop(); }
+                  else { onSpeak(message.content); }
+                }}
+                className={`mt-2 flex items-center gap-1 text-xs transition-colors ${
+                  isSpeaking ? 'text-red-500 hover:text-red-700' : 'text-stone-400 hover:text-amber-700'
+                }`}
+                title={isSpeaking ? 'Arrêter' : 'Écouter'}
               >
-                <FiVolume2 size={11} />
-                <span>Écouter</span>
+                {isSpeaking ? <FiSquare size={10} /> : <FiVolume2 size={11} />}
+                <span>{isSpeaking ? 'Arrêter' : 'Écouter'}</span>
               </button>
             )}
           </div>
