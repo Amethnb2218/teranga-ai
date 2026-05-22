@@ -16,6 +16,15 @@ function getCategoryLabel(category) {
   }
 }
 
+function formatDate(dateStr) {
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  } catch {
+    return dateStr;
+  }
+}
+
 function MarketSection({ market }) {
   if (!market) return null;
 
@@ -23,7 +32,7 @@ function MarketSection({ market }) {
     <section className="mb-8">
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-semibold text-stone-900 text-sm">Prix du marché</h3>
-        <span className="text-xs text-stone-400">FCFA/kg · {market.last_updated}</span>
+        <span className="text-xs text-stone-400">FCFA/kg · Mis à jour le {formatDate(market.last_updated)}</span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
