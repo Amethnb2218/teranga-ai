@@ -18,20 +18,27 @@ router.post('/transcribe', async (req, res) => {
     }
 
     const audioBuffer = Buffer.from(audio, 'base64');
-    const blob = new Blob([audioBuffer], { type: 'audio/webm' });
 
-    const formData = new FormData();
-    formData.append('file', blob, 'audio.webm');
-    formData.append('model', 'whisper-large-v3');
-    formData.append('language', LANG_MAP[language] || 'fr');
-    formData.append('response_format', 'json');
+    const boundary = '----FormBoundary' + Math.random().toString(36).slice(2);
+    const langCode = LANG_MAP[language] || 'fr';
+
+    const parts = [];
+    parts.push(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="audio.webm"\r\nContent-Type: audio/webm\r\n\r\n`);
+    parts.push(audioBuffer);
+    parts.push(`\r\n--${boundary}\r\nContent-Disposition: form-data; name="model"\r\n\r\nwhisper-large-v3\r\n`);
+    parts.push(`--${boundary}\r\nContent-Disposition: form-data; name="language"\r\n\r\n${langCode}\r\n`);
+    parts.push(`--${boundary}\r\nContent-Disposition: form-data; name="response_format"\r\n\r\njson\r\n`);
+    parts.push(`--${boundary}--\r\n`);
+
+    const body = Buffer.concat(parts.map(p => typeof p === 'string' ? Buffer.from(p) : p));
 
     const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+        'Content-Type': `multipart/form-data; boundary=${boundary}`
       },
-      body: formData
+      body
     });
 
     if (!response.ok) {

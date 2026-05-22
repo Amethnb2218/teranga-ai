@@ -53,7 +53,9 @@ function ChatInput({ onSend, loading, language }) {
   const startServerRecording = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm'
+        : MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : '';
+      const mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       chunksRef.current = [];
 
       mediaRecorder.ondataavailable = (e) => {
@@ -66,7 +68,13 @@ function ChatInput({ onSend, loading, language }) {
         setIsTranscribing(true);
         try {
           const buffer = await blob.arrayBuffer();
-          const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+          const bytes = new Uint8Array(buffer);
+          let binary = '';
+          const chunkSize = 8192;
+          for (let i = 0; i < bytes.length; i += chunkSize) {
+            binary += String.fromCharCode.apply(null, bytes.slice(i, i + chunkSize));
+          }
+          const base64 = btoa(binary);
           const result = await transcribeAudio(base64, language);
           if (result.text) setInput(prev => prev + result.text);
         } catch (e) {
