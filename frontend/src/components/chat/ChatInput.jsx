@@ -66,7 +66,6 @@ function ChatInput({ onSend, loading, language }) {
   const handleSend = () => {
     if (!input.trim() || loading) return;
     if (isListening) {
-      if (recognitionRef.current) recognitionRef.current.stop();
       if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') mediaRecorderRef.current.stop();
     }
     onSend(input.trim());
@@ -94,39 +93,55 @@ function ChatInput({ onSend, loading, language }) {
   };
 
   return (
-    <div className="flex items-end gap-2 bg-white rounded-xl border border-stone-200 p-2.5">
-      <button
-        onClick={toggleListening}
-        disabled={isTranscribing}
-        className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors flex-shrink-0 ${
-          isTranscribing
-            ? 'bg-amber-100 text-amber-600 animate-pulse'
-            : isListening
-            ? 'bg-red-100 text-red-600 animate-pulse'
-            : 'bg-stone-100 text-stone-500 hover:bg-stone-200 hover:text-stone-700'
-        }`}
-        title={isTranscribing ? 'Transcription...' : isListening ? 'Arrêter' : 'Parler'}
-      >
-        {isListening ? <FiMicOff size={16} /> : <FiMic size={16} />}
-      </button>
-      <textarea
-        ref={inputRef}
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder={isTranscribing ? 'Transcription en cours...' : placeholders[language] || placeholders.fr}
-        rows={1}
-        className="flex-1 resize-none outline-none text-sm text-stone-800 placeholder-stone-400 py-1.5 px-1 max-h-32"
-        disabled={loading || isTranscribing}
-        dir={language === 'ar' ? 'rtl' : 'ltr'}
-      />
-      <button
-        onClick={handleSend}
-        disabled={!input.trim() || loading || isTranscribing}
-        className="w-9 h-9 flex items-center justify-center rounded-lg bg-amber-700 text-white hover:bg-amber-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex-shrink-0"
-      >
-        <FiSend size={15} />
-      </button>
+    <div className="relative">
+      {isListening && (
+        <div className="absolute -top-10 left-0 right-0 flex justify-center">
+          <span className="bg-red-600 text-white text-xs font-medium px-3 py-1 rounded-full animate-pulse shadow">
+            Enregistrement... Appuyez sur le micro pour terminer
+          </span>
+        </div>
+      )}
+      {isTranscribing && (
+        <div className="absolute -top-10 left-0 right-0 flex justify-center">
+          <span className="bg-amber-600 text-white text-xs font-medium px-3 py-1 rounded-full animate-pulse shadow">
+            Transcription en cours...
+          </span>
+        </div>
+      )}
+      <div className="flex items-end gap-2 bg-white rounded-xl border border-stone-200 p-2.5">
+        <button
+          onClick={toggleListening}
+          disabled={isTranscribing}
+          className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors flex-shrink-0 ${
+            isTranscribing
+              ? 'bg-amber-100 text-amber-600 animate-pulse'
+              : isListening
+              ? 'bg-red-100 text-red-600 animate-pulse'
+              : 'bg-stone-100 text-stone-500 hover:bg-stone-200 hover:text-stone-700'
+          }`}
+          title={isTranscribing ? 'Transcription...' : isListening ? 'Appuyez pour terminer' : 'Parler'}
+        >
+          {isListening ? <FiMicOff size={16} /> : <FiMic size={16} />}
+        </button>
+        <textarea
+          ref={inputRef}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={isTranscribing ? 'Transcription en cours...' : isListening ? 'Parlez puis appuyez sur le micro...' : placeholders[language] || placeholders.fr}
+          rows={1}
+          className="flex-1 resize-none outline-none text-sm text-stone-800 placeholder-stone-400 py-1.5 px-1 max-h-32"
+          disabled={loading || isTranscribing}
+          dir={language === 'ar' ? 'rtl' : 'ltr'}
+        />
+        <button
+          onClick={handleSend}
+          disabled={!input.trim() || loading || isTranscribing}
+          className="w-9 h-9 flex items-center justify-center rounded-lg bg-amber-700 text-white hover:bg-amber-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+        >
+          <FiSend size={15} />
+        </button>
+      </div>
     </div>
   );
 }
