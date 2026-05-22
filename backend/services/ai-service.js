@@ -2,8 +2,9 @@ const { getSystemPrompt } = require('../config/prompts');
 const { OFFLINE_RESPONSES } = require('../data/offline-responses');
 
 function matchOfflineResponse(userMessage) {
-  const msg = userMessage.toLowerCase();
+  const msg = userMessage.toLowerCase().trim();
 
+  if (msg.match(/^(bonjour|salut|bonsoir|hello|hi|hey|salam|na nga def|assalamou)/)) return OFFLINE_RESPONSES.bonjour;
   if (msg.includes('arachide') || msg.includes('gerte')) return OFFLINE_RESPONSES.arachide;
   if (msg.includes('tomate') || msg.includes('tamaat')) return OFFLINE_RESPONSES.tomate;
   if (msg.includes('mil') || msg.includes('souna') || msg.includes('dugar')) return OFFLINE_RESPONSES.mil;

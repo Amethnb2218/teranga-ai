@@ -16,7 +16,7 @@ const LANG_LABELS = {
 
 const INITIAL_MESSAGE = {
   role: 'assistant',
-  content: "Bonjour ! Je suis **Teranga AI**, votre assistant agricole intelligent.\n\nJe peux vous aider avec :\n- Conseils de plantation et calendrier cultural\n- Gestion de l'eau et irrigation\n- Identification des maladies et ravageurs\n- Informations sur les prix du marché\n\nComment puis-je vous aider aujourd'hui ?"
+  content: "Bonjour, je suis votre conseiller agricole. Posez-moi vos questions sur les cultures, la météo ou les prix du marché — en français ou dans votre langue."
 };
 
 const SPEECH_LANG_MAP = {

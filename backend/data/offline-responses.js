@@ -140,31 +140,17 @@ const OFFLINE_RESPONSES = {
 - Les marchés hebdomadaires (loumas) offrent souvent de meilleurs prix
 - Groupez-vous en coopérative pour négocier avec les bana-bana`,
 
-  default: `**Merci pour votre question !** 🌱
+  bonjour: `Bonjour ! Je suis votre conseiller agricole. Comment puis-je vous aider aujourd'hui ?
 
-Je suis Teranga AI, votre assistant agricole. Voici ce que je peux vous aider à faire :
+Vous pouvez me poser des questions sur vos cultures, la météo, les prix du marché ou un problème dans votre champ.`,
 
-**Cultures principales du Sénégal :**
-- 🥜 Arachide — 1ère culture de rente
-- 🌾 Mil/Sorgho — base alimentaire
-- 🍅 Maraîchage — tomate, oignon, chou
-- 🌿 Riz — vallée du fleuve et Casamance
+  default: `Je suis votre conseiller agricole. Posez-moi une question précise et je vous aiderai du mieux possible.
 
-**Calendrier cultural simplifié :**
-| Période | Activité |
-|---------|----------|
-| Mars-Mai | Préparation parcelles, maraîchage irrigué |
-| Juin-Juillet | Semis (mil, arachide, maïs) |
-| Août-Sept | Entretien, sarclage, fertilisation |
-| Oct-Nov | Récoltes |
-| Nov-Fév | Cultures de contre-saison irriguées |
-
-**Posez-moi une question précise** sur :
-- Une culture spécifique (ex: "comment cultiver l'arachide ?")
-- Un problème (ex: "pucerons sur mes tomates")
-- La météo ou les prix du marché
-
-Je suis là pour vous aider à améliorer vos rendements ! 💪`
+Par exemple :
+- "Comment cultiver l'arachide ?"
+- "Pucerons sur mes tomates"
+- "Quand semer le mil à Kaolack ?"
+- "Prix du riz au marché"`
 };
 
 module.exports = { OFFLINE_RESPONSES };
