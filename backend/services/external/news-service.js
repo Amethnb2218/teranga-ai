@@ -1,106 +1,141 @@
 const NEWS_CACHE = { data: null, timestamp: 0 };
 const CACHE_DURATION = 60 * 60 * 1000; // 1 heure
 
-const RSS_FEEDS = [
-  {
-    url: 'https://www.agenceecofin.com/rss/agriculture',
-    source: 'Agence Ecofin',
-    region: 'Afrique'
-  },
-  {
-    url: 'https://news.google.com/rss/search?q=agriculture+S%C3%A9n%C3%A9gal&hl=fr&gl=SN&ceid=SN:fr',
-    source: 'Google News',
-    region: 'Sénégal'
-  }
-];
-
 async function fetchAgriNews() {
   if (NEWS_CACHE.data && Date.now() - NEWS_CACHE.timestamp < CACHE_DURATION) {
     return NEWS_CACHE.data;
   }
 
-  const allNews = [];
+  try {
+    const response = await fetch(
+      'https://news.google.com/rss/search?q=agriculture+S%C3%A9n%C3%A9gal&hl=fr&gl=SN&ceid=SN:fr',
+      { headers: { 'User-Agent': 'Teranga-AI/1.0' }, signal: AbortSignal.timeout(8000) }
+    );
 
-  for (const feed of RSS_FEEDS) {
-    try {
-      const response = await fetch(feed.url, {
-        headers: { 'User-Agent': 'Teranga-AI/1.0' },
-        signal: AbortSignal.timeout(5000)
-      });
+    if (!response.ok) return getDefaultNews();
 
-      if (!response.ok) continue;
+    const xml = await response.text();
+    const items = parseGoogleNewsRSS(xml);
 
-      const xml = await response.text();
-      const items = parseRSSItems(xml, feed.source);
-      allNews.push(...items);
-    } catch (error) {
-      console.error(`RSS fetch error (${feed.source}):`, error.message);
+    if (items.length > 0) {
+      NEWS_CACHE.data = items;
+      NEWS_CACHE.timestamp = Date.now();
+      return items;
     }
+  } catch (error) {
+    console.error('News fetch error:', error.message);
   }
 
-  const sorted = allNews
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
-    .slice(0, 10);
-
-  if (sorted.length > 0) {
-    NEWS_CACHE.data = sorted;
-    NEWS_CACHE.timestamp = Date.now();
-  }
-
-  return NEWS_CACHE.data || getDefaultNews();
+  return getDefaultNews();
 }
 
-function parseRSSItems(xml, source) {
+function parseGoogleNewsRSS(xml) {
   const items = [];
   const itemRegex = /<item>([\s\S]*?)<\/item>/g;
   let match;
 
-  while ((match = itemRegex.exec(xml)) !== null) {
+  while ((match = itemRegex.exec(xml)) !== null && items.length < 8) {
     const item = match[1];
-    const title = extractTag(item, 'title');
+
+    const titleRaw = extractTag(item, 'title');
     const link = extractTag(item, 'link');
     const pubDate = extractTag(item, 'pubDate');
-    const description = extractTag(item, 'description');
+    const sourceMatch = item.match(/<source[^>]*>([^<]*)<\/source>/);
 
-    if (title && isAgriRelated(title + ' ' + (description || ''))) {
-      items.push({
-        title: cleanText(title),
-        link,
-        date: pubDate || new Date().toISOString(),
-        source,
-        summary: cleanText(description || '').slice(0, 150)
-      });
+    if (!titleRaw) continue;
+
+    // Nettoyer le titre (enlever le nom de la source à la fin)
+    let title = cleanHTML(titleRaw);
+    let source = sourceMatch ? cleanHTML(sourceMatch[1]) : 'Presse';
+
+    // Google News met souvent "titre - Source" dans le title
+    const dashSplit = title.split(' - ');
+    if (dashSplit.length > 1) {
+      source = dashSplit.pop().trim();
+      title = dashSplit.join(' - ').trim();
     }
+
+    // Ne garder que les articles liés à l'agriculture
+    if (!isAgriRelated(title)) continue;
+
+    items.push({
+      title: title.slice(0, 120),
+      source,
+      date: formatDate(pubDate),
+      link: cleanHTML(link || '')
+    });
   }
 
-  return items.slice(0, 5);
+  return items;
 }
 
 function extractTag(xml, tag) {
-  const match = xml.match(new RegExp(`<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/${tag}>|<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`));
-  return match ? (match[1] || match[2] || '').trim() : null;
+  // Priorité au CDATA
+  const cdataMatch = xml.match(new RegExp(`<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/${tag}>`));
+  if (cdataMatch) return cdataMatch[1].trim();
+
+  // Sinon contenu direct
+  const directMatch = xml.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`));
+  if (directMatch) return directMatch[1].trim();
+
+  // Cas spécial : <link>url</link> ou <link/>url suivant
+  if (tag === 'link') {
+    const linkMatch = xml.match(/<link[^>]*\/?>([^<\s]+)/);
+    if (linkMatch) return linkMatch[1].trim();
+  }
+
+  return null;
 }
 
-function cleanText(text) {
-  return text.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').trim();
+function cleanHTML(text) {
+  if (!text) return '';
+  return text
+    .replace(/<!\[CDATA\[/g, '')
+    .replace(/\]\]>/g, '')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .trim();
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  try {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffH = Math.round((now - date) / (1000 * 60 * 60));
+    if (diffH < 1) return "À l'instant";
+    if (diffH < 24) return `Il y a ${diffH}h`;
+    const diffD = Math.round(diffH / 24);
+    if (diffD === 1) return 'Hier';
+    if (diffD < 7) return `Il y a ${diffD}j`;
+    return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+  } catch {
+    return '';
+  }
 }
 
 function isAgriRelated(text) {
-  const keywords = ['agricultur', 'agri', 'récolte', 'semence', 'paysan', 'exploitant', 'culture', 'céréal',
-    'arachide', 'mil', 'riz', 'maïs', 'oignon', 'tomate', 'élevage', 'pêche', 'irrigation',
-    'hivernage', 'campagne agricole', 'ISRA', 'SAED', 'sécurité alimentaire', 'FAO',
-    'fertilisant', 'engrais', 'pesticide', 'rendement', 'soudure', 'pluviométr'];
+  const keywords = ['agricultur', 'agri', 'récolte', 'semence', 'paysan', 'exploitant',
+    'céréal', 'arachide', 'mil', 'riz', 'maïs', 'oignon', 'tomate', 'élevage',
+    'pêche', 'irrigation', 'hivernage', 'campagne', 'ISRA', 'SAED',
+    'alimentaire', 'FAO', 'engrais', 'rendement', 'soudure', 'pluvio',
+    'mécanis', 'foncier', 'rural', 'souveraineté', 'climat'];
   const lower = text.toLowerCase();
   return keywords.some(k => lower.includes(k));
 }
 
 function getDefaultNews() {
   return [
-    { title: "Campagne agricole 2026 : les prévisions pluviométriques de l'ANACIM", date: new Date().toISOString(), source: "ANACIM", summary: "Les prévisions annoncent un hivernage normal à excédentaire pour la majeure partie du Sénégal." },
-    { title: "Prix de l'arachide : le gouvernement fixe le prix plancher", date: new Date().toISOString(), source: "APS", summary: "Le Conseil National de Concertation sur l'Arachide a fixé les prix pour la campagne." },
-    { title: "Production céréalière 2024 : 3,8 millions de tonnes (+8%)", date: new Date().toISOString(), source: "FAO/GIEWS", summary: "La production agrégée dépasse la moyenne quinquennale grâce à une bonne pluviométrie." },
-    { title: "Nouvelles variétés ISRA : Thialack 2 et ISRIZ 12 disponibles", date: new Date().toISOString(), source: "ISRA", summary: "L'Institut a mis à disposition des semences pré-base pour la prochaine campagne." },
-    { title: "Subventions engrais : le programme 2026 est lancé", date: new Date().toISOString(), source: "Ministère Agriculture", summary: "Les agriculteurs peuvent bénéficier d'engrais subventionnés via les coopératives." }
+    { title: "Campagne agricole 2026 : prévisions pluviométriques de l'ANACIM", source: 'ANACIM', date: 'Récent', link: '' },
+    { title: "Prix de l'arachide : le gouvernement fixe le prix plancher de la campagne", source: 'APS', date: 'Récent', link: '' },
+    { title: "Production céréalière record : 3,8 millions de tonnes en 2024", source: 'FAO', date: 'Récent', link: '' },
+    { title: "Nouvelles variétés ISRA disponibles pour la prochaine campagne", source: 'ISRA', date: 'Récent', link: '' },
+    { title: "Programme de subventions engrais 2026 lancé par le ministère", source: 'Min. Agriculture', date: 'Récent', link: '' }
   ];
 }
 
