@@ -2,9 +2,9 @@ const express = require('express');
 const { getCityWeather, getAvailableCities } = require('../services/weather-service');
 const router = express.Router();
 
-router.get('/:city', (req, res) => {
+router.get('/:city', async (req, res) => {
   const cityKey = req.params.city.toLowerCase().replace(/[- ]/g, '_');
-  const data = getCityWeather(cityKey);
+  const data = await getCityWeather(cityKey);
 
   if (!data) {
     return res.status(404).json({

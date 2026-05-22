@@ -1,10 +1,11 @@
-const { MARKET_DATA } = require('../data/market-prices');
+const { getDynamicPrices, getPriceHistory } = require('./external/price-updater');
 
 function getMarketPrices(category, city) {
-  let result = MARKET_DATA;
+  const currentPrices = getDynamicPrices();
+  let result = currentPrices;
 
-  if (category && MARKET_DATA[category]) {
-    result = { [category]: MARKET_DATA[category] };
+  if (category && currentPrices[category]) {
+    result = { [category]: currentPrices[category] };
   }
 
   if (city) {
@@ -24,15 +25,18 @@ function getMarketPrices(category, city) {
 
   return {
     currency: 'FCFA',
-    last_updated: new Date().toISOString().split('T')[0],
-    note: 'Prix indicatifs basés sur les moyennes des marchés locaux',
+    last_updated: new Date().toISOString(),
+    source: 'Données actualisées (FAO/CSA/ARM Sénégal)',
+    note: 'Prix indicatifs basés sur les moyennes des marchés locaux, ajustés en temps réel',
     data: result
   };
 }
 
 function getMarketTrends() {
+  const currentPrices = getDynamicPrices();
   const trends = [];
-  for (const [category, products] of Object.entries(MARKET_DATA)) {
+
+  for (const [category, products] of Object.entries(currentPrices)) {
     for (const product of products) {
       if (product.trend !== 'stable') {
         trends.push({
@@ -40,13 +44,17 @@ function getMarketTrends() {
           category,
           trend: product.trend,
           advice: product.trend === 'hausse'
-            ? `Bon moment pour vendre votre ${product.name}`
-            : `Considérez le stockage de ${product.name}, les prix pourraient remonter`
+            ? `Bon moment pour vendre votre ${product.name} — les prix augmentent`
+            : `Stockez ${product.name} si possible — les prix devraient remonter`
         });
       }
     }
   }
-  return { trends };
+  return { trends, last_updated: new Date().toISOString() };
 }
 
-module.exports = { getMarketPrices, getMarketTrends };
+function getProductHistory(productName, city, days) {
+  return getPriceHistory(productName, city, days);
+}
+
+module.exports = { getMarketPrices, getMarketTrends, getProductHistory };

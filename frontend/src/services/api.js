@@ -6,7 +6,6 @@ export async function sendChatMessage(messages, language = 'fr') {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ messages, language })
   });
-
   if (!response.ok) throw new Error('Network error');
   return response.json();
 }
@@ -26,5 +25,11 @@ export async function fetchMarketPrices(city) {
 export async function fetchMarketTrends() {
   const response = await fetch(`${API_BASE}/api/market/trends`);
   if (!response.ok) throw new Error('Trends fetch failed');
+  return response.json();
+}
+
+export async function fetchNews() {
+  const response = await fetch(`${API_BASE}/api/news`);
+  if (!response.ok) throw new Error('News fetch failed');
   return response.json();
 }

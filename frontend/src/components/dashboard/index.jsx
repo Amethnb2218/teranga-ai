@@ -3,9 +3,10 @@ import CitySelector from './CitySelector'
 import WeatherSection from './WeatherSection'
 import MarketSection from './MarketSection'
 import TrendsSection from './TrendsSection'
+import NewsSection from './NewsSection'
 
 function Dashboard() {
-  const { city, setCity, weather, market, trends, loading } = useDashboard();
+  const { city, setCity, weather, market, trends, news, loading } = useDashboard();
 
   if (loading) {
     return (
@@ -31,6 +32,7 @@ function Dashboard() {
       <WeatherSection weather={weather} city={city} />
       <MarketSection market={market} />
       <TrendsSection trends={trends} />
+      <NewsSection news={news} />
     </div>
   );
 }
