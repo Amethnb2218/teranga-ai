@@ -827,16 +827,32 @@ function predictYield(crop, zone, rainTotal, tempAvg, sowMonth) {
 
   if (results.regression && results.knn) {
     const r2 = parseFloat(results.regression.r_squared);
-    const regWeight = Math.min(0.7, r2 * 0.8);
-    const knnWeight = 1 - regWeight;
+    const knnConf = parseFloat(results.knn.confidence) / 100;
+
+    // Dynamic weighting: trust regression more when R² is high, KNN more when confidence is high
+    const regScore = r2 * 0.8;
+    const knnScore = knnConf * 0.6;
+    const totalScore = regScore + knnScore || 1;
+    const regWeight = regScore / totalScore;
+    const knnWeight = knnScore / totalScore;
+
+    const ensemblePred = Math.round(
+      results.regression.predicted_yield_kg * regWeight +
+      results.knn.predicted_yield_kg * knnWeight
+    );
+
+    // Compute prediction disagreement as uncertainty indicator
+    const disagreement = Math.abs(results.regression.predicted_yield_kg - results.knn.predicted_yield_kg);
+    const relDisagreement = disagreement / (ensemblePred || 1);
+
     results.ensemble = {
-      predicted_yield_kg: Math.round(
-        results.regression.predicted_yield_kg * regWeight +
-        results.knn.predicted_yield_kg * knnWeight
-      ),
-      method: 'Weighted ensemble (OLS + KNN)',
-      weights: { regression: regWeight.toFixed(2), knn: knnWeight.toFixed(2) },
-      cv_mape: modelStats[crop]?.cv_mape?.toFixed(1) + '%'
+      predicted_yield_kg: ensemblePred,
+      method: 'Dynamic Weighted Ensemble (Ridge Regression + KNN)',
+      weights: { regression: regWeight.toFixed(3), knn: knnWeight.toFixed(3) },
+      cv_mape: modelStats[crop]?.cv_mape?.toFixed(1) + '%',
+      cv_mae: modelStats[crop]?.cv_mae ? Math.round(modelStats[crop].cv_mae) + ' kg/ha' : null,
+      model_agreement: relDisagreement < 0.1 ? 'high' : relDisagreement < 0.25 ? 'moderate' : 'low',
+      prediction_stability: ((1 - relDisagreement) * 100).toFixed(0) + '%'
     };
   }
 
