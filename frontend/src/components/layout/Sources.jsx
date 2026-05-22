@@ -54,11 +54,11 @@ const SOURCES = [
     icon: FiBarChart2,
     items: [
       {
-        name: 'CSA',
-        full: 'Commissariat à la Sécurité Alimentaire',
-        url: 'https://www.secnsa.sn',
-        desc: 'Suivi hebdomadaire des prix sur les principaux marchés du Sénégal. 20+ produits, 10 marchés.',
-        data: 'Prix en FCFA/kg des céréales, légumineuses, oléagineux, tubercules — campagne 2024-2025'
+        name: 'FAO FPMA',
+        full: 'FAO Food Price Monitoring and Analysis',
+        url: 'https://fpma.fao.org/giews/fpmat4',
+        desc: 'Suivi des prix alimentaires au Sénégal et en Afrique de l\'Ouest. Données hebdomadaires sur les principaux marchés.',
+        data: 'Prix en FCFA/kg des céréales, légumineuses, oléagineux — séries temporelles par marché'
       },
       {
         name: 'FAO/GIEWS',
@@ -68,11 +68,11 @@ const SOURCES = [
         data: 'Prix internationaux, tendances import/export, bilans céréaliers nationaux'
       },
       {
-        name: 'ARM',
-        full: 'Agence de Régulation des Marchés',
-        url: 'https://www.arm.sn',
-        desc: 'Régulation et suivi des marchés agricoles sénégalais, stocks nationaux.',
-        data: 'Prix de référence, stocks de sécurité, prévisions de campagne'
+        name: 'FAO Sénégal',
+        full: 'Profil pays FAO — Sénégal',
+        url: 'https://www.fao.org/countryprofiles/index/en/?iso3=SEN',
+        desc: 'Données agrégées production, commerce, sécurité alimentaire, indicateurs de développement agricole.',
+        data: 'Bilans céréaliers, balance commerciale agricole, indicateurs ODD 2'
       }
     ]
   },
@@ -212,9 +212,9 @@ function Sources() {
             ['ISRA', 'Institut Sénégalais de Recherches Agricoles'],
             ['ANACIM', 'Agence Nationale de l\'Aviation Civile et de la Météorologie'],
             ['ANCAR', 'Agence Nationale de Conseil Agricole et Rural'],
-            ['CSA', 'Commissariat à la Sécurité Alimentaire'],
+            ['FPMA', 'Food Price Monitoring and Analysis (FAO)'],
             ['DAPSA', 'Direction de l\'Analyse, de la Prévision et des Statistiques Agricoles'],
-            ['ARM', 'Agence de Régulation des Marchés'],
+            ['WFP', 'World Food Programme (Programme Alimentaire Mondial)'],
             ['FAO', 'Organisation des Nations Unies pour l\'alimentation et l\'agriculture'],
             ['GIEWS', 'Système Mondial d\'Information et d\'Alerte Rapide'],
             ['CNCAS', 'Caisse Nationale de Crédit Agricole du Sénégal (maintenant La Banque Agricole)'],
