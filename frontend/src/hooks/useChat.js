@@ -14,9 +14,21 @@ const LANG_LABELS = {
   ar: 'العربية'
 };
 
+const WELCOME_MESSAGES = {
+  fr: "Bonjour, je suis votre conseiller agricole. Posez-moi vos questions sur les cultures, la météo ou les prix du marché — en français ou dans votre langue.",
+  wo: "Dalal jamm, maa ngi fi ngir lay dimbalé ci sa tool. Laaj ma lu la neexe ci mbey mi, nawet bi walla njëg yi.",
+  pu: "Jam waali, miɗo ɗoo ngam wallude ma e gese. Naamndo am ko faati e remooɓe, lewru e coggu.",
+  sr: "Ndank ndank, mi ngi fi ngir la amal ci sa tool. Laaj ma lu la neexe.",
+  di: "Kasumay, ami ngi fi ngir lay dimbalé. Laaj ma sa yoonu tool bi.",
+  mn: "I ni sogoma, ne bɛ yan waati la i ka dɛmɛ sɛnɛkɛla la. I ka n'a fɔ.",
+  sn: "An maarandi, n ti ɲi da i deben. Soxe ma soxali ken ga baane.",
+  en: "Hello, I'm your agricultural advisor. Ask me about crops, weather or market prices.",
+  ar: "مرحبا، أنا مستشارك الزراعي. اسألني عن المحاصيل أو الطقس أو أسعار السوق."
+};
+
 const INITIAL_MESSAGE = {
   role: 'assistant',
-  content: "Bonjour, je suis votre conseiller agricole. Posez-moi vos questions sur les cultures, la météo ou les prix du marché — en français ou dans votre langue."
+  content: WELCOME_MESSAGES.fr
 };
 
 const SPEECH_LANG_MAP = {
@@ -106,13 +118,10 @@ export function useChat() {
   };
 
   const cycleLanguage = (val) => {
-    if (val && LANGUAGES.includes(val)) {
-      setLanguage(val);
-    } else {
-      setLanguage(l => {
-        const idx = LANGUAGES.indexOf(l);
-        return LANGUAGES[(idx + 1) % LANGUAGES.length];
-      });
+    const newLang = (val && LANGUAGES.includes(val)) ? val : LANGUAGES[(LANGUAGES.indexOf(language) + 1) % LANGUAGES.length];
+    setLanguage(newLang);
+    if (messages.length === 1 && messages[0].role === 'assistant') {
+      setMessages([{ role: 'assistant', content: WELCOME_MESSAGES[newLang] || WELCOME_MESSAGES.fr }]);
     }
   };
 

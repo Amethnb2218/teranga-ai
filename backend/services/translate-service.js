@@ -23,7 +23,27 @@ const LANG_NAMES = {
 
 const LOCAL_LANGS = ['wo', 'pu', 'sr', 'di', 'mn', 'sn'];
 
-async function translateWithNLLB(text, sourceLang, targetLang, retries = 2) {
+let nllbWarm = false;
+
+async function warmupNLLB() {
+  const apiKey = process.env.HF_API_KEY || process.env.HUGGINGFACE_API_KEY;
+  if (!apiKey || nllbWarm) return;
+  try {
+    await fetch('https://api-inference.huggingface.co/models/facebook/nllb-200-distilled-600M', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ inputs: 'Bonjour', parameters: { src_lang: 'fra_Latn', tgt_lang: 'wol_Latn' }, options: { wait_for_model: true } })
+    });
+    nllbWarm = true;
+    console.log('NLLB model warmed up');
+  } catch (e) {
+    console.log('NLLB warmup failed:', e.message);
+  }
+}
+
+setTimeout(warmupNLLB, 2000);
+
+async function translateWithNLLB(text, sourceLang, targetLang, retries = 3) {
   const apiKey = process.env.HF_API_KEY || process.env.HUGGINGFACE_API_KEY;
   if (!apiKey) return null;
 
@@ -50,8 +70,8 @@ async function translateWithNLLB(text, sourceLang, targetLang, retries = 2) {
 
       if (response.status === 503) {
         const info = await response.json().catch(() => ({}));
-        const wait = Math.min(info.estimated_time || 15, 25);
-        console.log(`NLLB loading, waiting ${wait}s (attempt ${attempt + 1})`);
+        const wait = Math.min(info.estimated_time || 20, 30);
+        console.log(`NLLB loading, waiting ${wait}s (attempt ${attempt + 1}/${retries + 1})`);
         if (attempt < retries) {
           await new Promise(r => setTimeout(r, wait * 1000));
           continue;
@@ -67,13 +87,14 @@ async function translateWithNLLB(text, sourceLang, targetLang, retries = 2) {
       const data = await response.json();
       if (Array.isArray(data) && data[0]?.translation_text) {
         const result = data[0].translation_text;
+        nllbWarm = true;
         if (result && result !== text) return result;
       }
       return null;
     } catch (error) {
       console.error('NLLB fetch error:', error.message);
       if (attempt < retries) {
-        await new Promise(r => setTimeout(r, 3000));
+        await new Promise(r => setTimeout(r, 5000));
         continue;
       }
       return null;
@@ -133,7 +154,6 @@ async function translateForChat(text, targetLang) {
   if (!text) return text;
 
   if (LOCAL_LANGS.includes(targetLang)) {
-    // Clean markdown for better NLLB results
     const cleanText = text
       .replace(/\*\*/g, '')
       .replace(/^[-•]\s*/gm, '')
@@ -141,7 +161,18 @@ async function translateForChat(text, targetLang) {
       .replace(/\n{2,}/g, '\n')
       .trim();
 
-    // Split into sentences for NLLB (works better on short text)
+    // Try translating the full text first (faster, works for short responses)
+    if (cleanText.length < 300) {
+      const fullResult = await translateWithNLLB(cleanText, 'fr', targetLang, 3);
+      if (fullResult) {
+        const frenchWords = fullResult.match(/\b(est|les|des|pour|dans|avec|sur|que|qui|une|pas)\b/gi) || [];
+        if (frenchWords.length <= fullResult.split(' ').length * 0.3) {
+          return fullResult;
+        }
+      }
+    }
+
+    // Split into sentences for longer text
     const sentences = cleanText.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
 
     const translated = [];
@@ -150,12 +181,11 @@ async function translateForChat(text, targetLang) {
         translated.push(sentence);
         continue;
       }
-      const result = await translateWithNLLB(sentence, 'fr', targetLang, 1);
+      const result = await translateWithNLLB(sentence, 'fr', targetLang, 3);
       translated.push(result || sentence);
     }
 
     const output = translated.join(' ');
-    // If most sentences failed (still French), return null to trigger fallback
     const frenchWords = output.match(/\b(est|les|des|pour|dans|avec|sur|que|qui|une|pas)\b/gi) || [];
     if (frenchWords.length > output.split(' ').length * 0.3) {
       return null;
