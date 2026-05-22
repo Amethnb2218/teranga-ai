@@ -1,6 +1,6 @@
 # Teranga AI — Intelligent Agricultural Decision Support System
 
-An AI-powered agricultural decision support system for West African farmers, combining **real-time data**, **machine learning algorithms**, and **multi-factor optimization** to minimize crop risk and maximize yield.
+An AI-powered agricultural decision support system for West African farmers, combining **real-time weather data**, **machine learning ensemble**, and **multi-factor optimization** to minimize crop risk and maximize yield — accessible in **9 languages** including 6 African languages via voice.
 
 **Live Demo:** [https://teranga-assistant.onrender.com](https://teranga-assistant.onrender.com)  
 **Backend API:** [https://teranga-ai.onrender.com/api/health](https://teranga-ai.onrender.com/api/health)
@@ -15,6 +15,7 @@ West African smallholder farmers (300M+ people) face compounding challenges:
 
 - **Rainfall variability** — +/- 30% year-to-year in the Sahel, making traditional calendars unreliable
 - **No access to agronomic advisory** — 1 extension agent per 5,000 farmers in Senegal
+- **Language barrier** — 80% of farmers speak only local languages (Wolof, Pulaar, Sérère...)
 - **Market information asymmetry** — price spreads of 40-60% between farm-gate and urban markets
 - **Climate shift** — optimal sowing dates have shifted 2-3 weeks over the past decade
 
@@ -26,12 +27,27 @@ These factors combined cause an estimated **30-40% preventable crop loss** annua
 
 Teranga AI provides **algorithmic decision support** through:
 
-1. **Yield Prediction** — Multiple Linear Regression trained on 10 years of ISRA/FAO data
-2. **Calendar Optimization** — Genetic Algorithm finding optimal multi-parcel sowing dates
-3. **Risk Assessment** — Bayesian Belief Network for probabilistic multi-factor risk inference
-4. **Pattern Matching** — K-Nearest Neighbors for historical similarity analysis
-5. **Real-time Integration** — Weather, market prices, and agricultural news
-6. **Multilingual Voice** — Text-to-speech in FR/Wolof/EN/AR (Web Speech API)
+1. **Yield Prediction** — Ridge-regularized Regression (12 features) + KNN ensemble, trained on 250+ observations from DAPSA/ISRA/ANACIM (2015-2026)
+2. **Calendar Optimization** — Genetic Algorithm (BLX-α crossover, tournament selection) finding optimal multi-parcel sowing dates
+3. **Risk Assessment** — Bayesian Belief Network with crop-specific Conditional Probability Tables
+4. **Dynamic Ensemble** — Weighted model aggregation with R²-based confidence scoring and prediction stability metrics
+5. **Real-time Weather Integration** — OpenWeatherMap data injected directly into ML predictions (not just displayed)
+6. **Multilingual Voice I/O** — Speech-to-text via Groq Whisper + Meta MMS (6 African languages), text-to-speech in all 9 languages
+7. **Neural Machine Translation** — Meta NLLB-200 for Wolof, Pulaar, Sérère, Diola, Mandinka, Soninké
+
+### Languages Supported
+
+| Language | Input (STT) | Output (TTS) | Translation | Engine |
+|----------|:-----------:|:------------:|:-----------:|--------|
+| French | Whisper | Web Speech | Native | Groq |
+| English | Whisper | Web Speech | Native | Groq |
+| Arabic | Whisper | Web Speech | Groq LLM | Groq |
+| Wolof | Meta MMS | Web Speech | NLLB-200 | HuggingFace |
+| Pulaar | Meta MMS | Web Speech | NLLB-200 | HuggingFace |
+| Sérère | Meta MMS | Web Speech | NLLB-200 | HuggingFace |
+| Diola | Meta MMS | Web Speech | NLLB-200 | HuggingFace |
+| Mandinka | Meta MMS | Web Speech | NLLB-200 | HuggingFace |
+| Soninké | Meta MMS | Web Speech | NLLB-200 | HuggingFace |
 
 ---
 
@@ -57,23 +73,23 @@ Teranga AI provides **algorithmic decision support** through:
 │                                                                    │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────────┐  │
 │  │ AI Chat Service │  │  Weather Service │  │  Market Engine   │  │
-│  │ Groq LLama 3.1  │  │  OpenWeatherMap  │  │  FAO/GIEWS       │  │
-│  │ + Offline Mode  │  │  + Calibration   │  │  + Seasonal Adj  │  │
+│  │ Groq LLama 3.3  │  │  OpenWeatherMap  │  │  FAO/GIEWS       │  │
+│  │ + NLLB + MMS   │  │  + RT Injection  │  │  + Seasonal Adj  │  │
 │  └─────────────────┘  └─────────────────┘  └──────────────────┘  │
 │                                                                    │
 │  ┌──────────────────────────────────────────────────────────────┐ │
 │  │                 MACHINE LEARNING ENGINE                        │ │
 │  │                                                               │ │
 │  │  ┌───────────────┐  ┌───────────────┐  ┌─────────────────┐  │ │
-│  │  │  OLS Multiple │  │   Genetic     │  │   Bayesian      │  │ │
+│  │  │  Ridge Linear  │  │   Genetic     │  │   Bayesian      │  │ │
 │  │  │  Regression   │  │   Algorithm   │  │   Belief        │  │ │
-│  │  │  (Yield)      │  │   (Calendar)  │  │   Network       │  │ │
-│  │  │  R²=0.82-0.91 │  │   50pop×80gen │  │   (Risk)        │  │ │
+│  │  │  (12 feat.)   │  │   (Calendar)  │  │   Network       │  │ │
+│  │  │  R²=0.82-0.94 │  │   50pop×80gen │  │   (Risk CPTs)   │  │ │
 │  │  └───────────────┘  └───────────────┘  └─────────────────┘  │ │
 │  │  ┌───────────────┐  ┌───────────────┐                        │ │
-│  │  │  KNN Pattern  │  │   Ensemble    │                        │ │
-│  │  │  Matching     │  │   Aggregator  │                        │ │
-│  │  │  (k=3, dwt)   │  │   (adaptive)  │                        │ │
+│  │  │  KNN Pattern  │  │   Dynamic     │                        │ │
+│  │  │  Matching     │  │   Ensemble    │                        │ │
+│  │  │  (norm, dwt)  │  │   (R²+conf)   │                        │ │
 │  │  └───────────────┘  └───────────────┘                        │ │
 │  └──────────────────────────────────────────────────────────────┘ │
 │                                                                    │
@@ -88,42 +104,47 @@ Teranga AI provides **algorithmic decision support** through:
         │              │              │
         ▼              ▼              ▼
 ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
-│  Groq API    │ │OpenWeatherMap│ │ Google News  │
-│  (Free tier) │ │  (Free tier) │ │    RSS       │
-└──────────────┘ └──────────────┘ └──────────────┘
+│  Groq API    │ │OpenWeatherMap│ │ Google News  │ │ HuggingFace  │
+│  (LLM+STT)  │ │  (RT weather)│ │    RSS       │ │ (NLLB+MMS)   │
+└──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘
 ```
 
 ---
 
 ## Algorithms — Mathematical Foundation
 
-### 1. Multiple Linear Regression (OLS) — Yield Prediction
+### 1. Ridge-Regularized Multiple Linear Regression — Yield Prediction
 
-Predicts crop yield `ŷ` (kg/ha) from environmental features.
+Predicts crop yield `ŷ` (kg/ha) from 12 agro-environmental features.
 
 **Model:**
 ```
-ŷ = β₀ + β₁·rainfall + β₂·temperature + β₃·sow_month + β₄·zone
+ŷ = β₀ + β₁·rain_total + β₂·rain_peak + β₃·rain_distribution + β₄·temp_avg
+       + β₅·temp_stress + β₆·sow_month + β₇·zone + β₈·soil + β₉·fertilizer
+       + β₁₀·fert_log + β₁₁·variety_cycle + β₁₂·rotation_bonus
 ```
 
-**Estimation via Normal Equation:**
+**Ridge Estimation (prevents overfitting on collinear features):**
 ```
-β̂ = (XᵀX)⁻¹ · Xᵀy
+β̂ = (XᵀX + λI)⁻¹ · Xᵀy     where λ = trace(XᵀX) × 0.001 / p
 ```
 
 Where:
-- `X ∈ ℝⁿˣ⁴` — feature matrix (rainfall_mm, temp_avg_°C, sow_month, zone_encoded)
+- `X ∈ ℝⁿˣ¹²` — feature matrix (12 agro-environmental variables)
 - `y ∈ ℝⁿ` — yield observations (kg/ha)
-- `n = 30+` observations per crop (ISRA/FAO 2015-2024)
+- `n = 250+` observations across 14 regions (DAPSA/ISRA/ANACIM 2015-2026)
 
-**Goodness of fit:**
+**Validation:** Leave-One-Out Cross-Validation (LOOCV)
 ```
-R² = 1 - (SS_res / SS_tot) = 1 - (Σ(yᵢ - ŷᵢ)² / Σ(yᵢ - ȳ)²)
+R² = 0.82–0.94 (crop-dependent)
+MAPE = 8–15% (cross-validated)
 ```
 
-**Implementation:** Gauss-Jordan elimination for matrix inversion with partial pivoting.
+**Real-time weather injection:** OpenWeatherMap forecast data replaces static averages when available.
 
-**Complexity:** `O(p³ + np²)` where p=4 features, n=sample size.
+**Implementation:** Gauss-Jordan elimination with partial pivoting + adaptive Ridge λ.
+
+**Complexity:** `O(p³ + np²)` where p=12 features, n=sample size.
 
 ---
 
@@ -385,18 +406,61 @@ teranga-ai/
 
 ## Hackathon Alignment
 
-**Track:** Sustainable Technology + AI/ML
+**Tracks:** AI/ML + Sustainable Technology + Social Impact
 
 **AlgoFest Criteria Mapping:**
 
 | Criteria | Implementation |
 |----------|---------------|
-| Algorithmic excellence | 4 ML algorithms from scratch (no sklearn/tensorflow) |
-| Innovation | Ensemble ML + Genetic optimization for agriculture |
-| Scalability | REST API, modular, zero heavy-ML dependencies |
-| Real-world impact | 300M+ smallholder farmers in West Africa |
-| Technical implementation | Full-stack deploy, real-time data, voice support |
-| Usability & UX | Multilingual, voice-enabled, mobile-responsive |
+| Algorithmic excellence | 5 ML algorithms coded from scratch (no sklearn/tensorflow/pytorch) |
+| Innovation | Dynamic ensemble (Ridge+KNN) with real-time weather injection + voice in 6 African languages |
+| Scalability | REST API, stateless, zero ML framework dependencies, runs on free tier |
+| Real-world impact | 300M+ smallholder farmers in West Africa, 80% who speak only local languages |
+| Technical implementation | Full-stack deploy, real-time OpenWeatherMap, Meta MMS/NLLB, Groq Whisper |
+| Usability & UX | 9 languages, voice input/output, mobile-responsive, works on basic smartphones |
+
+---
+
+## Technologies Used
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| Frontend | React 18 + Vite + TailwindCSS | SPA, responsive UI |
+| Backend | Node.js + Express | REST API, ML engine |
+| LLM | Groq (Llama 3.3 70B) | Agricultural Q&A |
+| Speech-to-Text | Groq Whisper v3 + Meta MMS | Voice input (9 languages) |
+| Translation | Meta NLLB-200 (HuggingFace) | 6 African languages |
+| Weather | OpenWeatherMap API | Real-time forecasts |
+| ML | Custom (from scratch) | Regression, KNN, GA, BBN |
+| Deployment | Render (frontend + backend) | Production hosting |
+
+---
+
+## Setup Instructions
+
+```bash
+# Clone
+git clone https://github.com/Amethnb2218/teranga-ai.git
+cd teranga-ai
+
+# Backend
+cd backend
+npm install
+cp .env.example .env  # Add your API keys
+npm start
+
+# Frontend (new terminal)
+cd frontend
+npm install
+npm run dev
+```
+
+**Required Environment Variables:**
+```
+GROQ_API_KEY=        # groq.com (free) — LLM + Whisper
+HF_API_KEY=          # huggingface.co (free) — NLLB + MMS
+OPENWEATHER_API_KEY= # openweathermap.org (free) — Weather
+```
 
 ---
 
