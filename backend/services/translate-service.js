@@ -1,8 +1,7 @@
 /**
  * Translation Service — Teranga AI
  * Uses Meta's NLLB (No Language Left Behind) via Hugging Face Inference API
- * Free tier: 1000 requests/day
- * Supports 200+ languages including Wolof, Pulaar, Mandinka, etc.
+ * Supports Wolof, Pulaar, Sérère, Diola, Mandinka, Soninké
  */
 
 const NLLB_LANG_CODES = {
@@ -19,21 +18,111 @@ const NLLB_LANG_CODES = {
 
 const HF_MODEL = 'facebook/nllb-200-distilled-600M';
 
+async function callHFTranslation(text, srcCode, tgtCode, apiKey) {
+  const response = await fetch(
+    `https://api-inference.huggingface.co/models/${HF_MODEL}`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        inputs: text,
+        parameters: {
+          src_lang: srcCode,
+          tgt_lang: tgtCode
+        }
+      })
+    }
+  );
+
+  if (!response.ok) {
+    const errBody = await response.text();
+    console.error('HF API error:', response.status, errBody);
+
+    // Model loading (cold start) — wait and retry
+    if (response.status === 503) {
+      console.log('NLLB model loading, retrying in 5s...');
+      await new Promise(r => setTimeout(r, 5000));
+      const retry = await fetch(
+        `https://api-inference.huggingface.co/models/${HF_MODEL}`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            inputs: text,
+            parameters: { src_lang: srcCode, tgt_lang: tgtCode }
+          })
+        }
+      );
+      if (!retry.ok) return null;
+      return await retry.json();
+    }
+    return null;
+  }
+
+  return await response.json();
+}
+
+function extractTranslation(data, originalText) {
+  if (!data) return null;
+
+  // Format 1: [{translation_text: "..."}]
+  if (Array.isArray(data) && data[0]?.translation_text) {
+    const result = data[0].translation_text;
+    if (result && result !== originalText) return result;
+  }
+
+  // Format 2: [{generated_text: "..."}]
+  if (Array.isArray(data) && data[0]?.generated_text) {
+    const result = data[0].generated_text;
+    if (result && result !== originalText) return result;
+  }
+
+  // Format 3: {translation_text: "..."}
+  if (data.translation_text) {
+    const result = data.translation_text;
+    if (result && result !== originalText) return result;
+  }
+
+  // Format 4: direct string array
+  if (Array.isArray(data) && typeof data[0] === 'string') {
+    if (data[0] !== originalText) return data[0];
+  }
+
+  // Format 5: nested [{translation: "..."}]
+  if (Array.isArray(data) && data[0]?.translation) {
+    const result = data[0].translation;
+    if (result && result !== originalText) return result;
+  }
+
+  console.log('NLLB response format unknown:', JSON.stringify(data).slice(0, 200));
+  return null;
+}
+
 async function translateText(text, sourceLang = 'fr', targetLang = 'wo') {
   const srcCode = NLLB_LANG_CODES[sourceLang] || 'fra_Latn';
   const tgtCode = NLLB_LANG_CODES[targetLang] || 'wol_Latn';
 
   if (srcCode === tgtCode) return text;
+  if (!text || text.trim().length === 0) return text;
 
   const apiKey = process.env.HF_API_KEY || process.env.HUGGINGFACE_API_KEY;
-
-  if (!apiKey) {
-    return null;
-  }
+  if (!apiKey) return null;
 
   try {
-    const response = await fetch(
-      `https://api-inference.huggingface.co/models/${HF_MODEL}`,
+    // Try NLLB model
+    const data = await callHFTranslation(text, srcCode, tgtCode, apiKey);
+    const result = extractTranslation(data, text);
+    if (result) return result;
+
+    // If NLLB returns same text, try the dedicated translation pipeline endpoint
+    const pipelineResponse = await fetch(
+      `https://api-inference.huggingface.co/pipeline/translation`,
       {
         method: 'POST',
         headers: {
@@ -41,6 +130,7 @@ async function translateText(text, sourceLang = 'fr', targetLang = 'wo') {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
+          model: HF_MODEL,
           inputs: text,
           parameters: {
             src_lang: srcCode,
@@ -50,36 +140,13 @@ async function translateText(text, sourceLang = 'fr', targetLang = 'wo') {
       }
     );
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error('NLLB translation error:', response.status, errText);
-
-      if (response.status === 503) {
-        await new Promise(r => setTimeout(r, 2000));
-        const retry = await fetch(
-          `https://api-inference.huggingface.co/models/${HF_MODEL}`,
-          {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${apiKey}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              inputs: text,
-              parameters: { src_lang: srcCode, tgt_lang: tgtCode }
-            })
-          }
-        );
-        if (retry.ok) {
-          const data = await retry.json();
-          return data[0]?.translation_text || null;
-        }
-      }
-      return null;
+    if (pipelineResponse.ok) {
+      const pipeData = await pipelineResponse.json();
+      const pipeResult = extractTranslation(pipeData, text);
+      if (pipeResult) return pipeResult;
     }
 
-    const data = await response.json();
-    return data[0]?.translation_text || null;
+    return null;
   } catch (error) {
     console.error('Translation service error:', error.message);
     return null;
@@ -88,23 +155,28 @@ async function translateText(text, sourceLang = 'fr', targetLang = 'wo') {
 
 async function translateForChat(text, targetLang) {
   if (targetLang === 'fr') return text;
+  if (!text) return text;
 
-  const chunks = text.split('\n\n');
-  const translated = [];
-
-  for (const chunk of chunks) {
-    if (chunk.startsWith('**') || chunk.startsWith('#') || chunk.startsWith('-') || chunk.startsWith('•')) {
-      const result = await translateText(chunk, 'fr', targetLang);
-      translated.push(result || chunk);
-    } else if (chunk.trim().length > 0) {
-      const result = await translateText(chunk, 'fr', targetLang);
-      translated.push(result || chunk);
-    } else {
-      translated.push(chunk);
-    }
+  // For short texts, translate directly
+  if (text.length < 500) {
+    const result = await translateText(text, 'fr', targetLang);
+    return result || text;
   }
 
-  return translated.join('\n\n');
+  // For longer texts, split by paragraphs and translate each
+  const paragraphs = text.split('\n\n');
+  const results = [];
+
+  for (const para of paragraphs) {
+    if (!para.trim()) {
+      results.push(para);
+      continue;
+    }
+    const translated = await translateText(para, 'fr', targetLang);
+    results.push(translated || para);
+  }
+
+  return results.join('\n\n');
 }
 
 function isTranslationAvailable() {

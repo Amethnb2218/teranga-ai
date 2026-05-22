@@ -15,15 +15,50 @@ router.post('/', async (req, res) => {
     }
 
     const result = await translateText(text, source, target);
+    const wasTranslated = result && result !== text;
     res.json({
       translated: result || text,
       source,
       target,
-      model: 'nllb-200-distilled-600M'
+      model: 'nllb-200-distilled-600M',
+      success: wasTranslated
     });
   } catch (error) {
     console.error('Translation route error:', error.message);
     res.status(500).json({ error: 'Translation failed', translated: req.body.text });
+  }
+});
+
+router.post('/debug', async (req, res) => {
+  const { text = 'Bonjour', source = 'fr', target = 'wo' } = req.body;
+  const apiKey = process.env.HF_API_KEY || process.env.HUGGINGFACE_API_KEY;
+  const srcCode = NLLB_LANG_CODES[source] || 'fra_Latn';
+  const tgtCode = NLLB_LANG_CODES[target] || 'wol_Latn';
+
+  try {
+    const response = await fetch(
+      `https://api-inference.huggingface.co/models/facebook/nllb-200-distilled-600M`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          inputs: text,
+          parameters: { src_lang: srcCode, tgt_lang: tgtCode }
+        })
+      }
+    );
+    const rawBody = await response.text();
+    res.json({
+      status: response.status,
+      src_lang: srcCode,
+      tgt_lang: tgtCode,
+      raw_response: rawBody
+    });
+  } catch (e) {
+    res.json({ error: e.message });
   }
 });
 
