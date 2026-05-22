@@ -1,12 +1,12 @@
 import { FiSun, FiMessageCircle, FiBarChart2, FiHome } from 'react-icons/fi'
 
-function Header({ activeTab, setActiveTab }) {
-  const tabs = [
-    { id: 'home', label: 'Accueil', icon: FiHome },
-    { id: 'chat', label: 'Assistant IA', icon: FiMessageCircle },
-    { id: 'dashboard', label: 'Tableau de bord', icon: FiBarChart2 },
-  ]
+const tabs = [
+  { id: 'home', label: 'Accueil', icon: FiHome },
+  { id: 'chat', label: 'Assistant IA', icon: FiMessageCircle },
+  { id: 'dashboard', label: 'Tableau de bord', icon: FiBarChart2 },
+];
 
+function Header({ activeTab, setActiveTab }) {
   return (
     <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -42,7 +42,7 @@ function Header({ activeTab, setActiveTab }) {
         </div>
       </div>
     </header>
-  )
+  );
 }
 
 export default Header

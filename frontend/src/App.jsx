@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import Header from './components/Header'
-import Hero from './components/Hero'
-import Chat from './components/Chat'
-import Dashboard from './components/Dashboard'
-import Footer from './components/Footer'
+import Header from './components/layout/Header'
+import Hero from './components/layout/Hero'
+import Chat from './components/chat/index'
+import Dashboard from './components/dashboard/index'
+import Footer from './components/layout/Footer'
 
 function App() {
   const [activeTab, setActiveTab] = useState('home')

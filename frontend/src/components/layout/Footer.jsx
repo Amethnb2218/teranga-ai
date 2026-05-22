@@ -35,12 +35,12 @@ function Footer() {
           </div>
         </div>
         <div className="border-t border-gray-100 mt-8 pt-6 text-center text-sm text-gray-500">
-          <p>Teranga AI &copy; 2026 — Conçu avec ❤️ au Sénégal pour l'Afrique de l'Ouest</p>
+          <p>Teranga AI &copy; 2026 — Conçu au Sénégal pour l'Afrique de l'Ouest</p>
           <p className="mt-1">AlgoFest Hackathon 2026 — Track: AI/ML & Social Impact</p>
         </div>
       </div>
     </footer>
-  )
+  );
 }
 
 export default Footer

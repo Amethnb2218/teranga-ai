@@ -1,13 +1,13 @@
 import { FiMessageCircle, FiCloud, FiTrendingUp, FiGlobe } from 'react-icons/fi'
 
-function Hero({ onStart }) {
-  const features = [
-    { icon: FiMessageCircle, title: 'Conseils IA personnalisés', desc: 'Posez vos questions agricoles et recevez des réponses adaptées à votre zone et culture' },
-    { icon: FiCloud, title: 'Météo locale', desc: 'Prévisions à 7 jours pour toutes les régions du Sénégal avec alertes agricoles' },
-    { icon: FiTrendingUp, title: 'Prix du marché', desc: 'Suivez les prix des cultures dans les marchés locaux en temps réel' },
-    { icon: FiGlobe, title: 'Multilingue', desc: 'Disponible en Français et Wolof pour une accessibilité maximale' },
-  ]
+const features = [
+  { icon: FiMessageCircle, title: 'Conseils IA personnalisés', desc: 'Posez vos questions agricoles et recevez des réponses adaptées à votre zone et culture' },
+  { icon: FiCloud, title: 'Météo locale', desc: 'Prévisions à 7 jours pour toutes les régions du Sénégal avec alertes agricoles' },
+  { icon: FiTrendingUp, title: 'Prix du marché', desc: 'Suivez les prix des cultures dans les marchés locaux en temps réel' },
+  { icon: FiGlobe, title: 'Multilingue', desc: 'Disponible en Français et Wolof pour une accessibilité maximale' },
+];
 
+function Hero({ onStart }) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 md:py-20">
       <div className="text-center mb-16">
@@ -29,7 +29,7 @@ function Hero({ onStart }) {
             Commencer maintenant
           </button>
           <a href="#features" className="text-gray-600 hover:text-gray-900 font-medium flex items-center gap-2">
-            En savoir plus ↓
+            En savoir plus
           </a>
         </div>
       </div>
