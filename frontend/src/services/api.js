@@ -1,5 +1,13 @@
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
+function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal })
+    .then(res => { clearTimeout(timer); return res; })
+    .catch(err => { clearTimeout(timer); throw err; });
+}
+
 export async function sendChatMessage(messages, language = 'fr') {
   const response = await fetch(`${API_BASE}/api/chat`, {
     method: 'POST',
@@ -11,65 +19,65 @@ export async function sendChatMessage(messages, language = 'fr') {
 }
 
 export async function fetchWeather(city) {
-  const response = await fetch(`${API_BASE}/api/weather/${city}`);
+  const response = await fetchWithTimeout(`${API_BASE}/api/weather/${city}`);
   if (!response.ok) throw new Error('Weather fetch failed');
   return response.json();
 }
 
 export async function fetchMarketPrices(city) {
-  const response = await fetch(`${API_BASE}/api/market?city=${city}`);
+  const response = await fetchWithTimeout(`${API_BASE}/api/market?city=${city}`);
   if (!response.ok) throw new Error('Market fetch failed');
   return response.json();
 }
 
 export async function fetchMarketTrends() {
-  const response = await fetch(`${API_BASE}/api/market/trends`);
+  const response = await fetchWithTimeout(`${API_BASE}/api/market/trends`);
   if (!response.ok) throw new Error('Trends fetch failed');
   return response.json();
 }
 
 export async function fetchNews() {
-  const response = await fetch(`${API_BASE}/api/news`);
+  const response = await fetchWithTimeout(`${API_BASE}/api/news`);
   if (!response.ok) throw new Error('News fetch failed');
   return response.json();
 }
 
 export async function fetchPrediction(crop, city) {
-  const response = await fetch(`${API_BASE}/api/predict/${crop}/${city}`);
+  const response = await fetchWithTimeout(`${API_BASE}/api/predict/${crop}/${city}`);
   if (!response.ok) throw new Error('Prediction fetch failed');
   return response.json();
 }
 
 export async function fetchAvailableCrops() {
-  const response = await fetch(`${API_BASE}/api/predict/crops`);
+  const response = await fetchWithTimeout(`${API_BASE}/api/predict/crops`);
   if (!response.ok) throw new Error('Crops fetch failed');
   return response.json();
 }
 
 export async function fetchYieldPrediction(crop, city, month) {
-  const response = await fetch(`${API_BASE}/api/ml/predict-yield/${crop}/${city}?month=${month}`);
+  const response = await fetchWithTimeout(`${API_BASE}/api/ml/predict-yield/${crop}/${city}?month=${month}`);
   if (!response.ok) throw new Error('ML prediction failed');
   return response.json();
 }
 
 export async function fetchOptimizeCalendar(crops, city, parcels = 3) {
-  const response = await fetch(`${API_BASE}/api/ml/optimize-calendar`, {
+  const response = await fetchWithTimeout(`${API_BASE}/api/ml/optimize-calendar`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ crops, city, parcels })
-  });
+  }, 15000);
   if (!response.ok) throw new Error('Optimization failed');
   return response.json();
 }
 
 export async function fetchMLMetrics() {
-  const response = await fetch(`${API_BASE}/api/ml/metrics`);
+  const response = await fetchWithTimeout(`${API_BASE}/api/ml/metrics`);
   if (!response.ok) throw new Error('Metrics fetch failed');
   return response.json();
 }
 
 export async function fetchBayesianRisk(crop, city, month) {
-  const response = await fetch(`${API_BASE}/api/ml/risk/${crop}/${city}/${month}`);
+  const response = await fetchWithTimeout(`${API_BASE}/api/ml/risk/${crop}/${city}/${month}`);
   if (!response.ok) throw new Error('Risk fetch failed');
   return response.json();
 }

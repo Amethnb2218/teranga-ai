@@ -18,8 +18,8 @@ async function fetchRealWeather(cityKey) {
 
   try {
     const [currentRes, forecastRes] = await Promise.all([
-      fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${city.lat}&lon=${city.lon}&appid=${apiKey}&units=metric&lang=fr`),
-      fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${city.lat}&lon=${city.lon}&appid=${apiKey}&units=metric&lang=fr`)
+      fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${city.lat}&lon=${city.lon}&appid=${apiKey}&units=metric&lang=fr`, { signal: AbortSignal.timeout(8000) }),
+      fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${city.lat}&lon=${city.lon}&appid=${apiKey}&units=metric&lang=fr`, { signal: AbortSignal.timeout(8000) })
     ]);
 
     if (!currentRes.ok || !forecastRes.ok) return null;

@@ -8,6 +8,7 @@ export function useDashboard() {
   const [trends, setTrends] = useState(null);
   const [news, setNews] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -15,23 +16,29 @@ export function useDashboard() {
 
   const loadData = async () => {
     setLoading(true);
-    try {
-      const [weatherData, marketData, trendsData, newsData] = await Promise.all([
-        fetchWeather(city),
-        fetchMarketPrices(city),
-        fetchMarketTrends(),
-        fetchNews().catch(() => ({ news: [] }))
-      ]);
-      setWeather(weatherData);
-      setMarket(marketData);
-      setTrends(trendsData);
-      setNews(newsData);
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-    } finally {
-      setLoading(false);
+    setError(null);
+
+    const results = await Promise.allSettled([
+      fetchWeather(city),
+      fetchMarketPrices(city),
+      fetchMarketTrends(),
+      fetchNews()
+    ]);
+
+    const [weatherRes, marketRes, trendsRes, newsRes] = results;
+
+    if (weatherRes.status === 'fulfilled') setWeather(weatherRes.value);
+    if (marketRes.status === 'fulfilled') setMarket(marketRes.value);
+    if (trendsRes.status === 'fulfilled') setTrends(trendsRes.value);
+    if (newsRes.status === 'fulfilled') setNews(newsRes.value);
+
+    const allFailed = results.every(r => r.status === 'rejected');
+    if (allFailed) {
+      setError('Le serveur démarre, veuillez patienter 30s puis actualiser.');
     }
+
+    setLoading(false);
   };
 
-  return { city, setCity, weather, market, trends, news, loading };
+  return { city, setCity, weather, market, trends, news, loading, error };
 }

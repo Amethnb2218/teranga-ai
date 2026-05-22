@@ -45,6 +45,7 @@ function Predict() {
       setPrediction(data);
     } catch (error) {
       console.error('Prediction error:', error);
+      setPrediction(null);
     } finally {
       setLoading(false);
     }
@@ -111,6 +112,16 @@ function Predict() {
         <div className="text-center py-16">
           <div className="inline-block w-6 h-6 border-2 border-amber-700 border-t-transparent rounded-full animate-spin mb-3"></div>
           <p className="text-sm text-stone-500">Analyse de votre zone en cours...</p>
+          <p className="text-xs text-stone-300 mt-2">Premier chargement : ~30s (démarrage serveur)</p>
+        </div>
+      )}
+
+      {!prediction && !loading && (
+        <div className="text-center py-16">
+          <p className="text-sm text-stone-500 mb-3">Le serveur n'a pas répondu à temps.</p>
+          <button onClick={loadPrediction} className="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm hover:bg-amber-700">
+            Réessayer
+          </button>
         </div>
       )}
 
