@@ -103,6 +103,25 @@ async function callGroqAPI(messages, language) {
 
 const LANGS_NEED_TRANSLATION = ['wo', 'pu', 'sr', 'di', 'mn', 'sn'];
 
+async function translateUserInput(text, language) {
+  if (!process.env.GROQ_API_KEY) return text;
+  const langName = { wo: 'wolof', pu: 'pulaar', sr: 'sérère', di: 'diola', mn: 'mandinka', sn: 'soninké' }[language];
+  try {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.GROQ_API_KEY}` },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: `Traduis ce texte du ${langName} vers le français. Donne UNIQUEMENT la traduction, rien d'autre. Si tu ne comprends pas, essaie de deviner le sens.\n\nTexte : "${text}"` }],
+        max_tokens: 500, temperature: 0.2
+      })
+    });
+    if (!response.ok) return text;
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content?.trim() || text;
+  } catch (e) { return text; }
+}
+
 async function getAIResponse(messages, language) {
   const lastUserMessage = messages.filter(m => m.role === 'user').pop()?.content || '';
 
@@ -118,16 +137,24 @@ async function getAIResponse(messages, language) {
     return matchOfflineResponse(lastUserMessage);
   }
 
-  // For local African languages: two-strategy approach
-  // Strategy 1: Try NLLB translation (if already warm, this is fast)
-  // Strategy 2: Ask Groq to respond directly in the target language (always works, ~2s)
+  // For local African languages:
+  // Step 1: Translate user input to French so LLM understands
+  let messagesForLLM = messages;
+  if (lastUserMessage) {
+    const translatedInput = await translateUserInput(lastUserMessage, language);
+    messagesForLLM = messages.map(m => {
+      if (m.role === 'user' && m.content === lastUserMessage) {
+        return { ...m, content: translatedInput };
+      }
+      return m;
+    });
+  }
 
+  // Step 2: Get French response from LLM
   let frenchResponse = '';
-
-  // Get French response first (via Groq or offline)
   if (process.env.GROQ_API_KEY) {
     try {
-      frenchResponse = await callGroqAPI(messages, 'fr');
+      frenchResponse = await callGroqAPI(messagesForLLM, 'fr');
     } catch (error) {
       console.error('Groq API error:', error.message);
     }
