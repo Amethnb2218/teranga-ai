@@ -178,69 +178,122 @@ function Hero({ onStart }) {
         </div>
       </section>
 
-      {/* Algorithmes — section de crédibilité technique */}
-      <section className="bg-white border-t border-stone-200">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 md:py-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div>
-              <p className="section-label mb-3">Approche scientifique</p>
-              <h2 className="text-2xl font-bold text-stone-900 mb-4">
-                4 algorithmes ML implémentés from scratch
-              </h2>
-              <p className="text-stone-600 leading-relaxed mb-6">
-                Aucune dépendance à TensorFlow ou scikit-learn. Chaque algorithme est codé à la main avec une compréhension mathématique complète — optimisé pour les contraintes du Sahel.
-              </p>
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-stone-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-bold text-stone-600">OLS</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-stone-800">Régression linéaire multiple</p>
-                    <p className="text-xs text-stone-500">Prédiction du rendement — R² = 0.82 à 0.91</p>
+      {/* Algorithmes — section crédibilité technique */}
+      <section className="bg-stone-900 border-t border-stone-800 overflow-hidden relative">
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute inset-0" style={{backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '40px 40px'}}></div>
+        </div>
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-16 md:py-24">
+          <div className="text-center mb-12">
+            <p className="text-amber-400 text-xs font-semibold uppercase tracking-widest mb-3">Moteur de calcul</p>
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
+              Intelligence algorithmique, pas un simple wrapper IA
+            </h2>
+            <p className="text-stone-400 max-w-2xl mx-auto text-sm leading-relaxed">
+              4 algorithmes implémentés sans aucune librairie ML externe. Code mathématique pur, entraîné sur 10 ans de données terrain ISRA et ANACIM.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* OLS */}
+            <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-5 hover:bg-white/10 transition-colors">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-9 h-9 bg-amber-500/20 rounded-lg flex items-center justify-center">
+                  <span className="text-xs font-bold text-amber-400">OLS</span>
+                </div>
+                <div className="flex-1">
+                  <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div className="h-full bg-amber-500 rounded-full" style={{width: '88%'}}></div>
                   </div>
                 </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-stone-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-bold text-stone-600">GA</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-stone-800">Algorithme génétique</p>
-                    <p className="text-xs text-stone-500">Optimisation du calendrier cultural multi-parcelles</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-stone-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-bold text-stone-600">BBN</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-stone-800">Réseau bayésien</p>
-                    <p className="text-xs text-stone-500">Évaluation probabiliste multi-facteurs des risques</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-stone-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-bold text-stone-600">KNN</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-stone-800">K plus proches voisins</p>
-                    <p className="text-xs text-stone-500">Pattern matching sur 10 ans de données historiques</p>
-                  </div>
-                </div>
+                <span className="text-xs font-mono text-amber-400">R²=0.88</span>
+              </div>
+              <h4 className="text-white font-semibold text-sm mb-1">Régression multiple</h4>
+              <p className="text-stone-400 text-xs leading-relaxed">Prédit le rendement (kg/ha) à partir de la pluviométrie, température, mois de semis et zone agro-écologique.</p>
+              <div className="mt-3 pt-3 border-t border-white/5 text-[10px] text-stone-500 font-mono">
+                β̂ = (XᵀX)⁻¹ · Xᵀy
               </div>
             </div>
-            <div className="relative">
-              <img
-                src="https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=600&q=80"
-                alt="Agriculteurs dans un champ d'arachide"
-                className="rounded-xl w-full h-80 object-cover shadow-lg"
-              />
-              <div className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-lg p-4 border border-stone-200">
-                <div className="text-xs text-stone-400 mb-1">Données d'entraînement</div>
-                <div className="text-lg font-bold text-stone-900">2015 — 2024</div>
-                <div className="text-xs text-stone-500">ISRA / ANACIM / FAO</div>
+
+            {/* GA */}
+            <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-5 hover:bg-white/10 transition-colors">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-9 h-9 bg-green-500/20 rounded-lg flex items-center justify-center">
+                  <span className="text-xs font-bold text-green-400">GA</span>
+                </div>
+                <div className="flex-1">
+                  <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div className="h-full bg-green-500 rounded-full" style={{width: '92%'}}></div>
+                  </div>
+                </div>
+                <span className="text-xs font-mono text-green-400">80 gén.</span>
+              </div>
+              <h4 className="text-white font-semibold text-sm mb-1">Algorithme génétique</h4>
+              <p className="text-stone-400 text-xs leading-relaxed">Optimise le calendrier de semis multi-parcelles. Crossover BLX-α, sélection par tournoi, mutation gaussienne.</p>
+              <div className="mt-3 pt-3 border-t border-white/5 text-[10px] text-stone-500 font-mono">
+                Pop=50 | Mut=0.15 | Elite=10%
               </div>
             </div>
+
+            {/* BBN */}
+            <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-5 hover:bg-white/10 transition-colors">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-9 h-9 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                  <span className="text-xs font-bold text-blue-400">BBN</span>
+                </div>
+                <div className="flex-1">
+                  <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-500 rounded-full" style={{width: '85%'}}></div>
+                  </div>
+                </div>
+                <span className="text-xs font-mono text-blue-400">6 nœuds</span>
+              </div>
+              <h4 className="text-white font-semibold text-sm mb-1">Réseau bayésien</h4>
+              <p className="text-stone-400 text-xs leading-relaxed">Graphe probabiliste : sécheresse, chaleur, parasites, inondation → probabilité d'échec cultural.</p>
+              <div className="mt-3 pt-3 border-t border-white/5 text-[10px] text-stone-500 font-mono">
+                P(fail|drought=H) = 0.85
+              </div>
+            </div>
+
+            {/* KNN */}
+            <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-5 hover:bg-white/10 transition-colors">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-9 h-9 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                  <span className="text-xs font-bold text-purple-400">KNN</span>
+                </div>
+                <div className="flex-1">
+                  <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div className="h-full bg-purple-500 rounded-full" style={{width: '78%'}}></div>
+                  </div>
+                </div>
+                <span className="text-xs font-mono text-purple-400">k=3</span>
+              </div>
+              <h4 className="text-white font-semibold text-sm mb-1">K plus proches voisins</h4>
+              <p className="text-stone-400 text-xs leading-relaxed">Trouve les saisons passées les plus similaires et interpole le rendement par pondération inverse de distance.</p>
+              <div className="mt-3 pt-3 border-t border-white/5 text-[10px] text-stone-500 font-mono">
+                ŷ = Σ(yᵢ·wᵢ) / Σwᵢ
+              </div>
+            </div>
+          </div>
+
+          {/* Sources */}
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-xs text-stone-500">
+            <span className="flex items-center gap-2">
+              <span className="w-2 h-2 bg-amber-500 rounded-full"></span>
+              Données ISRA (2015-2024)
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+              Climatologie ANACIM
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+              Statistiques FAO/GIEWS
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+              Zéro dépendance ML externe
+            </span>
           </div>
         </div>
       </section>
