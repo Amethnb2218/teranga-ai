@@ -21,33 +21,53 @@ function ChatInput({ onSend, loading, language }) {
       return;
     }
 
-    const recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = BROWSER_SPEECH_LANGS[language] || 'fr-FR';
-    recognition.maxAlternatives = 1;
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.lang = BROWSER_SPEECH_LANGS[language] || 'fr-FR';
+      recognition.maxAlternatives = 1;
 
-    recognition.onresult = (event) => {
-      let transcript = '';
-      for (let i = 0; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript;
-      }
-      setInput(transcript);
-    };
+      let finalTranscript = '';
 
-    recognition.onend = () => {
-      setIsListening(false);
-      recognitionRef.current = null;
-    };
+      recognition.onresult = (event) => {
+        let interim = '';
+        finalTranscript = '';
+        for (let i = 0; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          } else {
+            interim += event.results[i][0].transcript;
+          }
+        }
+        setInput(finalTranscript || interim);
+      };
 
-    recognition.onerror = () => {
-      setIsListening(false);
-      recognitionRef.current = null;
-    };
+      recognition.onend = () => {
+        setIsListening(false);
+        recognitionRef.current = null;
+      };
 
-    recognitionRef.current = recognition;
-    recognition.start();
-    setIsListening(true);
+      recognition.onerror = (e) => {
+        console.log('Speech recognition error:', e.error);
+        setIsListening(false);
+        recognitionRef.current = null;
+        if (e.error === 'not-allowed') {
+          alert('Micro non autorisé. Cliquez sur l\'icône 🔒 dans la barre d\'adresse → Autoriser le micro.');
+        } else if (e.error === 'no-speech') {
+          // Silence, not a real error
+        } else {
+          startServerRecording();
+        }
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+      setIsListening(true);
+    } catch (e) {
+      console.log('SpeechRecognition failed, using server:', e);
+      startServerRecording();
+    }
   }, [language]);
 
   const startServerRecording = useCallback(async () => {
