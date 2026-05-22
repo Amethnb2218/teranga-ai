@@ -103,8 +103,55 @@ async function callGroqAPI(messages, language) {
 
 const LANGS_NEED_TRANSLATION = ['wo', 'pu', 'sr', 'di', 'mn', 'sn'];
 
+// Local language agricultural vocabulary → French equivalents
+const LOCAL_VOCAB = {
+  // Wolof
+  'gerte': 'arachide', 'dugub': 'mil', 'maalo': 'riz', 'mboq': 'maïs',
+  'niebe': 'niébé', 'sëbëtaan': 'oignon', 'tamaat': 'tomate', 'diw': 'huile',
+  'waral': 'cultiver', 'mbey': 'agriculture', 'tool': 'champ', 'nawet': 'hivernage',
+  'taw': 'pluie', 'noor': 'saison sèche', 'suuf': 'sol', 'lekk': 'nourriture',
+  'ndox': 'eau', 'fetal': 'engrais', 'njëg': 'prix', 'jaay': 'vendre',
+  'jënd': 'acheter', 'naka': 'comment', 'lañu': 'on/nous', 'kañ': 'quand',
+  'fan': 'où', 'lu': 'quoi', 'nit': 'personne', 'wax': 'dire/parler',
+  'souna': 'mil souna', 'dugar': 'mil dugar',
+  // Pulaar
+  'gerte': 'arachide', 'gawri': 'mil', 'maaro': 'riz', 'mbay': 'maïs',
+  'nyiiri': 'nourriture', 'ndiyam': 'eau', 'leydi': 'terre', 'dunndu': 'hivernage',
+  'ngesa': 'champ', 'hakkunde': 'entre', 'fof': 'tout', 'remooɓe': 'agriculteurs',
+  // Sérère
+  'noong': 'cultiver', 'xoox': 'patron/chef',
+  // Common
+  'nakamou': 'comment', 'yangui': 'faire', 'diam': 'bien/paix',
+  'nanga': 'tu/vous', 'def': 'faire', 'am': 'avoir',
+};
+
+function translateWithVocab(text) {
+  let result = text.toLowerCase();
+  // Replace known local words with French equivalents
+  for (const [local, french] of Object.entries(LOCAL_VOCAB)) {
+    result = result.replace(new RegExp(`\\b${local}\\b`, 'gi'), french);
+  }
+  return result;
+}
+
 async function translateUserInput(text, language) {
-  if (!process.env.GROQ_API_KEY) return text;
+  // First try vocabulary-based translation for keyword detection
+  const vocabTranslation = translateWithVocab(text);
+
+  // Use NLLB for translation (it actually knows Wolof)
+  if (isTranslationAvailable()) {
+    const { translateText } = require('./translate-service');
+    try {
+      const nllbResult = await Promise.race([
+        translateText(text, language, 'fr'),
+        new Promise(resolve => setTimeout(() => resolve(null), 5000))
+      ]);
+      if (nllbResult && nllbResult !== text) return nllbResult;
+    } catch (e) {}
+  }
+
+  // Fallback: Groq with vocabulary hints
+  if (!process.env.GROQ_API_KEY) return vocabTranslation;
   const langName = { wo: 'wolof', pu: 'pulaar', sr: 'sérère', di: 'diola', mn: 'mandinka', sn: 'soninké' }[language];
   try {
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -112,14 +159,14 @@ async function translateUserInput(text, language) {
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.GROQ_API_KEY}` },
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: `Traduis ce texte du ${langName} vers le français. Donne UNIQUEMENT la traduction, rien d'autre. Si tu ne comprends pas, essaie de deviner le sens.\n\nTexte : "${text}"` }],
+        messages: [{ role: 'user', content: `Traduis ce texte du ${langName} vers le français. Vocabulaire agricole ${langName}: gerte=arachide, dugub=mil, maalo=riz, mboq=maïs, tool=champ, nawet=hivernage, taw=pluie, ndox=eau, fetal=engrais, njëg=prix, waral=cultiver, naka=comment, lañu=on/nous, kañ=quand, fan=où.\n\nDonne UNIQUEMENT la traduction française:\n"${text}"` }],
         max_tokens: 500, temperature: 0.2
       })
     });
-    if (!response.ok) return text;
+    if (!response.ok) return vocabTranslation;
     const data = await response.json();
-    return data.choices?.[0]?.message?.content?.trim() || text;
-  } catch (e) { return text; }
+    return data.choices?.[0]?.message?.content?.trim() || vocabTranslation;
+  } catch (e) { return vocabTranslation; }
 }
 
 async function getAIResponse(messages, language) {
@@ -163,13 +210,12 @@ async function getAIResponse(messages, language) {
     frenchResponse = matchOfflineResponse(lastUserMessage);
   }
 
-  // Try NLLB translation with a short timeout (5s)
-  // If NLLB is warm it responds in 1-2s. If cold, we don't wait.
+  // Try NLLB translation (keep-alive pings every 10min so it should be warm)
   if (isTranslationAvailable()) {
     try {
       const nllbResult = await Promise.race([
         translateForChat(frenchResponse, language),
-        new Promise(resolve => setTimeout(() => resolve(null), 5000))
+        new Promise(resolve => setTimeout(() => resolve(null), 10000))
       ]);
       if (nllbResult && nllbResult !== frenchResponse) {
         return nllbResult;
