@@ -106,15 +106,23 @@ async function translateWithNLLB(text, sourceLang, targetLang) {
   }
 }
 
+const LOCAL_LANGS = ['wo', 'pu', 'sr', 'di', 'mn', 'sn'];
+
 async function translateText(text, sourceLang = 'fr', targetLang = 'wo') {
   if (sourceLang === targetLang) return text;
   if (!text || text.trim().length === 0) return text;
 
-  // Strategy 1: Groq LLM (most reliable, already working)
+  // For local African languages: NLLB ONLY (Llama generates garbage for these)
+  if (LOCAL_LANGS.includes(targetLang)) {
+    const nllbResult = await translateWithNLLB(text, sourceLang, targetLang);
+    if (nllbResult) return nllbResult;
+    return null;
+  }
+
+  // For other languages (en, ar): Groq LLM works fine
   const groqResult = await translateWithGroq(text, targetLang);
   if (groqResult) return groqResult;
 
-  // Strategy 2: NLLB via Hugging Face (if available)
   const nllbResult = await translateWithNLLB(text, sourceLang, targetLang);
   if (nllbResult) return nllbResult;
 
@@ -125,7 +133,30 @@ async function translateForChat(text, targetLang) {
   if (targetLang === 'fr') return text;
   if (!text) return text;
 
-  // Translate entire response (Groq handles long text well)
+  // For local languages: split into chunks for NLLB (max ~200 words per chunk)
+  if (LOCAL_LANGS.includes(targetLang)) {
+    const sentences = text.split(/(?<=[.!?\n])\s+/).filter(s => s.trim());
+    const chunks = [];
+    let current = '';
+
+    for (const sentence of sentences) {
+      if ((current + ' ' + sentence).split(' ').length > 150) {
+        if (current) chunks.push(current.trim());
+        current = sentence;
+      } else {
+        current = current ? current + ' ' + sentence : sentence;
+      }
+    }
+    if (current) chunks.push(current.trim());
+
+    const translated = [];
+    for (const chunk of chunks) {
+      const result = await translateWithNLLB(chunk, 'fr', targetLang);
+      translated.push(result || chunk);
+    }
+    return translated.join(' ');
+  }
+
   const result = await translateText(text, 'fr', targetLang);
   return result || text;
 }

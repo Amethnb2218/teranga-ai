@@ -169,30 +169,18 @@ async function getAIResponse(messages, language) {
   if (language === 'fr') return frenchResponse;
 
   if (LANGS_NEED_TRANSLATION.includes(language)) {
-    if (isTranslationAvailable()) {
-      try {
-        const translated = await translateForChat(frenchResponse, language);
-        if (translated && translated !== frenchResponse) {
-          return translated;
-        }
-      } catch (e) {
-        console.error('NLLB translation failed:', e.message);
+    try {
+      const translated = await translateForChat(frenchResponse, language);
+      if (translated && translated !== frenchResponse) {
+        return translated;
       }
+    } catch (e) {
+      console.error('Translation failed:', e.message);
     }
 
-    if (process.env.GROQ_API_KEY) {
-      try {
-        const langName = { wo: 'wolof', pu: 'pulaar', sr: 'sérère', di: 'diola', mn: 'mandinka', sn: 'soninké' }[language];
-        const translateMessages = [
-          { role: 'user', content: `Traduis ce texte en ${langName}. Garde les noms propres, variétés, chiffres et sigles tels quels. Ne répète jamais de phrases. Sois naturel.\n\nTexte :\n${frenchResponse}` }
-        ];
-        return await callGroqAPI(translateMessages, 'fr');
-      } catch (e) {
-        console.error('Groq translation failed:', e.message);
-      }
-    }
-
-    return frenchResponse;
+    // If NLLB fails, return French with a note (never use Llama for local languages)
+    const langLabels = { wo: 'Wolof', pu: 'Pulaar', sr: 'Sérère', di: 'Diola', mn: 'Mandinka', sn: 'Soninké' };
+    return `${frenchResponse}\n\n---\n*Traduction ${langLabels[language]} temporairement indisponible.*`;
   }
 
   if (language !== 'fr' && !LANGS_NEED_TRANSLATION.includes(language)) {
