@@ -1,7 +1,7 @@
 /**
  * Translation Service — Teranga AI
- * Strategy: Use Groq LLM (already working) for translation to Wolof and local languages
- * Fallback: NLLB via Hugging Face if available
+ * NLLB for local African languages (Wolof, Pulaar, Sérère, etc.)
+ * Groq LLM for English/Arabic only
  */
 
 const NLLB_LANG_CODES = {
@@ -17,26 +17,77 @@ const NLLB_LANG_CODES = {
 };
 
 const LANG_NAMES = {
-  wo: 'wolof', pu: 'pulaar (fula)', sr: 'sérère', di: 'diola (jola)',
-  mn: 'mandinka (bambara)', sn: 'soninké', en: 'English', ar: 'arabe'
+  wo: 'wolof', pu: 'pulaar', sr: 'sérère', di: 'diola',
+  mn: 'mandinka', sn: 'soninké', en: 'English', ar: 'arabe'
 };
+
+const LOCAL_LANGS = ['wo', 'pu', 'sr', 'di', 'mn', 'sn'];
+
+async function translateWithNLLB(text, sourceLang, targetLang, retries = 2) {
+  const apiKey = process.env.HF_API_KEY || process.env.HUGGINGFACE_API_KEY;
+  if (!apiKey) return null;
+
+  const srcCode = NLLB_LANG_CODES[sourceLang] || 'fra_Latn';
+  const tgtCode = NLLB_LANG_CODES[targetLang] || 'wol_Latn';
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch(
+        'https://api-inference.huggingface.co/models/facebook/nllb-200-distilled-600M',
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            inputs: text,
+            parameters: { src_lang: srcCode, tgt_lang: tgtCode },
+            options: { wait_for_model: true, use_cache: true }
+          })
+        }
+      );
+
+      if (response.status === 503) {
+        const info = await response.json().catch(() => ({}));
+        const wait = Math.min(info.estimated_time || 15, 25);
+        console.log(`NLLB loading, waiting ${wait}s (attempt ${attempt + 1})`);
+        if (attempt < retries) {
+          await new Promise(r => setTimeout(r, wait * 1000));
+          continue;
+        }
+        return null;
+      }
+
+      if (!response.ok) {
+        console.error('NLLB error:', response.status);
+        return null;
+      }
+
+      const data = await response.json();
+      if (Array.isArray(data) && data[0]?.translation_text) {
+        const result = data[0].translation_text;
+        if (result && result !== text) return result;
+      }
+      return null;
+    } catch (error) {
+      console.error('NLLB fetch error:', error.message);
+      if (attempt < retries) {
+        await new Promise(r => setTimeout(r, 3000));
+        continue;
+      }
+      return null;
+    }
+  }
+  return null;
+}
 
 async function translateWithGroq(text, targetLang) {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) return null;
+  if (LOCAL_LANGS.includes(targetLang)) return null;
 
-  const langName = LANG_NAMES[targetLang] || 'wolof';
-
-  const prompt = `Tu es un traducteur expert français → ${langName}. Traduis le texte suivant en ${langName}.
-Règles :
-- Garde les noms de variétés (55-437, Souna 3, Sahel 108, etc.) en l'état
-- Garde les chiffres, unités (kg/ha, mm, FCFA) et sigles (ISRA, ANACIM) en l'état
-- Garde le formatage markdown (**, •, etc.)
-- Ne traduis PAS les noms propres de lieux
-- Donne UNIQUEMENT la traduction, pas d'explication
-
-Texte :
-${text}`;
+  const langName = LANG_NAMES[targetLang] || 'English';
 
   try {
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -47,122 +98,76 @@ ${text}`;
       },
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: prompt }],
+        messages: [{ role: 'user', content: `Translate to ${langName}. Keep numbers, names, acronyms unchanged. Only output the translation:\n\n${text}` }],
         max_tokens: 2000,
-        temperature: 0.3
+        temperature: 0.2
       })
     });
 
-    if (!response.ok) {
-      console.error('Groq translate error:', response.status);
-      return null;
-    }
-
-    const data = await response.json();
-    const result = data.choices?.[0]?.message?.content;
-    if (result && result.trim() !== text.trim()) return result.trim();
-    return null;
-  } catch (error) {
-    console.error('Groq translate fetch error:', error.message);
-    return null;
-  }
-}
-
-async function translateWithNLLB(text, sourceLang, targetLang) {
-  const apiKey = process.env.HF_API_KEY || process.env.HUGGINGFACE_API_KEY;
-  if (!apiKey) return null;
-
-  const srcCode = NLLB_LANG_CODES[sourceLang] || 'fra_Latn';
-  const tgtCode = NLLB_LANG_CODES[targetLang] || 'wol_Latn';
-
-  try {
-    const response = await fetch(
-      'https://api-inference.huggingface.co/models/facebook/nllb-200-distilled-600M',
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          inputs: text,
-          parameters: { src_lang: srcCode, tgt_lang: tgtCode },
-          options: { wait_for_model: true }
-        })
-      }
-    );
-
     if (!response.ok) return null;
-
     const data = await response.json();
-    if (Array.isArray(data) && data[0]?.translation_text) {
-      const result = data[0].translation_text;
-      if (result !== text) return result;
-    }
+    const result = data.choices?.[0]?.message?.content?.trim();
+    if (result && result !== text.trim()) return result;
     return null;
   } catch (error) {
-    console.error('NLLB error:', error.message);
     return null;
   }
 }
-
-const LOCAL_LANGS = ['wo', 'pu', 'sr', 'di', 'mn', 'sn'];
 
 async function translateText(text, sourceLang = 'fr', targetLang = 'wo') {
   if (sourceLang === targetLang) return text;
   if (!text || text.trim().length === 0) return text;
 
-  // For local African languages: NLLB ONLY (Llama generates garbage for these)
   if (LOCAL_LANGS.includes(targetLang)) {
-    const nllbResult = await translateWithNLLB(text, sourceLang, targetLang);
-    if (nllbResult) return nllbResult;
-    return null;
+    return await translateWithNLLB(text, sourceLang, targetLang);
   }
 
-  // For other languages (en, ar): Groq LLM works fine
   const groqResult = await translateWithGroq(text, targetLang);
   if (groqResult) return groqResult;
 
-  const nllbResult = await translateWithNLLB(text, sourceLang, targetLang);
-  if (nllbResult) return nllbResult;
-
-  return null;
+  return await translateWithNLLB(text, sourceLang, targetLang);
 }
 
 async function translateForChat(text, targetLang) {
   if (targetLang === 'fr') return text;
   if (!text) return text;
 
-  // For local languages: split into chunks for NLLB (max ~200 words per chunk)
   if (LOCAL_LANGS.includes(targetLang)) {
-    const sentences = text.split(/(?<=[.!?\n])\s+/).filter(s => s.trim());
-    const chunks = [];
-    let current = '';
+    // Clean markdown for better NLLB results
+    const cleanText = text
+      .replace(/\*\*/g, '')
+      .replace(/^[-•]\s*/gm, '')
+      .replace(/#{1,3}\s*/g, '')
+      .replace(/\n{2,}/g, '\n')
+      .trim();
 
-    for (const sentence of sentences) {
-      if ((current + ' ' + sentence).split(' ').length > 150) {
-        if (current) chunks.push(current.trim());
-        current = sentence;
-      } else {
-        current = current ? current + ' ' + sentence : sentence;
-      }
-    }
-    if (current) chunks.push(current.trim());
+    // Split into sentences for NLLB (works better on short text)
+    const sentences = cleanText.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
 
     const translated = [];
-    for (const chunk of chunks) {
-      const result = await translateWithNLLB(chunk, 'fr', targetLang);
-      translated.push(result || chunk);
+    for (const sentence of sentences) {
+      if (sentence.length < 5) {
+        translated.push(sentence);
+        continue;
+      }
+      const result = await translateWithNLLB(sentence, 'fr', targetLang, 1);
+      translated.push(result || sentence);
     }
-    return translated.join(' ');
+
+    const output = translated.join(' ');
+    // If most sentences failed (still French), return null to trigger fallback
+    const frenchWords = output.match(/\b(est|les|des|pour|dans|avec|sur|que|qui|une|pas)\b/gi) || [];
+    if (frenchWords.length > output.split(' ').length * 0.3) {
+      return null;
+    }
+    return output;
   }
 
-  const result = await translateText(text, 'fr', targetLang);
-  return result || text;
+  return await translateText(text, 'fr', targetLang);
 }
 
 function isTranslationAvailable() {
-  return !!(process.env.GROQ_API_KEY || process.env.HF_API_KEY || process.env.HUGGINGFACE_API_KEY);
+  return !!(process.env.HF_API_KEY || process.env.HUGGINGFACE_API_KEY || process.env.GROQ_API_KEY);
 }
 
 module.exports = {

@@ -178,9 +178,8 @@ async function getAIResponse(messages, language) {
       console.error('Translation failed:', e.message);
     }
 
-    // If NLLB fails, return French with a note (never use Llama for local languages)
-    const langLabels = { wo: 'Wolof', pu: 'Pulaar', sr: 'Sérère', di: 'Diola', mn: 'Mandinka', sn: 'Soninké' };
-    return `${frenchResponse}\n\n---\n*Traduction ${langLabels[language]} temporairement indisponible.*`;
+    // Fallback: return French response (NLLB unavailable)
+    return frenchResponse;
   }
 
   if (language !== 'fr' && !LANGS_NEED_TRANSLATION.includes(language)) {
