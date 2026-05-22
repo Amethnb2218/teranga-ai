@@ -47,7 +47,7 @@ router.post('/debug', async (req, res) => {
           'Authorization': `Bearer ${groqKey}`
         },
         body: JSON.stringify({
-          model: 'llama-3.1-70b-versatile',
+          model: 'llama-3.3-70b-versatile',
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 500,
           temperature: 0.3
