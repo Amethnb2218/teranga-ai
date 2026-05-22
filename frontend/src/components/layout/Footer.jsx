@@ -22,7 +22,7 @@ function Footer({ onNavigate }) {
               <li><a href="https://www.isra.sn" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-amber-400 transition-colors">ISRA — Variétés certifiées</a></li>
               <li><a href="https://www.fao.org/giews" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-amber-400 transition-colors">FAO/GIEWS — Prix et sécurité alimentaire</a></li>
               <li><a href="https://www.anacim.sn" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-amber-400 transition-colors">ANACIM — Données climatiques</a></li>
-              <li><a href="http://www.csa.sn" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-amber-400 transition-colors">CSA — Suivi des marchés</a></li>
+              <li><a href="https://www.secnsa.sn" target="_blank" rel="noopener noreferrer" className="text-stone-400 hover:text-amber-400 transition-colors">SE-CNSA — Suivi des marchés</a></li>
               <li>
                 <button onClick={() => onNavigate?.('sources')} className="text-amber-400 hover:text-amber-300 transition-colors underline underline-offset-2">
                   Voir toutes les sources →

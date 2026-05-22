@@ -56,7 +56,7 @@ const SOURCES = [
       {
         name: 'CSA',
         full: 'Commissariat à la Sécurité Alimentaire',
-        url: 'http://www.csa.sn',
+        url: 'https://www.secnsa.sn',
         desc: 'Suivi hebdomadaire des prix sur les principaux marchés du Sénégal. 20+ produits, 10 marchés.',
         data: 'Prix en FCFA/kg des céréales, légumineuses, oléagineux, tubercules — campagne 2024-2025'
       },

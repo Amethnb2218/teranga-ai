@@ -8,9 +8,9 @@ import LoadingDots from '../common/LoadingDots'
 
 function Chat() {
   const {
-    messages, loading, language, isSpeaking, autoSpeak,
+    messages, loading, language, isSpeaking, autoSpeak, voiceGender,
     sendMessage, cycleLanguage, speak, stopSpeaking,
-    setAutoSpeak, LANG_LABELS
+    setAutoSpeak, setVoiceGender, LANG_LABELS
   } = useChat();
   const messagesEndRef = useRef(null);
 
@@ -38,6 +38,13 @@ function Chat() {
           >
             {isSpeaking ? <FiVolumeX size={12} /> : <FiVolume2 size={12} />}
             {isSpeaking ? 'Stop' : autoSpeak ? 'Vocal ON' : 'Vocal'}
+          </button>
+          <button
+            onClick={() => setVoiceGender(v => v === 'male' ? 'female' : 'male')}
+            className="px-2 py-1.5 rounded-md text-xs font-medium bg-stone-100 text-stone-600 hover:bg-stone-200 transition-colors"
+            title={voiceGender === 'male' ? 'Voix masculine (cliquer pour féminine)' : 'Voix féminine (cliquer pour masculine)'}
+          >
+            {voiceGender === 'male' ? '♂' : '♀'}
           </button>
           <div className="relative">
             <select

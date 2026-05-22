@@ -37,6 +37,7 @@ export function useChat() {
   const [language, setLanguage] = useState('fr');
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [autoSpeak, setAutoSpeak] = useState(false);
+  const [voiceGender, setVoiceGender] = useState('male');
 
   const speak = useCallback((text) => {
     if (!window.speechSynthesis) return;
@@ -46,23 +47,30 @@ export function useChat() {
     const utterance = new SpeechSynthesisUtterance(cleaned);
     utterance.lang = SPEECH_LANG_MAP[language] || 'fr-FR';
     utterance.rate = 0.92;
-    utterance.pitch = 0.85;
+    utterance.pitch = voiceGender === 'male' ? 0.8 : 1.1;
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => setIsSpeaking(false);
     utterance.onerror = () => setIsSpeaking(false);
 
     const voices = window.speechSynthesis.getVoices();
     const langCode = SPEECH_LANG_MAP[language]?.split('-')[0] || 'fr';
-    // Prefer male voice for a professional assistant tone
-    const maleVoice = voices.find(v =>
-      v.lang.startsWith(langCode) && (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('homme') || v.name.includes('Thomas') || v.name.includes('Daniel') || v.name.includes('Google') && !v.name.includes('Female'))
-    );
+
+    let selectedVoice;
+    if (voiceGender === 'male') {
+      selectedVoice = voices.find(v =>
+        v.lang.startsWith(langCode) && (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('homme') || v.name.includes('Thomas') || v.name.includes('Daniel') || (v.name.includes('Google') && !v.name.toLowerCase().includes('female')))
+      );
+    } else {
+      selectedVoice = voices.find(v =>
+        v.lang.startsWith(langCode) && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('femme') || v.name.includes('Amelie') || v.name.includes('Marie'))
+      );
+    }
     const fallbackVoice = voices.find(v => v.lang.startsWith(langCode));
-    if (maleVoice) utterance.voice = maleVoice;
+    if (selectedVoice) utterance.voice = selectedVoice;
     else if (fallbackVoice) utterance.voice = fallbackVoice;
 
     window.speechSynthesis.speak(utterance);
-  }, [language]);
+  }, [language, voiceGender]);
 
   const stopSpeaking = useCallback(() => {
     window.speechSynthesis?.cancel();
@@ -104,8 +112,8 @@ export function useChat() {
   };
 
   return {
-    messages, loading, language, isSpeaking, autoSpeak,
+    messages, loading, language, isSpeaking, autoSpeak, voiceGender,
     sendMessage, cycleLanguage, speak, stopSpeaking,
-    setAutoSpeak, LANG_LABELS
+    setAutoSpeak, setVoiceGender, LANG_LABELS
   };
 }

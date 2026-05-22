@@ -113,7 +113,26 @@ async function getAIResponse(messages, language) {
     }
   }
 
-  return matchOfflineResponse(lastUserMessage);
+  const offlineResponse = matchOfflineResponse(lastUserMessage);
+
+  // If language is not French and we have an offline response, try to translate via Groq
+  if (language !== 'fr' && process.env.GROQ_API_KEY) {
+    try {
+      const translateMessages = [
+        { role: 'user', content: `Traduis ce texte agricole en ${language === 'wo' ? 'wolof' : language === 'pu' ? 'pulaar' : language === 'en' ? 'anglais' : language === 'ar' ? 'arabe' : 'wolof'}. Garde les noms de variétés et les chiffres. Texte :\n\n${offlineResponse}` }
+      ];
+      return await callGroqAPI(translateMessages, language);
+    } catch (e) {
+      // Fall through to offline response with prefix
+    }
+  }
+
+  // For non-French offline: add a small note
+  if (language === 'wo') {
+    return `[Wolof] ${offlineResponse}\n\n---\n*Baal ma, réponse ci wolof amagul ci offline mode. Jël Groq API ngir wax ci wolof.*`;
+  }
+
+  return offlineResponse;
 }
 
 module.exports = { getAIResponse };
