@@ -1,8 +1,18 @@
 import { useState, useCallback } from 'react';
 import { sendChatMessage } from '../services/api';
 
-const LANGUAGES = ['fr', 'wo', 'en', 'ar'];
-const LANG_LABELS = { fr: 'Français', wo: 'Wolof', en: 'English', ar: 'العربية' };
+const LANGUAGES = ['fr', 'wo', 'pu', 'sr', 'di', 'mn', 'sn', 'en', 'ar'];
+const LANG_LABELS = {
+  fr: 'Français',
+  wo: 'Wolof',
+  pu: 'Pulaar',
+  sr: 'Sérère',
+  di: 'Diola',
+  mn: 'Mandinka',
+  sn: 'Soninké',
+  en: 'English',
+  ar: 'العربية'
+};
 
 const INITIAL_MESSAGE = {
   role: 'assistant',
@@ -11,7 +21,12 @@ const INITIAL_MESSAGE = {
 
 const SPEECH_LANG_MAP = {
   fr: 'fr-FR',
-  wo: 'fr-FR', // Wolof not natively supported, use French voice
+  wo: 'fr-FR',
+  pu: 'fr-FR',
+  sr: 'fr-FR',
+  di: 'fr-FR',
+  mn: 'fr-FR',
+  sn: 'fr-FR',
   en: 'en-US',
   ar: 'ar-SA'
 };
@@ -71,11 +86,15 @@ export function useChat() {
     }
   };
 
-  const cycleLanguage = () => {
-    setLanguage(l => {
-      const idx = LANGUAGES.indexOf(l);
-      return LANGUAGES[(idx + 1) % LANGUAGES.length];
-    });
+  const cycleLanguage = (val) => {
+    if (val && LANGUAGES.includes(val)) {
+      setLanguage(val);
+    } else {
+      setLanguage(l => {
+        const idx = LANGUAGES.indexOf(l);
+        return LANGUAGES[(idx + 1) % LANGUAGES.length];
+      });
+    }
   };
 
   return {

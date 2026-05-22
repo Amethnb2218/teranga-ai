@@ -39,13 +39,18 @@ function Chat() {
             {isSpeaking ? <FiVolumeX size={12} /> : <FiVolume2 size={12} />}
             {isSpeaking ? 'Stop' : autoSpeak ? 'Vocal ON' : 'Vocal'}
           </button>
-          <button
-            onClick={cycleLanguage}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-stone-100 hover:bg-stone-200 text-xs font-medium text-stone-600 transition-colors"
-          >
-            <FiGlobe size={12} />
-            {LANG_LABELS[language]}
-          </button>
+          <div className="relative">
+            <select
+              value={language}
+              onChange={(e) => cycleLanguage(e.target.value)}
+              className="appearance-none flex items-center gap-1.5 pl-7 pr-2 py-1.5 rounded-md bg-stone-100 hover:bg-stone-200 text-xs font-medium text-stone-600 transition-colors cursor-pointer outline-none"
+            >
+              {Object.entries(LANG_LABELS).map(([key, label]) => (
+                <option key={key} value={key}>{label}</option>
+              ))}
+            </select>
+            <FiGlobe size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-stone-500 pointer-events-none" />
+          </div>
         </div>
       </div>
 

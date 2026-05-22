@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { FiSend, FiMic, FiMicOff } from 'react-icons/fi'
 
-const LANG_SPEECH_MAP = { fr: 'fr-FR', wo: 'fr-FR', en: 'en-US', ar: 'ar-SA' };
+const LANG_SPEECH_MAP = { fr: 'fr-FR', wo: 'fr-FR', pu: 'fr-FR', sr: 'fr-FR', di: 'fr-FR', mn: 'fr-FR', sn: 'fr-FR', en: 'en-US', ar: 'ar-SA' };
 
 function ChatInput({ onSend, loading, language }) {
   const [input, setInput] = useState('');
@@ -64,6 +64,11 @@ function ChatInput({ onSend, loading, language }) {
   const placeholders = {
     fr: "Tapez ou parlez — votre question agricole...",
     wo: "Bind walla wax — sa laaj ci biir tëbb...",
+    pu: "Winndu walla haalu — naamnal maa dow gese...",
+    sr: "Binda walla fanaan — laaj ndaw no qoox...",
+    di: "Kañen walla ekonkay — fulup di naay...",
+    mn: "Sɛbɛ walima kuma — i sene kɛ ñininkali...",
+    sn: "Safa walla xase — n tuwaare xoore...",
     en: "Type or speak — your farming question...",
     ar: "اكتب أو تحدث — سؤالك الزراعي..."
   };

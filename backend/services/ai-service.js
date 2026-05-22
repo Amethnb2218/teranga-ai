@@ -1,4 +1,4 @@
-const { SYSTEM_PROMPT } = require('../config/prompts');
+const { getSystemPrompt } = require('../config/prompts');
 const { OFFLINE_RESPONSES } = require('../data/offline-responses');
 
 function matchOfflineResponse(userMessage) {
@@ -18,9 +18,7 @@ function matchOfflineResponse(userMessage) {
 async function callGroqAPI(messages, language) {
   const systemMessage = {
     role: 'system',
-    content: language === 'wo'
-      ? SYSTEM_PROMPT + '\n\nIMPORTANT: Réponds en wolof sénégalais.'
-      : SYSTEM_PROMPT
+    content: getSystemPrompt(language)
   };
 
   const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
