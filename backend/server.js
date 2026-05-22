@@ -8,6 +8,7 @@ const newsRoutes = require('./routes/news');
 const predictRoutes = require('./routes/predict');
 const mlRoutes = require('./routes/ml');
 const speechRoutes = require('./routes/speech');
+const translateRoutes = require('./routes/translate');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 
 dotenv.config();
@@ -23,6 +24,7 @@ app.use(express.json({ limit: '10mb' }));
 
 app.use('/api/chat', chatRoutes);
 app.use('/api/speech', speechRoutes);
+app.use('/api/translate', translateRoutes);
 app.use('/api/weather', weatherRoutes);
 app.use('/api/market', marketRoutes);
 app.use('/api/news', newsRoutes);
@@ -33,9 +35,11 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     service: 'Teranga AI Backend',
-    version: '2.0.0',
+    version: '3.0.0',
     ai_mode: process.env.GROQ_API_KEY ? 'groq' : 'offline',
+    translation: (process.env.HF_API_KEY || process.env.HUGGINGFACE_API_KEY) ? 'nllb (active)' : 'unavailable',
     weather_source: process.env.OPENWEATHER_API_KEY ? 'openweathermap (live)' : 'model (simulated)',
+    ml_engine: 'v3.0 (12 features, 8 crops, 2015-2026)',
     timestamp: new Date().toISOString()
   });
 });

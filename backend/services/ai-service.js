@@ -1,5 +1,6 @@
 const { getSystemPrompt } = require('../config/prompts');
 const { OFFLINE_RESPONSES } = require('../data/offline-responses');
+const { translateForChat, isTranslationAvailable } = require('./translate-service');
 
 const ZONE_DATA = {
   dakar: { zone: 'Niayes', cultures: 'tomate, oignon, chou, piment, salade', sol: 'sablonneux riche (Niayes)', pluviometrie: '400mm', irrigation: 'nappe phréatique accessible', conseil: 'Zone maraîchère par excellence. Culture toute l\'année avec irrigation. Privilégiez les légumes à haute valeur (tomate, oignon, piment).' },
@@ -115,21 +116,41 @@ async function getAIResponse(messages, language) {
 
   const offlineResponse = matchOfflineResponse(lastUserMessage);
 
-  // If language is not French and we have an offline response, try to translate via Groq
-  if (language !== 'fr' && process.env.GROQ_API_KEY) {
-    try {
-      const translateMessages = [
-        { role: 'user', content: `Traduis ce texte agricole en ${language === 'wo' ? 'wolof' : language === 'pu' ? 'pulaar' : language === 'en' ? 'anglais' : language === 'ar' ? 'arabe' : 'wolof'}. Garde les noms de variétés et les chiffres. Texte :\n\n${offlineResponse}` }
-      ];
-      return await callGroqAPI(translateMessages, language);
-    } catch (e) {
-      // Fall through to offline response with prefix
+  // If language is not French, try translation methods in order:
+  // 1. NLLB via Hugging Face (free, supports Wolof/Pulaar/etc.)
+  // 2. Groq LLM translation
+  // 3. Fallback with note
+  if (language !== 'fr') {
+    // Try NLLB first (best for African languages)
+    if (isTranslationAvailable()) {
+      try {
+        const translated = await translateForChat(offlineResponse, language);
+        if (translated && translated !== offlineResponse) {
+          return translated;
+        }
+      } catch (e) {
+        console.error('NLLB translation failed:', e.message);
+      }
     }
-  }
 
-  // For non-French offline: add a small note
-  if (language === 'wo') {
-    return `[Wolof] ${offlineResponse}\n\n---\n*Baal ma, réponse ci wolof amagul ci offline mode. Jël Groq API ngir wax ci wolof.*`;
+    // Try Groq LLM as fallback
+    if (process.env.GROQ_API_KEY) {
+      try {
+        const langName = { wo: 'wolof', pu: 'pulaar', sr: 'sérère', di: 'diola', mn: 'mandinka', sn: 'soninké', en: 'anglais', ar: 'arabe' }[language] || 'wolof';
+        const translateMessages = [
+          { role: 'user', content: `Traduis ce texte agricole en ${langName}. Garde les noms de variétés, les chiffres et les sigles. Texte :\n\n${offlineResponse}` }
+        ];
+        return await callGroqAPI(translateMessages, language);
+      } catch (e) {
+        console.error('Groq translation failed:', e.message);
+      }
+    }
+
+    // Final fallback
+    const langLabels = { wo: 'Wolof', pu: 'Pulaar', sr: 'Sérère', di: 'Diola', mn: 'Mandinka', sn: 'Soninké' };
+    if (langLabels[language]) {
+      return `${offlineResponse}\n\n---\n*Traduction ${langLabels[language]} bientôt disponible. Configurez HF_API_KEY pour activer NLLB.*`;
+    }
   }
 
   return offlineResponse;
