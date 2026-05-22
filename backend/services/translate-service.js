@@ -41,7 +41,9 @@ async function warmupNLLB() {
   }
 }
 
+// Warmup at start + keep alive every 10 min
 setTimeout(warmupNLLB, 2000);
+setInterval(warmupNLLB, 10 * 60 * 1000);
 
 async function translateWithNLLB(text, sourceLang, targetLang, retries = 3) {
   const apiKey = process.env.HF_API_KEY || process.env.HUGGINGFACE_API_KEY;

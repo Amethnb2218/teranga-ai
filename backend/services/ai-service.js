@@ -1,34 +1,6 @@
 const { getSystemPrompt } = require('../config/prompts');
 const { OFFLINE_RESPONSES } = require('../data/offline-responses');
-const { translateForChat, translateText, isTranslationAvailable } = require('./translate-service');
-
-async function translateUserInput(text, language) {
-  if (language === 'fr' || language === 'en') return text;
-  if (!process.env.GROQ_API_KEY) return text;
-
-  const langName = { wo: 'wolof', pu: 'pulaar', sr: 'sérère', di: 'diola', mn: 'mandinka', sn: 'soninké', ar: 'arabe' }[language] || 'wolof';
-
-  try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: `Traduis ce texte du ${langName} vers le français. Donne UNIQUEMENT la traduction, rien d'autre. Si tu ne comprends pas, essaie de deviner le sens. Texte : "${text}"` }],
-        max_tokens: 500,
-        temperature: 0.2
-      })
-    });
-    if (!response.ok) return text;
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content?.trim() || text;
-  } catch (e) {
-    return text;
-  }
-}
+const { translateForChat, isTranslationAvailable } = require('./translate-service');
 
 const ZONE_DATA = {
   dakar: { zone: 'Niayes', cultures: 'tomate, oignon, chou, piment, salade', sol: 'sablonneux riche (Niayes)', pluviometrie: '400mm', irrigation: 'nappe phréatique accessible', conseil: 'Zone maraîchère par excellence. Culture toute l\'année avec irrigation. Privilégiez les légumes à haute valeur (tomate, oignon, piment).' },
@@ -46,7 +18,7 @@ const ZONE_DATA = {
   louga: { zone: 'Sylvo-pastorale', cultures: 'mil, niébé, arachide (cycle court), élevage', sol: 'Dior léger', pluviometrie: '350mm', conseil: 'Zone sèche. Mil IBV 8004 (75j) et niébé Melakh (60j) indispensables. Élevage dominant.' },
   linguere: { zone: 'Ferlo', cultures: 'mil, niébé, élevage extensif', sol: 'Sablonneux/ferrugineux', pluviometrie: '300mm', conseil: 'Zone pastorale. Agriculture limitée aux variétés très précoces. Priorité à l\'élevage bovin.' },
   tambacounda: { zone: 'Sénégal oriental', cultures: 'maïs, arachide, coton, sorgho, sésame', sol: 'Ferrugineux / Deck', pluviometrie: '800mm', conseil: 'Bonne pluviométrie. Zone de diversification (coton, sésame, anacarde). Maïs SWAN excellent.' },
-  bakel: { zone: 'Sénégal oriental (est)', cultures: 'mil, sorgho, maïs, arachide, maraîchage irrigué', sol: 'Ferrugineux', pluviometrie: '600mm', irrigation: 'Fleuve Sénégal + Falémé', conseil: 'Zone très chaude. Cultures pluviales (mil, sorgho) + maraîchage irrigué en bord de fleuve. Températures extrêmes — variétés résistantes chaleur.' },
+  bakel: { zone: 'Sénégal oriental (est)', cultures: 'mil, sorgho, maïs, arachide, maraîchage irrigué', sol: 'Ferrugineux', pluviometrie: '600mm', irrigation: 'Fleuve Sénégal + Falémé', conseil: 'Zone très chaude. Cultures pluviales (mil, sorgho) + maraîchage irrigué en bord de fleuve.' },
   kedougou: { zone: 'Sénégal oriental sud', cultures: 'maïs, riz pluvial, fonio, arachide, anacarde', sol: 'Ferrugineux profond', pluviometrie: '1100mm', conseil: 'Plus forte pluviométrie après Casamance. Idéale pour riz pluvial NERICA, fonio, et vergers (mangue, anacarde).' },
   ziguinchor: { zone: 'Basse Casamance', cultures: 'riz pluvial, maïs, arachide, huile de palme, anacarde', sol: 'Ferralitique / mangrove', pluviometrie: '1300mm', conseil: 'Grenier à riz du Sénégal. NERICA 4 et WAR 77 très productifs. Potentiel arboriculture (anacarde, mangue, agrumes).' },
   bignona: { zone: 'Basse Casamance', cultures: 'riz pluvial, arachide, palmier à huile, agrumes', sol: 'Ferralitique', pluviometrie: '1200mm', conseil: 'Excellente zone rizicole. Tradition de riz de bas-fond. Bonne diversification avec agrumes et palmier.' },
@@ -62,7 +34,6 @@ function matchOfflineResponse(userMessage) {
 
   if (msg.match(/^(bonjour|salut|bonsoir|hello|hi|hey|salam|na nga def|assalamou|waw|nanga def)/)) return OFFLINE_RESPONSES.bonjour;
 
-  // Location-specific questions
   const locationMatch = msg.match(/(?:à|a|de|vers|dans|zone|region|région)\s+(dakar|thies|thiès|kaolack|saint.?louis|tambacounda|tamba|ziguinchor|zigui|kolda|fatick|louga|matam|bakel|kedougou|kédougou|sédhiou|sedhiou|diourbel|kaffrine|touba|richard.?toll|podor|velingara|vélingara|bignona|oussouye|mbour|nioro|linguère|linguere)/i);
   const cityInMessage = msg.match(/\b(dakar|thies|thiès|kaolack|saint.?louis|tambacounda|tamba|ziguinchor|zigui|kolda|fatick|louga|matam|bakel|kedougou|kédougou|sédhiou|sedhiou|diourbel|kaffrine|touba|richard.?toll|podor|velingara|vélingara|bignona|oussouye|mbour|nioro|linguère|linguere)\b/i);
 
@@ -98,7 +69,6 @@ function matchOfflineResponse(userMessage) {
   if (msg.includes('pluie') || msg.includes('hivernage') || msg.includes('saison') || msg.includes('maintenant') || msg.includes('quand')) return OFFLINE_RESPONSES.saison;
   if (msg.includes('oignon') || msg.includes('soupou')) return OFFLINE_RESPONSES.oignon;
 
-  // Questions about what to grow (general)
   if (msg.includes('cultiver') || msg.includes('planter') || msg.includes('que faire') || msg.includes('quoi faire')) {
     return OFFLINE_RESPONSES.saison;
   }
@@ -136,62 +106,86 @@ const LANGS_NEED_TRANSLATION = ['wo', 'pu', 'sr', 'di', 'mn', 'sn'];
 async function getAIResponse(messages, language) {
   const lastUserMessage = messages.filter(m => m.role === 'user').pop()?.content || '';
 
+  // For non-local languages (fr, en, ar): generate directly
+  if (!LANGS_NEED_TRANSLATION.includes(language)) {
+    if (process.env.GROQ_API_KEY) {
+      try {
+        return await callGroqAPI(messages, language);
+      } catch (error) {
+        console.error('Groq API error:', error.message);
+      }
+    }
+    return matchOfflineResponse(lastUserMessage);
+  }
+
+  // For local African languages: two-strategy approach
+  // Strategy 1: Try NLLB translation (if already warm, this is fast)
+  // Strategy 2: Ask Groq to respond directly in the target language (always works, ~2s)
+
   let frenchResponse = '';
 
-  // Translate user input to French if in local language
-  let messagesForLLM = messages;
-  if (LANGS_NEED_TRANSLATION.includes(language) && lastUserMessage) {
-    const translatedInput = await translateUserInput(lastUserMessage, language);
-    messagesForLLM = messages.map(m => {
-      if (m.role === 'user' && m.content === lastUserMessage) {
-        return { ...m, content: translatedInput };
-      }
-      return m;
-    });
-  }
-
+  // Get French response first (via Groq or offline)
   if (process.env.GROQ_API_KEY) {
     try {
-      if (LANGS_NEED_TRANSLATION.includes(language)) {
-        frenchResponse = await callGroqAPI(messagesForLLM, 'fr');
-      } else {
-        return await callGroqAPI(messagesForLLM, language);
-      }
+      frenchResponse = await callGroqAPI(messages, 'fr');
     } catch (error) {
-      console.error('Groq API error, falling back to offline:', error.message);
+      console.error('Groq API error:', error.message);
     }
   }
-
   if (!frenchResponse) {
     frenchResponse = matchOfflineResponse(lastUserMessage);
   }
 
-  if (language === 'fr') return frenchResponse;
-
-  if (LANGS_NEED_TRANSLATION.includes(language)) {
+  // Try NLLB translation with a short timeout (5s)
+  // If NLLB is warm it responds in 1-2s. If cold, we don't wait.
+  if (isTranslationAvailable()) {
     try {
-      const translationPromise = translateForChat(frenchResponse, language);
-      const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(null), 12000));
-      const translated = await Promise.race([translationPromise, timeoutPromise]);
-      if (translated && translated !== frenchResponse) {
-        return translated;
+      const nllbResult = await Promise.race([
+        translateForChat(frenchResponse, language),
+        new Promise(resolve => setTimeout(() => resolve(null), 5000))
+      ]);
+      if (nllbResult && nllbResult !== frenchResponse) {
+        return nllbResult;
       }
     } catch (e) {
-      console.error('Translation failed:', e.message);
+      console.log('NLLB translation failed:', e.message);
     }
-    return frenchResponse;
   }
 
-  if (language !== 'fr' && !LANGS_NEED_TRANSLATION.includes(language)) {
-    if (process.env.GROQ_API_KEY) {
-      try {
-        return await callGroqAPI(messages, language);
-      } catch (e) {
-        console.error('Groq API error:', e.message);
+  // Fallback: Ask Groq to translate (fast, always available, imperfect but readable)
+  if (process.env.GROQ_API_KEY) {
+    try {
+      const langName = { wo: 'wolof', pu: 'pulaar', sr: 'sérère', di: 'diola', mn: 'mandinka', sn: 'soninké' }[language];
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [{
+            role: 'user',
+            content: `Traduis ce texte en ${langName}. Utilise l'alphabet latin. Garde les noms propres, chiffres et termes techniques agricoles inchangés. Donne UNIQUEMENT la traduction, rien d'autre.\n\nTexte :\n${frenchResponse}`
+          }],
+          max_tokens: 2000,
+          temperature: 0.3
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const translated = data.choices?.[0]?.message?.content?.trim();
+        if (translated && translated.length > 10 && translated !== frenchResponse) {
+          return translated;
+        }
       }
+    } catch (e) {
+      console.log('Groq translation fallback failed:', e.message);
     }
   }
 
+  // Last resort: return French
   return frenchResponse;
 }
 
