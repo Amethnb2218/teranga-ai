@@ -1,6 +1,34 @@
 const { getSystemPrompt } = require('../config/prompts');
 const { OFFLINE_RESPONSES } = require('../data/offline-responses');
-const { translateForChat, isTranslationAvailable } = require('./translate-service');
+const { translateForChat, translateText, isTranslationAvailable } = require('./translate-service');
+
+async function translateUserInput(text, language) {
+  if (language === 'fr' || language === 'en') return text;
+  if (!process.env.GROQ_API_KEY) return text;
+
+  const langName = { wo: 'wolof', pu: 'pulaar', sr: 'sérère', di: 'diola', mn: 'mandinka', sn: 'soninké', ar: 'arabe' }[language] || 'wolof';
+
+  try {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: `Traduis ce texte du ${langName} vers le français. Donne UNIQUEMENT la traduction, rien d'autre. Si tu ne comprends pas, essaie de deviner le sens. Texte : "${text}"` }],
+        max_tokens: 500,
+        temperature: 0.2
+      })
+    });
+    if (!response.ok) return text;
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content?.trim() || text;
+  } catch (e) {
+    return text;
+  }
+}
 
 const ZONE_DATA = {
   dakar: { zone: 'Niayes', cultures: 'tomate, oignon, chou, piment, salade', sol: 'sablonneux riche (Niayes)', pluviometrie: '400mm', irrigation: 'nappe phréatique accessible', conseil: 'Zone maraîchère par excellence. Culture toute l\'année avec irrigation. Privilégiez les légumes à haute valeur (tomate, oignon, piment).' },
@@ -110,12 +138,24 @@ async function getAIResponse(messages, language) {
 
   let frenchResponse = '';
 
+  // Translate user input to French if in local language
+  let messagesForLLM = messages;
+  if (LANGS_NEED_TRANSLATION.includes(language) && lastUserMessage) {
+    const translatedInput = await translateUserInput(lastUserMessage, language);
+    messagesForLLM = messages.map(m => {
+      if (m.role === 'user' && m.content === lastUserMessage) {
+        return { ...m, content: translatedInput };
+      }
+      return m;
+    });
+  }
+
   if (process.env.GROQ_API_KEY) {
     try {
       if (LANGS_NEED_TRANSLATION.includes(language)) {
-        frenchResponse = await callGroqAPI(messages, 'fr');
+        frenchResponse = await callGroqAPI(messagesForLLM, 'fr');
       } else {
-        return await callGroqAPI(messages, language);
+        return await callGroqAPI(messagesForLLM, language);
       }
     } catch (error) {
       console.error('Groq API error, falling back to offline:', error.message);
