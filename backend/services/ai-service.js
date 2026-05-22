@@ -4,7 +4,7 @@ const { OFFLINE_RESPONSES } = require('../data/offline-responses');
 function matchOfflineResponse(userMessage) {
   const msg = userMessage.toLowerCase().trim();
 
-  if (msg.match(/^(bonjour|salut|bonsoir|hello|hi|hey|salam|na nga def|assalamou)/)) return OFFLINE_RESPONSES.bonjour;
+  if (msg.match(/^(bonjour|salut|bonsoir|hello|hi|hey|salam|na nga def|assalamou|waw)/)) return OFFLINE_RESPONSES.bonjour;
   if (msg.includes('arachide') || msg.includes('gerte')) return OFFLINE_RESPONSES.arachide;
   if (msg.includes('tomate') || msg.includes('tamaat')) return OFFLINE_RESPONSES.tomate;
   if (msg.includes('mil') || msg.includes('souna') || msg.includes('dugar')) return OFFLINE_RESPONSES.mil;
@@ -12,6 +12,15 @@ function matchOfflineResponse(userMessage) {
   if (msg.includes('oignon')) return OFFLINE_RESPONSES.oignon;
   if (msg.includes('maladie') || msg.includes('insecte') || msg.includes('puceron') || msg.includes('parasite')) return OFFLINE_RESPONSES.maladies;
   if (msg.includes('prix') || msg.includes('marché') || msg.includes('vendre')) return OFFLINE_RESPONSES.marche;
+  if (msg.includes('riz') || msg.includes('malo')) return OFFLINE_RESPONSES.riz;
+  if (msg.includes('mais') || msg.includes('maïs') || msg.includes('mbay')) return OFFLINE_RESPONSES.mais;
+  if (msg.includes('niébé') || msg.includes('niebe') || msg.includes('nebe')) return OFFLINE_RESPONSES.niebe;
+  if (msg.includes('semer') || msg.includes('semis') || msg.includes('quand planter') || msg.includes('calendrier')) return OFFLINE_RESPONSES.calendrier;
+  if (msg.includes('engrais') || msg.includes('fertilis') || msg.includes('npk') || msg.includes('urée') || msg.includes('uree')) return OFFLINE_RESPONSES.engrais;
+  if (msg.includes('sol') || msg.includes('terre') || msg.includes('dior') || msg.includes('deck')) return OFFLINE_RESPONSES.sols;
+  if (msg.includes('crédit') || msg.includes('credit') || msg.includes('financement') || msg.includes('prêt') || msg.includes('pret')) return OFFLINE_RESPONSES.financement;
+  if (msg.includes('climat') || msg.includes('sécheresse') || msg.includes('pluie') || msg.includes('hivernage')) return OFFLINE_RESPONSES.climat;
+  if (msg.includes('saison') || msg.includes('maintenant') || msg.includes('faire') || msg.includes('quoi')) return OFFLINE_RESPONSES.saison;
 
   return OFFLINE_RESPONSES.default;
 }
