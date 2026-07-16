@@ -399,18 +399,27 @@ function Hero({ onStart, onNavigate }) {
       {/* Inclusion / Languages Section */}
       <section className="bg-white border-t border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14">
-          <div className="text-center max-w-2xl mx-auto">
-            <p className="section-label mb-2">Inclusion</p>
-            <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-3">Con&ccedil;u pour les plus vuln&eacute;rables</h2>
-            <p className="text-slate-600 text-sm leading-relaxed mb-6">
-              Pas besoin de savoir lire. Parlez dans votre langue. Teranga AI est con&ccedil;u pour les femmes, les jeunes et les communaut&eacute;s rurales du Sahel.
-            </p>
-            <div className="flex flex-wrap justify-center gap-2">
-              {['Wolof', 'Pulaar', 'Hausa', 'Bambara', 'Sérère', 'Diola', 'Mandinka', 'Soninké', 'Français'].map(lang => (
-                <span key={lang} className="px-3 py-1.5 bg-teal-50 rounded-full text-xs font-medium text-teal-800 border border-teal-200">
-                  {lang}
-                </span>
-              ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+            <div className="rounded-2xl overflow-hidden h-64 md:h-80">
+              <img
+                src="https://images.unsplash.com/photo-1509099836639-18ba1795216d?w=800&q=80"
+                alt="Femme africaine au march&eacute;"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div>
+              <p className="section-label mb-2">Inclusion</p>
+              <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-3">Con&ccedil;u pour les plus vuln&eacute;rables</h2>
+              <p className="text-slate-600 text-sm leading-relaxed mb-6">
+                Pas besoin de savoir lire. Parlez dans votre langue. Teranga AI est con&ccedil;u pour les femmes, les jeunes et les communaut&eacute;s rurales du Sahel.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {['Wolof', 'Pulaar', 'Hausa', 'Bambara', 'Sérère', 'Diola', 'Mandinka', 'Soninké', 'Français'].map(lang => (
+                  <span key={lang} className="px-3 py-1.5 bg-teal-50 rounded-full text-xs font-medium text-teal-800 border border-teal-200">
+                    {lang}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </div>

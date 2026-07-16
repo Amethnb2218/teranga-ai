@@ -252,35 +252,40 @@ function Community() {
       )}
 
       {/* Women Empowerment Section */}
-      <section className="mt-10 bg-gradient-to-br from-purple-50 to-teal-50 border border-purple-100 rounded-2xl p-6 md:p-8">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-purple-200 rounded-full flex items-center justify-center">
-            <span className="text-lg">👩🏾‍🌾</span>
-          </div>
-          <div>
-            <h3 className="font-bold text-slate-900">Femmes & Résilience Alimentaire</h3>
-            <p className="text-xs text-slate-500">60% des agriculteurs du Sahel sont des femmes</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div className="bg-white/70 rounded-xl p-4 border border-purple-100">
-            <div className="text-lg font-bold text-purple-700 mb-1">Maraîchage</div>
-            <p className="text-xs text-slate-600">Cultures à haute valeur (oignon, tomate, gombo) gérées par les groupements féminins</p>
-          </div>
-          <div className="bg-white/70 rounded-xl p-4 border border-purple-100">
-            <div className="text-lg font-bold text-purple-700 mb-1">Transformation</div>
-            <p className="text-xs text-slate-600">Céréales transformées (couscous, farine) pour plus-value et conservation longue durée</p>
-          </div>
-          <div className="bg-white/70 rounded-xl p-4 border border-purple-100">
-            <div className="text-lg font-bold text-purple-700 mb-1">Microcrédit</div>
-            <p className="text-xs text-slate-600">Tontines et épargne collective pour financer semences et équipements</p>
+      <section className="mt-10 bg-gradient-to-br from-purple-50 to-teal-50 border border-purple-100 rounded-2xl overflow-hidden">
+        <div className="relative h-48 sm:h-56">
+          <img
+            src="https://images.unsplash.com/photo-1594708767771-a7502209ff7e?w=1200&q=80"
+            alt="Femmes agricultrices du Sahel dans un champ"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-purple-900/70 via-purple-900/30 to-transparent"></div>
+          <div className="absolute bottom-4 left-6 right-6">
+            <h3 className="font-bold text-white text-lg">Femmes & R&eacute;silience Alimentaire</h3>
+            <p className="text-purple-100 text-sm">60% des agriculteurs du Sahel sont des femmes</p>
           </div>
         </div>
 
-        <p className="text-xs text-slate-500 leading-relaxed">
-          Teranga AI donne la priorité aux femmes agricultrices : alertes vocales pour les non-alphabétisées, informations marché pour négocier les prix, et réseau d'entraide pour partager les bonnes pratiques.
-        </p>
+        <div className="p-6 md:p-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div className="bg-white/70 rounded-xl p-4 border border-purple-100">
+              <div className="text-lg font-bold text-purple-700 mb-1">Mara&icirc;chage</div>
+              <p className="text-xs text-slate-600">Cultures &agrave; haute valeur (oignon, tomate, gombo) g&eacute;r&eacute;es par les groupements f&eacute;minins</p>
+            </div>
+            <div className="bg-white/70 rounded-xl p-4 border border-purple-100">
+              <div className="text-lg font-bold text-purple-700 mb-1">Transformation</div>
+              <p className="text-xs text-slate-600">C&eacute;r&eacute;ales transform&eacute;es (couscous, farine) pour plus-value et conservation longue dur&eacute;e</p>
+            </div>
+            <div className="bg-white/70 rounded-xl p-4 border border-purple-100">
+              <div className="text-lg font-bold text-purple-700 mb-1">Microcr&eacute;dit</div>
+              <p className="text-xs text-slate-600">Tontines et &eacute;pargne collective pour financer semences et &eacute;quipements</p>
+            </div>
+          </div>
+
+          <p className="text-xs text-slate-500 leading-relaxed">
+            Teranga AI donne la priorit&eacute; aux femmes agricultrices : alertes vocales pour les non-alphab&eacute;tis&eacute;es, informations march&eacute; pour n&eacute;gocier les prix, et r&eacute;seau d&rsquo;entraide pour partager les bonnes pratiques.
+          </p>
+        </div>
       </section>
     </div>
   );

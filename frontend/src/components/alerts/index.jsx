@@ -230,6 +230,25 @@ function Alerts() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+      {/* Banner image */}
+      <div className="relative rounded-2xl overflow-hidden mb-6 h-36 sm:h-44">
+        <img
+          src="https://images.unsplash.com/photo-1473662711507-14f83558f5f4?w=1200&q=80"
+          alt="Terre aride du Sahel"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-red-900/70 via-amber-900/50 to-transparent"></div>
+        <div className="absolute inset-0 flex items-center px-6 sm:px-8">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+              <FiAlertTriangle className="text-amber-300" size={22} />
+              Centre d&rsquo;Alertes Climatiques
+            </h2>
+            <p className="text-amber-100 text-sm mt-1">Surveillance en temps r&eacute;el &mdash; 10 pays du Sahel</p>
+          </div>
+        </div>
+      </div>
+
       {/* Summary Bar */}
       <div className="bg-slate-900 rounded-xl p-4 sm:p-6 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

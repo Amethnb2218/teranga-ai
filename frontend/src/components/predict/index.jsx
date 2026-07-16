@@ -96,15 +96,28 @@ function Predict() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-      {/* Header */}
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
-          <p className="section-label mb-1">Aide a la decision</p>
-          <h2 className="text-xl font-bold text-slate-900">Quand semer ? Ou planter ?</h2>
-          <p className="text-slate-500 text-sm mt-1">
-            Analyse croisee climat x sol x culture — Couvre les 10 pays du Sahel
-          </p>
+      {/* Banner */}
+      <div className="relative rounded-2xl overflow-hidden mb-6 h-40 sm:h-48">
+        <img
+          src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1200&q=80"
+          alt="Champ de mil au Sahel"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-900/50 to-transparent"></div>
+        <div className="absolute inset-0 flex items-center px-6 sm:px-8">
+          <div>
+            <p className="section-label text-teal-300 mb-1">Aide &agrave; la d&eacute;cision</p>
+            <h2 className="text-xl sm:text-2xl font-bold text-white">Quand semer ? O&ugrave; planter ?</h2>
+            <p className="text-slate-300 text-sm mt-1">
+              Analyse crois&eacute;e climat &times; sol &times; culture &mdash; 10 pays du Sahel
+            </p>
+          </div>
         </div>
+      </div>
+
+      {/* Header info */}
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div className="hidden"></div>
         {currentCity && (
           <div className="text-right text-xs text-slate-400">
             <span className="block font-medium text-slate-600">{currentCity.name}</span>
