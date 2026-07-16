@@ -5,11 +5,12 @@ import Chat from './components/chat/index'
 import Dashboard from './components/dashboard/index'
 import Predict from './components/predict/index'
 import Alerts from './components/alerts/index'
+import Community from './components/community/index'
 import Sources from './components/layout/Sources'
 import Footer from './components/layout/Footer'
 import MobileNav from './components/layout/MobileNav'
 
-const VALID_TABS = ['home', 'alerts', 'chat', 'dashboard', 'predict', 'sources'];
+const VALID_TABS = ['home', 'alerts', 'chat', 'dashboard', 'predict', 'community', 'sources'];
 
 function getTabFromHash() {
   const hash = window.location.hash.replace('#', '');
@@ -39,6 +40,7 @@ function App() {
         {activeTab === 'chat' && <Chat />}
         {activeTab === 'dashboard' && <Dashboard />}
         {activeTab === 'predict' && <Predict />}
+        {activeTab === 'community' && <Community />}
         {activeTab === 'sources' && <Sources />}
       </main>
       <Footer onNavigate={navigate} />

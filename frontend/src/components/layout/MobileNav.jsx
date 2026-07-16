@@ -1,10 +1,11 @@
-import { FiHome, FiMessageCircle, FiBarChart2, FiTarget } from 'react-icons/fi'
+import { FiHome, FiMessageCircle, FiBarChart2, FiTarget, FiAlertTriangle, FiUsers } from 'react-icons/fi'
 
 const items = [
   { id: 'home', label: 'Accueil', icon: FiHome },
-  { id: 'chat', label: 'Conseiller', icon: FiMessageCircle },
-  { id: 'dashboard', label: 'Marchés', icon: FiBarChart2 },
-  { id: 'predict', label: 'Prédiction', icon: FiTarget },
+  { id: 'alerts', label: 'Alertes', icon: FiAlertTriangle },
+  { id: 'dashboard', label: 'Meteo', icon: FiBarChart2 },
+  { id: 'community', label: 'Reseau', icon: FiUsers },
+  { id: 'predict', label: 'Prediction', icon: FiTarget },
 ];
 
 function MobileNav({ activeTab, setActiveTab }) {

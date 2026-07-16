@@ -1,10 +1,12 @@
-import { FiMessageCircle, FiHome, FiMenu, FiX, FiTarget, FiBookOpen, FiAlertTriangle } from 'react-icons/fi'
+import { FiMessageCircle, FiHome, FiMenu, FiX, FiTarget, FiBookOpen, FiAlertTriangle, FiBarChart2, FiUsers } from 'react-icons/fi'
 import { useState } from 'react'
 
 const tabs = [
   { id: 'home', label: 'Accueil', icon: FiHome },
   { id: 'alerts', label: 'Alertes', icon: FiAlertTriangle },
+  { id: 'dashboard', label: 'Meteo', icon: FiBarChart2 },
   { id: 'predict', label: 'Prediction', icon: FiTarget },
+  { id: 'community', label: 'Communaute', icon: FiUsers },
   { id: 'chat', label: 'Conseiller', icon: FiMessageCircle },
   { id: 'sources', label: 'Sources', icon: FiBookOpen },
 ];

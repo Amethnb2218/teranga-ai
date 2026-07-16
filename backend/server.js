@@ -10,6 +10,7 @@ const mlRoutes = require('./routes/ml');
 const speechRoutes = require('./routes/speech');
 const translateRoutes = require('./routes/translate');
 const alertsRoutes = require('./routes/alerts');
+const communityRoutes = require('./routes/community');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 
 dotenv.config();
@@ -32,6 +33,7 @@ app.use('/api/news', newsRoutes);
 app.use('/api/predict', predictRoutes);
 app.use('/api/ml', mlRoutes);
 app.use('/api/alerts', alertsRoutes);
+app.use('/api/community', communityRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({

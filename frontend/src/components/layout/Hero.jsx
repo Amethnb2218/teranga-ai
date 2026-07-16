@@ -82,10 +82,11 @@ function Hero({ onStart, onNavigate }) {
                 Voir les alertes
               </button>
               <button
-                onClick={() => onNavigate('predict')}
-                className="border border-white/30 text-white hover:bg-white/10 font-medium px-7 py-3.5 rounded-xl transition-colors text-center backdrop-blur-sm"
+                onClick={() => onNavigate('community')}
+                className="border border-white/30 text-white hover:bg-white/10 font-medium px-7 py-3.5 rounded-xl transition-colors text-center backdrop-blur-sm flex items-center justify-center gap-2"
               >
-                Prediction de semis
+                <FiUsers size={16} />
+                Reseau femmes
               </button>
             </div>
 
@@ -104,14 +105,18 @@ function Hero({ onStart, onNavigate }) {
       {/* Stats Strip */}
       <section className="bg-slate-900 border-y border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
             <div className="text-center">
               <div className="text-2xl md:text-3xl font-bold text-white">10</div>
               <p className="text-xs text-slate-400 mt-1 font-medium">Pays couverts</p>
             </div>
             <div className="text-center">
-              <div className="text-2xl md:text-3xl font-bold text-amber-400">24M</div>
-              <p className="text-xs text-slate-400 mt-1 font-medium">Personnes a risque</p>
+              <div className="text-2xl md:text-3xl font-bold text-purple-400">90%</div>
+              <p className="text-xs text-slate-400 mt-1 font-medium">Femmes dans le reseau</p>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl md:text-3xl font-bold text-amber-400">41</div>
+              <p className="text-xs text-slate-400 mt-1 font-medium">Villes couvertes</p>
             </div>
             <div className="text-center">
               <div className="text-2xl md:text-3xl font-bold text-white">9</div>
@@ -171,18 +176,18 @@ function Hero({ onStart, onNavigate }) {
           <div className="text-center mb-12">
             <p className="section-label mb-2">Capacites</p>
             <h2 className="text-2xl md:text-3xl font-bold text-slate-900">
-              Quatre piliers de resilience
+              Six piliers de resilience
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             <div onClick={() => onNavigate('alerts')} className="bg-slate-50 rounded-xl border border-slate-200 p-6 group hover:shadow-lg hover:border-teal-200 transition-all cursor-pointer">
               <div className="w-11 h-11 bg-teal-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-teal-200 transition-colors">
                 <FiAlertTriangle className="text-teal-700" size={20} />
               </div>
               <h3 className="font-bold text-slate-900 mb-2">Alertes Precoces</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                Detection de secheresses, inondations et crises alimentaires 2-4 semaines avant. Couverture des 10 pays du Sahel.
+                Detection de secheresses, inondations et crises alimentaires 2-4 semaines avant. 10 pays du Sahel.
               </p>
             </div>
 
@@ -192,7 +197,17 @@ function Hero({ onStart, onNavigate }) {
               </div>
               <h3 className="font-bold text-slate-900 mb-2">Prediction ML</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                4 algorithmes (OLS, GA, BBN, KNN) pour optimiser le calendrier agricole. Zero dependance ML externe.
+                5 algorithmes (OLS, GA, BBN, KNN, Ensemble) pour optimiser les calendriers agricoles. Zero librairie ML externe.
+              </p>
+            </div>
+
+            <div onClick={() => onNavigate('community')} className="bg-slate-50 rounded-xl border border-slate-200 p-6 group hover:shadow-lg hover:border-purple-200 transition-all cursor-pointer">
+              <div className="w-11 h-11 bg-purple-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-purple-200 transition-colors">
+                <FiUsers className="text-purple-700" size={20} />
+              </div>
+              <h3 className="font-bold text-slate-900 mb-2">Reseau Femmes</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                1 700+ agricultrices connectees. Observations terrain, alertes communautaires, partage de techniques.
               </p>
             </div>
 
@@ -202,7 +217,7 @@ function Hero({ onStart, onNavigate }) {
               </div>
               <h3 className="font-bold text-slate-900 mb-2">Conseiller Vocal</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                Posez vos questions en Wolof, Hausa, Bambara... Reponse instantanee par IA. Pas besoin de savoir lire.
+                Posez vos questions en Wolof, Hausa, Bambara... Reponse par IA. Pas besoin de savoir lire.
               </p>
             </div>
 
@@ -210,9 +225,19 @@ function Hero({ onStart, onNavigate }) {
               <div className="w-11 h-11 bg-teal-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-teal-200 transition-colors">
                 <FiDollarSign className="text-teal-700" size={20} />
               </div>
-              <h3 className="font-bold text-slate-900 mb-2">Intelligence des Marches</h3>
+              <h3 className="font-bold text-slate-900 mb-2">Meteo & Marches</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                Prix en temps reel, tendances, recommandations achat/vente. Donnees FAO/GIEWS sur les marches du Sahel.
+                Meteo temps reel, prix des cereales, tendances. Donnees OpenWeatherMap + FAO/GIEWS.
+              </p>
+            </div>
+
+            <div onClick={() => onNavigate('dashboard')} className="bg-slate-50 rounded-xl border border-slate-200 p-6 group hover:shadow-lg hover:border-teal-200 transition-all cursor-pointer">
+              <div className="w-11 h-11 bg-teal-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-teal-200 transition-colors">
+                <FiShield className="text-teal-700" size={20} />
+              </div>
+              <h3 className="font-bold text-slate-900 mb-2">Securite Alimentaire</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Croisement alertes + previsions pour anticiper les crises. Scoring par commune et par culture.
               </p>
             </div>
           </div>

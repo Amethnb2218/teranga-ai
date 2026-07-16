@@ -104,3 +104,22 @@ export async function fetchAlertsSummary() {
   if (!response.ok) throw new Error('Alerts summary failed');
   return response.json();
 }
+
+export async function fetchCommunity(params = {}) {
+  const query = new URLSearchParams(params).toString();
+  const response = await fetchWithTimeout(`${API_BASE}/api/community${query ? '?' + query : ''}`);
+  if (!response.ok) throw new Error('Community fetch failed');
+  return response.json();
+}
+
+export async function fetchCommunityGroups() {
+  const response = await fetchWithTimeout(`${API_BASE}/api/community/groups`);
+  if (!response.ok) throw new Error('Groups fetch failed');
+  return response.json();
+}
+
+export async function fetchCommunityStats() {
+  const response = await fetchWithTimeout(`${API_BASE}/api/community/stats`);
+  if (!response.ok) throw new Error('Stats fetch failed');
+  return response.json();
+}

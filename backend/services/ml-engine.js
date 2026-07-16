@@ -20,8 +20,8 @@ const { SAHEL_CITIES, MONTH_DATA } = require('../config/constants');
 // ZONE & SOIL CLASSIFICATION
 // ============================================================
 
-const ZONE_CODES = { 'sahélienne': 0, 'soudanienne': 1, 'casamançaise': 2, 'fleuve': 3, 'niayes': 4 };
-const SOIL_CODES = { 'dior': 0, 'deck': 1, 'hollalde': 2, 'ferralitique': 3, 'ferrugineux': 4, 'niayes': 5 };
+const ZONE_CODES = { 'sahélienne': 0, 'sahelienne': 0, 'soudanienne': 1, 'casamançaise': 2, 'guineenne': 2, 'fleuve': 3, 'niayes': 4 };
+const SOIL_CODES = { 'dior': 0, 'deck': 1, 'hollalde': 2, 'ferralitique': 3, 'ferrugineux': 4, 'niayes': 5, 'sableux': 0, 'argileux': 1, 'vertisol': 1 };
 const VARIETY_CYCLES = {
   arachide: { '55-437': 90, '73-33': 105, 'fleur11': 95, 'gc8-35': 105, '28-206': 120 },
   mil: { 'souna3': 90, 'ibv8004': 75, 'thialack': 95, 'gawane': 80 },
@@ -326,6 +326,7 @@ const HISTORICAL_YIELDS = {
 // ============================================================
 
 const CITY_FEATURES = {
+  // === SENEGAL ===
   dakar: { zone: 'sahélienne', soil: 'niayes', avgRain: 400, baseTemp: 25.0 },
   thies: { zone: 'sahélienne', soil: 'dior', avgRain: 480, baseTemp: 28.5 },
   diourbel: { zone: 'sahélienne', soil: 'dior', avgRain: 470, baseTemp: 29.0 },
@@ -339,7 +340,52 @@ const CITY_FEATURES = {
   kedougou: { zone: 'casamançaise', soil: 'ferrugineux', avgRain: 1100, baseTemp: 27.0 },
   kolda: { zone: 'casamançaise', soil: 'ferralitique', avgRain: 1000, baseTemp: 27.2 },
   sedhiou: { zone: 'casamançaise', soil: 'ferralitique', avgRain: 1050, baseTemp: 27.0 },
-  ziguinchor: { zone: 'casamançaise', soil: 'ferralitique', avgRain: 1200, baseTemp: 26.5 }
+  ziguinchor: { zone: 'casamançaise', soil: 'ferralitique', avgRain: 1200, baseTemp: 26.5 },
+
+  // === NIGER ===
+  niamey: { zone: 'soudanienne', soil: 'ferrugineux', avgRain: 560, baseTemp: 29.5 },
+  maradi: { zone: 'soudanienne', soil: 'sableux', avgRain: 490, baseTemp: 29.0 },
+  zinder: { zone: 'soudanienne', soil: 'sableux', avgRain: 450, baseTemp: 29.5 },
+  tillaberi: { zone: 'sahélienne', soil: 'sableux', avgRain: 370, baseTemp: 30.5 },
+  agadez: { zone: 'sahélienne', soil: 'sableux', avgRain: 150, baseTemp: 32.0 },
+
+  // === MALI ===
+  bamako: { zone: 'soudanienne', soil: 'ferrugineux', avgRain: 1000, baseTemp: 28.0 },
+  sikasso: { zone: 'soudanienne', soil: 'ferralitique', avgRain: 1150, baseTemp: 27.5 },
+  mopti: { zone: 'sahélienne', soil: 'argileux', avgRain: 500, baseTemp: 30.0 },
+  gao: { zone: 'sahélienne', soil: 'sableux', avgRain: 250, baseTemp: 31.5 },
+  segou: { zone: 'soudanienne', soil: 'argileux', avgRain: 750, baseTemp: 28.5 },
+
+  // === BURKINA FASO ===
+  ouagadougou: { zone: 'soudanienne', soil: 'ferrugineux', avgRain: 800, baseTemp: 29.0 },
+  bobo_dioulasso: { zone: 'guineenne', soil: 'ferralitique', avgRain: 1100, baseTemp: 27.0 },
+  koudougou: { zone: 'soudanienne', soil: 'ferrugineux', avgRain: 750, baseTemp: 29.0 },
+  dedougou: { zone: 'soudanienne', soil: 'ferrugineux', avgRain: 850, baseTemp: 28.5 },
+
+  // === TCHAD ===
+  ndjamena: { zone: 'soudanienne', soil: 'argileux', avgRain: 550, baseTemp: 30.0 },
+  moundou: { zone: 'guineenne', soil: 'ferralitique', avgRain: 1100, baseTemp: 27.5 },
+  abeche: { zone: 'sahélienne', soil: 'sableux', avgRain: 400, baseTemp: 31.0 },
+
+  // === NIGERIA (Sahel belt) ===
+  kano: { zone: 'soudanienne', soil: 'ferrugineux', avgRain: 850, baseTemp: 28.5 },
+  sokoto: { zone: 'sahélienne', soil: 'sableux', avgRain: 650, baseTemp: 30.5 },
+  maiduguri: { zone: 'sahélienne', soil: 'sableux', avgRain: 600, baseTemp: 30.0 },
+
+  // === CAMEROUN (Nord) ===
+  maroua: { zone: 'soudanienne', soil: 'vertisol', avgRain: 800, baseTemp: 29.0 },
+  garoua: { zone: 'soudanienne', soil: 'ferrugineux', avgRain: 950, baseTemp: 28.5 },
+
+  // === GUINEE ===
+  conakry: { zone: 'guineenne', soil: 'ferralitique', avgRain: 3600, baseTemp: 26.0 },
+  kankan: { zone: 'guineenne', soil: 'ferralitique', avgRain: 1300, baseTemp: 27.0 },
+
+  // === GAMBIE ===
+  banjul: { zone: 'soudanienne', soil: 'sableux', avgRain: 900, baseTemp: 26.5 },
+
+  // === MAURITANIE ===
+  nouakchott: { zone: 'sahélienne', soil: 'sableux', avgRain: 100, baseTemp: 28.0 },
+  kiffa: { zone: 'sahélienne', soil: 'sableux', avgRain: 300, baseTemp: 31.0 }
 };
 
 // ============================================================
@@ -735,9 +781,10 @@ function trainModels() {
 trainModels();
 
 function predictYield(crop, zone, rainTotal, tempAvg, sowMonth) {
-  const cityFeatures = Object.values(CITY_FEATURES).find(c => c.zone === zone) || { soil: 'dior' };
+  const cityFeatures = CITY_FEATURES[zone] || Object.values(CITY_FEATURES).find(c => c.zone === zone) || { soil: 'dior', zone: zone };
+  const actualZone = CITY_FEATURES[zone] ? cityFeatures.zone : zone;
   const soilCode = SOIL_CODES[cityFeatures.soil] || 0;
-  const zoneCode = ZONE_CODES[zone] || 0;
+  const zoneCode = ZONE_CODES[actualZone] || 0;
 
   // Estimate rain distribution from total (calibrated on ANACIM monthly patterns)
   const rainJuly = rainTotal * 0.22;

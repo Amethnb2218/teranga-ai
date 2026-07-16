@@ -40,7 +40,7 @@ router.get('/predict-yield/:crop/:city', async (req, res) => {
 
   const sowMonth = parseInt(month) || new Date().getMonth() + 1;
   const monthData = MONTH_DATA[sowMonth];
-  const zoneMultiplier = cityData.zone === 'casamançaise' ? 1.5 : cityData.zone === 'soudanienne' ? 1.2 : 0.8;
+  const zoneMultiplier = (cityData.zone === 'casamançaise' || cityData.zone === 'guineenne') ? 1.5 : cityData.zone === 'soudanienne' ? 1.2 : cityData.zone === 'fleuve' ? 0.6 : 0.8;
 
   let rainTotal = 0;
   let tempAvg = (monthData.temp_max + monthData.temp_min) / 2;
