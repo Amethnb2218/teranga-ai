@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 const dotenv = require('dotenv');
 const chatRoutes = require('./routes/chat');
 const weatherRoutes = require('./routes/weather');
@@ -45,16 +44,6 @@ app.get('/api/health', (req, res) => {
     ml_engine: 'v3.0 (12 features, 8 crops, 2015-2026)',
     timestamp: new Date().toISOString()
   });
-});
-
-// Serve frontend static files in production
-const frontendDist = path.join(__dirname, '..', 'frontend', 'dist');
-app.use(express.static(frontendDist));
-
-// SPA fallback — all non-API routes serve index.html
-app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api')) return next();
-  res.sendFile(path.join(frontendDist, 'index.html'));
 });
 
 app.use(notFound);
