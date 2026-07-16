@@ -1,4 +1,4 @@
-const { SENEGAL_CITIES } = require('../../config/constants');
+const { SAHEL_CITIES } = require('../../config/constants');
 
 const WEATHER_CACHE = {};
 const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
@@ -7,7 +7,7 @@ async function fetchRealWeather(cityKey) {
   const apiKey = process.env.OPENWEATHER_API_KEY;
   if (!apiKey) return null;
 
-  const city = SENEGAL_CITIES[cityKey];
+  const city = SAHEL_CITIES[cityKey];
   if (!city) return null;
 
   const cacheKey = cityKey;

@@ -1,4 +1,4 @@
-const { SENEGAL_CITIES, MONTH_DATA } = require('../config/constants');
+const { SAHEL_CITIES, MONTH_DATA } = require('../config/constants');
 
 // Besoins hydriques par culture (mm d'eau sur tout le cycle)
 const CROP_PROFILES = {
@@ -109,7 +109,7 @@ const CROP_PROFILES = {
 
 // Algorithme de scoring du risque
 function computeRiskScore(crop, zone, month) {
-  const cityInfo = Object.values(SENEGAL_CITIES).find(c => c.zone === zone) || Object.values(SENEGAL_CITIES)[0];
+  const cityInfo = Object.values(SAHEL_CITIES).find(c => c.zone === zone) || Object.values(SAHEL_CITIES)[0];
   const monthData = MONTH_DATA[month];
   const cropProfile = CROP_PROFILES[crop];
   if (!cropProfile) return null;
@@ -171,7 +171,7 @@ function computeRiskScore(crop, zone, month) {
 }
 
 function computeExpectedRain(startMonth, cycleDays, zone) {
-  const zoneMultiplier = zone === 'casamançaise' ? 1.5 : zone === 'soudanienne' ? 1.2 : 0.8;
+  const zoneMultiplier = (zone === 'casamançaise' || zone === 'guineenne') ? 1.5 : zone === 'soudanienne' ? 1.2 : 0.8;
   let totalRain = 0;
   let daysLeft = cycleDays;
   let currentMonth = startMonth;
@@ -203,7 +203,7 @@ function getRecommendation(score) {
 
 // Trouver le meilleur moment de semis dans les 6 prochains mois
 function findOptimalSowingDate(crop, city) {
-  const cityData = SENEGAL_CITIES[city];
+  const cityData = SAHEL_CITIES[city];
   if (!cityData || !CROP_PROFILES[crop]) return null;
 
   const results = [];

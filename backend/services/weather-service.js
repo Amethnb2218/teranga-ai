@@ -1,13 +1,16 @@
-const { SENEGAL_CITIES, MONTH_DATA } = require('../config/constants');
+const { SAHEL_CITIES, MONTH_DATA } = require('../config/constants');
 const { fetchRealWeather } = require('./external/weather-api');
 
 function generateFallbackForecast(cityKey, zone) {
   const now = new Date();
   const month = now.getMonth() + 1;
   const baseData = MONTH_DATA[month];
-  const cityInfo = SENEGAL_CITIES[cityKey];
+  const cityInfo = SAHEL_CITIES[cityKey];
   const offset = cityInfo ? cityInfo.tempOffset : 0;
-  const zoneRainMult = zone === 'casamançaise' ? 1.5 : zone === 'soudanienne' ? 1.2 : 0.8;
+  const zoneRainMult = (zone === 'casamançaise' || zone === 'guineenne') ? 1.5
+    : zone === 'soudanienne' ? 1.2
+    : zone === 'fleuve' ? 0.6
+    : 0.7;
 
   const forecast = [];
   for (let i = 0; i < 7; i++) {
@@ -68,7 +71,7 @@ function getSeasonalAdvice(season, zone) {
 }
 
 async function getCityWeather(cityKey) {
-  const cityData = SENEGAL_CITIES[cityKey];
+  const cityData = SAHEL_CITIES[cityKey];
   if (!cityData) return null;
 
   const month = new Date().getMonth() + 1;
@@ -98,7 +101,7 @@ async function getCityWeather(cityKey) {
 }
 
 function getAvailableCities() {
-  return Object.keys(SENEGAL_CITIES);
+  return Object.keys(SAHEL_CITIES);
 }
 
 module.exports = { getCityWeather, getAvailableCities };

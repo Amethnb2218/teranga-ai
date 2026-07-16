@@ -91,3 +91,16 @@ export async function transcribeAudio(audioBase64, language = 'fr') {
   if (!response.ok) throw new Error('Transcription failed');
   return response.json();
 }
+
+export async function fetchAlerts(params = {}) {
+  const query = new URLSearchParams(params).toString();
+  const response = await fetchWithTimeout(`${API_BASE}/api/alerts${query ? '?' + query : ''}`);
+  if (!response.ok) throw new Error('Alerts fetch failed');
+  return response.json();
+}
+
+export async function fetchAlertsSummary() {
+  const response = await fetchWithTimeout(`${API_BASE}/api/alerts/summary`);
+  if (!response.ok) throw new Error('Alerts summary failed');
+  return response.json();
+}

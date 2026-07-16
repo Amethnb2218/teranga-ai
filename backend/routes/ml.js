@@ -33,9 +33,9 @@ router.get('/predict-yield/:crop/:city', async (req, res) => {
   const { crop, city } = req.params;
   const { month } = req.query;
 
-  const { SENEGAL_CITIES, MONTH_DATA } = require('../config/constants');
+  const { SAHEL_CITIES, MONTH_DATA } = require('../config/constants');
   const cityKey = city.toLowerCase().replace(/[- ]/g, '_');
-  const cityData = SENEGAL_CITIES[cityKey];
+  const cityData = SAHEL_CITIES[cityKey];
   if (!cityData) return res.status(404).json({ error: 'Ville non trouvée' });
 
   const sowMonth = parseInt(month) || new Date().getMonth() + 1;

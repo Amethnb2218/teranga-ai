@@ -14,7 +14,7 @@
  *   Sorgho: 890 kg/ha | Tomate: 25,000 kg/ha | Oignon: 30,000 kg/ha
  */
 
-const { SENEGAL_CITIES, MONTH_DATA } = require('../config/constants');
+const { SAHEL_CITIES, MONTH_DATA } = require('../config/constants');
 
 // ============================================================
 // ZONE & SOIL CLASSIFICATION
@@ -860,7 +860,7 @@ function predictYield(crop, zone, rainTotal, tempAvg, sowMonth) {
 }
 
 function optimizeCropCalendar(crops, city, constraints = {}) {
-  const cityData = SENEGAL_CITIES[city] || CITY_FEATURES[city];
+  const cityData = SAHEL_CITIES[city] || CITY_FEATURES[city];
   if (!cityData) return null;
 
   const zone = cityData.zone;
@@ -949,7 +949,7 @@ function optimizeCropCalendar(crops, city, constraints = {}) {
 }
 
 function assessRiskBayesian(crop, city, month) {
-  const cityData = SENEGAL_CITIES[city];
+  const cityData = SAHEL_CITIES[city];
   if (!cityData) return null;
 
   const monthData = MONTH_DATA[month];

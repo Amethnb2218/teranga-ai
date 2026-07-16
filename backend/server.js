@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const dotenv = require('dotenv');
 const chatRoutes = require('./routes/chat');
 const weatherRoutes = require('./routes/weather');
@@ -9,6 +10,7 @@ const predictRoutes = require('./routes/predict');
 const mlRoutes = require('./routes/ml');
 const speechRoutes = require('./routes/speech');
 const translateRoutes = require('./routes/translate');
+const alertsRoutes = require('./routes/alerts');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 
 dotenv.config();
@@ -30,6 +32,7 @@ app.use('/api/market', marketRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/predict', predictRoutes);
 app.use('/api/ml', mlRoutes);
+app.use('/api/alerts', alertsRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({
@@ -44,13 +47,23 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Serve frontend static files in production
+const frontendDist = path.join(__dirname, '..', 'frontend', 'dist');
+app.use(express.static(frontendDist));
+
+// SPA fallback — all non-API routes serve index.html
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) return next();
+  res.sendFile(path.join(frontendDist, 'index.html'));
+});
+
 app.use(notFound);
 app.use(errorHandler);
 
 app.listen(PORT, () => {
-  console.log(`Teranga AI Backend v2.0 running on port ${PORT}`);
+  console.log(`Teranga AI v3.0 running on port ${PORT}`);
   console.log(`AI: ${process.env.GROQ_API_KEY ? 'Groq' : 'Offline'}`);
-  console.log(`Weather: ${process.env.OPENWEATHER_API_KEY ? 'OpenWeatherMap' : 'Simulated'}`);
+  console.log(`Weather: ${process.env.OPENWEATHER_API_KEY ? 'OpenWeatherMap (live)' : 'Simulated'}`);
 });
 
 module.exports = app;
