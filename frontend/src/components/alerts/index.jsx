@@ -19,16 +19,16 @@ const COUNTRIES = [
 const SEVERITY_LEVELS = [
   { id: 'all', name: 'Toutes', color: 'bg-slate-200' },
   { id: 'critical', name: 'Critique', color: 'bg-red-500' },
-  { id: 'high', name: 'Eleve', color: 'bg-orange-500' },
+  { id: 'high', name: 'Élevé', color: 'bg-orange-500' },
   { id: 'medium', name: 'Moyen', color: 'bg-amber-500' },
   { id: 'low', name: 'Faible', color: 'bg-blue-500' },
 ];
 
 const SEVERITY_CONFIG = {
-  critical: { bg: 'bg-red-50', border: 'border-l-red-600', badge: 'bg-red-100 text-red-800', label: 'Critique', icon: '🔴' },
-  high: { bg: 'bg-orange-50', border: 'border-l-orange-500', badge: 'bg-orange-100 text-orange-800', label: 'Eleve', icon: '🟠' },
-  medium: { bg: 'bg-amber-50', border: 'border-l-amber-500', badge: 'bg-amber-100 text-amber-800', label: 'Moyen', icon: '🟡' },
-  low: { bg: 'bg-blue-50', border: 'border-l-blue-500', badge: 'bg-blue-100 text-blue-800', label: 'Faible', icon: '🔵' },
+  critical: { bg: 'bg-red-50', border: 'border-l-red-600', badge: 'bg-red-100 text-red-800', label: 'Critique', icon: '\u{1F534}' },
+  high: { bg: 'bg-orange-50', border: 'border-l-orange-500', badge: 'bg-orange-100 text-orange-800', label: 'Élevé', icon: '\u{1F7E0}' },
+  medium: { bg: 'bg-amber-50', border: 'border-l-amber-500', badge: 'bg-amber-100 text-amber-800', label: 'Moyen', icon: '\u{1F7E1}' },
+  low: { bg: 'bg-blue-50', border: 'border-l-blue-500', badge: 'bg-blue-100 text-blue-800', label: 'Faible', icon: '\u{1F535}' },
 };
 
 const TYPE_ICONS = {
@@ -40,7 +40,7 @@ const TYPE_ICONS = {
 };
 
 const TYPE_LABELS = {
-  drought: 'Secheresse',
+  drought: 'Sécheresse',
   flood: 'Inondation',
   food_crisis: 'Crise alimentaire',
   pest: 'Invasion acridienne',
@@ -238,7 +238,7 @@ function Alerts() {
               <FiAlertTriangle className="text-amber-400" size={20} />
               Centre d'Alertes — Sahel
             </h1>
-            <p className="text-slate-400 text-sm mt-1">Surveillance en temps reel des risques climatiques et alimentaires</p>
+            <p className="text-slate-400 text-sm mt-1">Surveillance en temps réel des risques climatiques et alimentaires</p>
           </div>
           <button
             onClick={loadAlerts}
@@ -257,7 +257,7 @@ function Alerts() {
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-amber-400">{stats.countries}</div>
-            <p className="text-xs text-slate-400">pays touches</p>
+            <p className="text-xs text-slate-400">pays touchés</p>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-red-400">{stats.critical}</div>
@@ -366,7 +366,7 @@ function Alerts() {
                       ))}
                     </div>
                     <div className="text-[10px] text-slate-400">
-                      {alert.timestamp && <span>Emise : {formatDate(alert.timestamp)}</span>}
+                      {alert.timestamp && <span>Émise : {formatDate(alert.timestamp)}</span>}
                       {alert.expires && <span className="ml-2">Expire : {formatDate(alert.expires)}</span>}
                     </div>
                   </div>
@@ -429,7 +429,7 @@ function Alerts() {
 
           {/* Severity distribution */}
           <div className="bg-white rounded-xl border border-slate-200 p-5">
-            <h3 className="font-semibold text-slate-900 text-sm mb-4">Severite</h3>
+            <h3 className="font-semibold text-slate-900 text-sm mb-4">Sévérité</h3>
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-red-50 rounded-lg p-3 text-center border border-red-100">
                 <div className="text-xl font-bold text-red-700">{alerts.filter(a => a.severity === 'critical').length}</div>
@@ -437,7 +437,7 @@ function Alerts() {
               </div>
               <div className="bg-orange-50 rounded-lg p-3 text-center border border-orange-100">
                 <div className="text-xl font-bold text-orange-700">{alerts.filter(a => a.severity === 'high').length}</div>
-                <p className="text-[10px] text-orange-600 font-medium">Eleve</p>
+                <p className="text-[10px] text-orange-600 font-medium">Élevé</p>
               </div>
               <div className="bg-amber-50 rounded-lg p-3 text-center border border-amber-100">
                 <div className="text-xl font-bold text-amber-700">{alerts.filter(a => a.severity === 'medium').length}</div>
@@ -453,7 +453,7 @@ function Alerts() {
           {/* Data source notice */}
           <div className="bg-slate-50 rounded-xl border border-slate-200 p-4">
             <p className="text-[10px] text-slate-500 leading-relaxed">
-              <strong className="text-slate-600">Sources :</strong> FEWS NET, IPC/CH, OCHA, AGRHYMET/CILSS, services meteo nationaux. Donnees actualisees toutes les 6 heures.
+              <strong className="text-slate-600">Sources :</strong> FEWS NET, IPC/CH, OCHA, AGRHYMET/CILSS, services meteo nationaux. Données actualisées toutes les 6 heures.
             </p>
           </div>
         </div>

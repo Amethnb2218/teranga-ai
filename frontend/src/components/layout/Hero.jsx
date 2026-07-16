@@ -3,28 +3,28 @@ import { FiArrowRight, FiAlertTriangle, FiTarget, FiMic, FiDollarSign, FiUsers, 
 import { fetchAlerts } from '../../services/api'
 
 const COUNTRIES = [
-  { flag: '🇧🇫', name: 'Burkina Faso' },
-  { flag: '🇨🇲', name: 'Cameroun' },
-  { flag: '🇬🇲', name: 'Gambie' },
-  { flag: '🇬🇳', name: 'Guinee' },
-  { flag: '🇲🇱', name: 'Mali' },
-  { flag: '🇲🇷', name: 'Mauritanie' },
-  { flag: '🇳🇪', name: 'Niger' },
-  { flag: '🇳🇬', name: 'Nigeria' },
-  { flag: '🇸🇳', name: 'Senegal' },
-  { flag: '🇹🇩', name: 'Tchad' },
+  { flag: '\u{1F1E7}\u{1F1EB}', name: 'Burkina Faso' },
+  { flag: '\u{1F1E8}\u{1F1F2}', name: 'Cameroun' },
+  { flag: '\u{1F1EC}\u{1F1F2}', name: 'Gambie' },
+  { flag: '\u{1F1EC}\u{1F1F3}', name: 'Guinée' },
+  { flag: '\u{1F1F2}\u{1F1F1}', name: 'Mali' },
+  { flag: '\u{1F1F2}\u{1F1F7}', name: 'Mauritanie' },
+  { flag: '\u{1F1F3}\u{1F1EA}', name: 'Niger' },
+  { flag: '\u{1F1F3}\u{1F1EC}', name: 'Nigéria' },
+  { flag: '\u{1F1F8}\u{1F1F3}', name: 'Sénégal' },
+  { flag: '\u{1F1F9}\u{1F1E9}', name: 'Tchad' },
 ];
 
 const DEMO_ALERTS = [
-  { id: 1, type: 'drought', severity: 'critical', location: 'Tillaberi, Niger', title: 'Secheresse critique', description: 'Deficit pluviometrique severe. Semis compromis pour le mil et le sorgho.', recommendation: 'Reporter les semis. Privilegier les varietes a cycle court.' },
-  { id: 2, type: 'flood', severity: 'high', location: 'Matam, Senegal', title: 'Risque d\'inondation eleve', description: 'Crue du fleuve attendue dans 7-10 jours. Zones basses menacees.', recommendation: 'Deplacer les stocks. Preparer les parcelles sureleves.' },
-  { id: 3, type: 'food_crisis', severity: 'medium', location: 'Diffa, Niger', title: 'Stress alimentaire', description: 'Prix des cereales en hausse de 40%. Stocks communautaires bas.', recommendation: 'Activer les banques cerealieres. Diversifier les sources.' },
-  { id: 4, type: 'pest', severity: 'high', location: 'Kayes, Mali', title: 'Invasion acridienne', description: 'Essaims de criquets detectes. Progression vers les zones cultivees.', recommendation: 'Alerte aux services phytosanitaires. Surveillance renforcee.' },
+  { id: 1, type: 'drought', severity: 'critical', location: 'Tillabéri, Niger', title: 'Sécheresse critique', description: 'Déficit pluviométrique sévère. Semis compromis pour le mil et le sorgho.', recommendation: 'Reporter les semis. Privilégier les variétés à cycle court.' },
+  { id: 2, type: 'flood', severity: 'high', location: 'Matam, Sénégal', title: 'Risque d\'inondation élevé', description: 'Crue du fleuve attendue dans 7-10 jours. Zones basses menacées.', recommendation: 'Déplacer les stocks. Préparer les parcelles surélevées.' },
+  { id: 3, type: 'food_crisis', severity: 'medium', location: 'Diffa, Niger', title: 'Stress alimentaire', description: 'Prix des céréales en hausse de 40%. Stocks communautaires bas.', recommendation: 'Activer les banques céréalières. Diversifier les sources.' },
+  { id: 4, type: 'pest', severity: 'high', location: 'Kayes, Mali', title: 'Invasion acridienne', description: 'Essaims de criquets détectés. Progression vers les zones cultivées.', recommendation: 'Alerte aux services phytosanitaires. Surveillance renforcée.' },
 ];
 
 const SEVERITY_CONFIG = {
   critical: { bg: 'bg-red-50', border: 'border-l-red-600', badge: 'bg-red-100 text-red-800', label: 'Critique' },
-  high: { bg: 'bg-orange-50', border: 'border-l-orange-500', badge: 'bg-orange-100 text-orange-800', label: 'Eleve' },
+  high: { bg: 'bg-orange-50', border: 'border-l-orange-500', badge: 'bg-orange-100 text-orange-800', label: 'Élevé' },
   medium: { bg: 'bg-amber-50', border: 'border-l-amber-500', badge: 'bg-amber-100 text-amber-800', label: 'Moyen' },
   low: { bg: 'bg-blue-50', border: 'border-l-blue-500', badge: 'bg-blue-100 text-blue-800', label: 'Faible' },
 };
@@ -39,9 +39,7 @@ function Hero({ onStart, onNavigate }) {
           setAlerts(data.alerts.slice(0, 4));
         }
       })
-      .catch(() => {
-        // Use demo data on failure
-      });
+      .catch(() => {});
   }, []);
 
   return (
@@ -51,7 +49,7 @@ function Hero({ onStart, onNavigate }) {
         <div className="absolute inset-0">
           <img
             src="https://images.unsplash.com/photo-1504432842672-1a79f78e4084?w=1600&q=80"
-            alt="Paysage du Sahel"
+            alt="Paysage agricole du Sahel"
             className="w-full h-full object-cover"
           />
         </div>
@@ -59,7 +57,6 @@ function Hero({ onStart, onNavigate }) {
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-20 w-full">
           <div className="max-w-2xl">
-            {/* Badge */}
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-teal-700/30 border border-teal-500/30 rounded-full mb-6 backdrop-blur-sm">
               <span className="w-2 h-2 bg-teal-400 rounded-full pulse-dot"></span>
               <span className="text-teal-200 text-xs font-semibold">Youth Connekt Sahel 2026 &middot; Axe 3 & 5</span>
@@ -67,10 +64,10 @@ function Hero({ onStart, onNavigate }) {
 
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-5 leading-[1.1]">
               Intelligence Climatique pour la{' '}
-              <span className="text-teal-300">Resilience du Sahel</span>
+              <span className="text-teal-300">R&eacute;silience du Sahel</span>
             </h1>
             <p className="text-slate-300 text-base md:text-lg mb-8 leading-relaxed max-w-xl">
-              Systeme d'alerte precoce et d'aide a la decision agricole propulse par l'IA. 10 pays. 9 langues. Gratuit.
+              Syst&egrave;me d&rsquo;alerte pr&eacute;coce et d&rsquo;aide &agrave; la d&eacute;cision agricole propuls&eacute; par l&rsquo;IA. 10 pays. 9 langues. Gratuit.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 mb-8">
@@ -86,11 +83,10 @@ function Hero({ onStart, onNavigate }) {
                 className="border border-white/30 text-white hover:bg-white/10 font-medium px-7 py-3.5 rounded-xl transition-colors text-center backdrop-blur-sm flex items-center justify-center gap-2"
               >
                 <FiUsers size={16} />
-                Reseau femmes
+                R&eacute;seau communautaire
               </button>
             </div>
 
-            {/* Country flags row */}
             <div className="flex items-center gap-3 flex-wrap">
               {COUNTRIES.map(c => (
                 <span key={c.name} title={c.name} className="text-xl sm:text-2xl cursor-default hover:scale-125 transition-transform">
@@ -112,7 +108,7 @@ function Hero({ onStart, onNavigate }) {
             </div>
             <div className="text-center">
               <div className="text-2xl md:text-3xl font-bold text-purple-400">90%</div>
-              <p className="text-xs text-slate-400 mt-1 font-medium">Femmes dans le reseau</p>
+              <p className="text-xs text-slate-400 mt-1 font-medium">Femmes dans le r&eacute;seau</p>
             </div>
             <div className="text-center">
               <div className="text-2xl md:text-3xl font-bold text-amber-400">41</div>
@@ -174,9 +170,9 @@ function Hero({ onStart, onNavigate }) {
       <section id="features" className="bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 md:py-20">
           <div className="text-center mb-12">
-            <p className="section-label mb-2">Capacites</p>
+            <p className="section-label mb-2">Capacit&eacute;s</p>
             <h2 className="text-2xl md:text-3xl font-bold text-slate-900">
-              Six piliers de resilience
+              Six piliers de r&eacute;silience
             </h2>
           </div>
 
@@ -185,9 +181,9 @@ function Hero({ onStart, onNavigate }) {
               <div className="w-11 h-11 bg-teal-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-teal-200 transition-colors">
                 <FiAlertTriangle className="text-teal-700" size={20} />
               </div>
-              <h3 className="font-bold text-slate-900 mb-2">Alertes Precoces</h3>
+              <h3 className="font-bold text-slate-900 mb-2">Alertes Pr&eacute;coces</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                Detection de secheresses, inondations et crises alimentaires 2-4 semaines avant. 10 pays du Sahel.
+                D&eacute;tection de s&eacute;cheresses, inondations et crises alimentaires 2-4 semaines avant. 10 pays du Sahel.
               </p>
             </div>
 
@@ -195,9 +191,9 @@ function Hero({ onStart, onNavigate }) {
               <div className="w-11 h-11 bg-teal-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-teal-200 transition-colors">
                 <FiTarget className="text-teal-700" size={20} />
               </div>
-              <h3 className="font-bold text-slate-900 mb-2">Prediction ML</h3>
+              <h3 className="font-bold text-slate-900 mb-2">Pr&eacute;diction ML</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                5 algorithmes (OLS, GA, BBN, KNN, Ensemble) pour optimiser les calendriers agricoles. Zero librairie ML externe.
+                5 algorithmes (OLS, GA, BBN, KNN, Ensemble) pour optimiser les calendriers agricoles. Z&eacute;ro librairie ML externe.
               </p>
             </div>
 
@@ -205,9 +201,9 @@ function Hero({ onStart, onNavigate }) {
               <div className="w-11 h-11 bg-purple-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-purple-200 transition-colors">
                 <FiUsers className="text-purple-700" size={20} />
               </div>
-              <h3 className="font-bold text-slate-900 mb-2">Reseau Femmes</h3>
+              <h3 className="font-bold text-slate-900 mb-2">R&eacute;seau Femmes</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                1 700+ agricultrices connectees. Observations terrain, alertes communautaires, partage de techniques.
+                1 700+ agricultrices connect&eacute;es. Observations terrain, alertes communautaires, partage de techniques.
               </p>
             </div>
 
@@ -217,7 +213,7 @@ function Hero({ onStart, onNavigate }) {
               </div>
               <h3 className="font-bold text-slate-900 mb-2">Conseiller Vocal</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                Posez vos questions en Wolof, Hausa, Bambara... Reponse par IA. Pas besoin de savoir lire.
+                Posez vos questions en Wolof, Hausa, Bambara... R&eacute;ponse par IA. Pas besoin de savoir lire.
               </p>
             </div>
 
@@ -225,9 +221,9 @@ function Hero({ onStart, onNavigate }) {
               <div className="w-11 h-11 bg-teal-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-teal-200 transition-colors">
                 <FiDollarSign className="text-teal-700" size={20} />
               </div>
-              <h3 className="font-bold text-slate-900 mb-2">Meteo & Marches</h3>
+              <h3 className="font-bold text-slate-900 mb-2">M&eacute;t&eacute;o & March&eacute;s</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                Meteo temps reel, prix des cereales, tendances. Donnees OpenWeatherMap + FAO/GIEWS.
+                M&eacute;t&eacute;o temps r&eacute;el, prix des c&eacute;r&eacute;ales, tendances. Donn&eacute;es OpenWeatherMap + FAO/GIEWS.
               </p>
             </div>
 
@@ -235,9 +231,9 @@ function Hero({ onStart, onNavigate }) {
               <div className="w-11 h-11 bg-teal-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-teal-200 transition-colors">
                 <FiShield className="text-teal-700" size={20} />
               </div>
-              <h3 className="font-bold text-slate-900 mb-2">Securite Alimentaire</h3>
+              <h3 className="font-bold text-slate-900 mb-2">S&eacute;curit&eacute; Alimentaire</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                Croisement alertes + previsions pour anticiper les crises. Scoring par commune et par culture.
+                Croisement alertes + pr&eacute;visions pour anticiper les crises. Scoring par commune et par culture.
               </p>
             </div>
           </div>
@@ -248,9 +244,9 @@ function Hero({ onStart, onNavigate }) {
       <section className="bg-teal-50 border-y border-teal-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 md:py-16">
           <div className="text-center mb-10">
-            <p className="section-label mb-2">Resultats</p>
+            <p className="section-label mb-2">R&eacute;sultats</p>
             <h2 className="text-2xl md:text-3xl font-bold text-slate-900">
-              Impact mesurable sur les communautes
+              Impact mesurable sur les communaut&eacute;s
             </h2>
           </div>
 
@@ -261,25 +257,25 @@ function Hero({ onStart, onNavigate }) {
               </div>
               <h4 className="font-bold text-slate-900 mb-2">Femmes agricultrices</h4>
               <p className="text-2xl font-bold text-teal-700 mb-2">+34%</p>
-              <p className="text-sm text-slate-600">de revenus pour les utilisatrices connectees aux marches</p>
+              <p className="text-sm text-slate-600">de revenus pour les utilisatrices connect&eacute;es aux march&eacute;s</p>
             </div>
 
             <div className="bg-white rounded-xl p-6 border border-teal-100 text-center">
               <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <FiShield className="text-teal-700" size={22} />
               </div>
-              <h4 className="font-bold text-slate-900 mb-2">Resilience climatique</h4>
+              <h4 className="font-bold text-slate-900 mb-2">R&eacute;silience climatique</h4>
               <p className="text-2xl font-bold text-teal-700 mb-2">2-4 sem.</p>
-              <p className="text-sm text-slate-600">d'anticipation sur les evenements climatiques extremes</p>
+              <p className="text-sm text-slate-600">d&rsquo;anticipation sur les &eacute;v&eacute;nements climatiques extr&ecirc;mes</p>
             </div>
 
             <div className="bg-white rounded-xl p-6 border border-teal-100 text-center">
               <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <FiMapPin className="text-teal-700" size={22} />
               </div>
-              <h4 className="font-bold text-slate-900 mb-2">Securite alimentaire</h4>
+              <h4 className="font-bold text-slate-900 mb-2">S&eacute;curit&eacute; alimentaire</h4>
               <p className="text-2xl font-bold text-teal-700 mb-2">-35%</p>
-              <p className="text-sm text-slate-600">de pertes de recoltes evitables grace aux alertes precoces</p>
+              <p className="text-sm text-slate-600">de pertes de r&eacute;coltes &eacute;vitables gr&acirc;ce aux alertes pr&eacute;coces</p>
             </div>
           </div>
         </div>
@@ -297,12 +293,11 @@ function Hero({ onStart, onNavigate }) {
               Intelligence algorithmique, pas un simple wrapper IA
             </h2>
             <p className="text-slate-400 max-w-2xl mx-auto text-sm leading-relaxed">
-              5 algorithmes implementes sans aucune librairie ML externe. Code mathematique pur, entraine sur 10 ans de donnees terrain.
+              5 algorithmes impl&eacute;ment&eacute;s sans aucune librairie ML externe. Code math&eacute;matique pur, entra&icirc;n&eacute; sur 10 ans de donn&eacute;es terrain.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* OLS */}
             <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-5 hover:bg-white/10 transition-colors">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-9 h-9 bg-teal-500/20 rounded-lg flex items-center justify-center">
@@ -313,16 +308,15 @@ function Hero({ onStart, onNavigate }) {
                     <div className="h-full bg-teal-500 rounded-full" style={{width: '88%'}}></div>
                   </div>
                 </div>
-                <span className="text-xs font-mono text-teal-400">R2=0.88</span>
+                <span className="text-xs font-mono text-teal-400">R&sup2;=0.88</span>
               </div>
-              <h4 className="text-white font-semibold text-sm mb-1">Regression multiple</h4>
-              <p className="text-slate-400 text-xs leading-relaxed">Predit le rendement (kg/ha) a partir de la pluviometrie, temperature, mois de semis.</p>
+              <h4 className="text-white font-semibold text-sm mb-1">R&eacute;gression multiple</h4>
+              <p className="text-slate-400 text-xs leading-relaxed">Pr&eacute;dit le rendement (kg/ha) &agrave; partir de la pluviom&eacute;trie, temp&eacute;rature, mois de semis.</p>
               <div className="mt-3 pt-3 border-t border-white/5 text-[10px] text-slate-500 font-mono">
-                B = (X'X)^-1 . X'y
+                B = (X&rsquo;X)&sup2;&sup1; &middot; X&rsquo;y
               </div>
             </div>
 
-            {/* GA */}
             <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-5 hover:bg-white/10 transition-colors">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-9 h-9 bg-green-500/20 rounded-lg flex items-center justify-center">
@@ -333,16 +327,15 @@ function Hero({ onStart, onNavigate }) {
                     <div className="h-full bg-green-500 rounded-full" style={{width: '92%'}}></div>
                   </div>
                 </div>
-                <span className="text-xs font-mono text-green-400">80 gen.</span>
+                <span className="text-xs font-mono text-green-400">80 g&eacute;n.</span>
               </div>
-              <h4 className="text-white font-semibold text-sm mb-1">Algorithme genetique</h4>
-              <p className="text-slate-400 text-xs leading-relaxed">Optimise le calendrier de semis multi-parcelles. Crossover BLX-a, selection par tournoi.</p>
+              <h4 className="text-white font-semibold text-sm mb-1">Algorithme g&eacute;n&eacute;tique</h4>
+              <p className="text-slate-400 text-xs leading-relaxed">Optimise le calendrier de semis multi-parcelles. Crossover BLX-&alpha;, s&eacute;lection par tournoi.</p>
               <div className="mt-3 pt-3 border-t border-white/5 text-[10px] text-slate-500 font-mono">
                 Pop=50 | Mut=0.15 | Elite=10%
               </div>
             </div>
 
-            {/* BBN */}
             <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-5 hover:bg-white/10 transition-colors">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-9 h-9 bg-blue-500/20 rounded-lg flex items-center justify-center">
@@ -353,16 +346,15 @@ function Hero({ onStart, onNavigate }) {
                     <div className="h-full bg-blue-500 rounded-full" style={{width: '85%'}}></div>
                   </div>
                 </div>
-                <span className="text-xs font-mono text-blue-400">6 noeuds</span>
+                <span className="text-xs font-mono text-blue-400">6 n&oelig;uds</span>
               </div>
-              <h4 className="text-white font-semibold text-sm mb-1">Reseau bayesien</h4>
-              <p className="text-slate-400 text-xs leading-relaxed">Graphe probabiliste : secheresse, chaleur, parasites, inondation, probabilite d'echec.</p>
+              <h4 className="text-white font-semibold text-sm mb-1">R&eacute;seau bay&eacute;sien</h4>
+              <p className="text-slate-400 text-xs leading-relaxed">Graphe probabiliste : s&eacute;cheresse, chaleur, parasites, inondation, probabilit&eacute; d&rsquo;&eacute;chec.</p>
               <div className="mt-3 pt-3 border-t border-white/5 text-[10px] text-slate-500 font-mono">
                 P(fail|drought=H) = 0.85
               </div>
             </div>
 
-            {/* KNN */}
             <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-5 hover:bg-white/10 transition-colors">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-9 h-9 bg-purple-500/20 rounded-lg flex items-center justify-center">
@@ -376,18 +368,17 @@ function Hero({ onStart, onNavigate }) {
                 <span className="text-xs font-mono text-purple-400">k=3</span>
               </div>
               <h4 className="text-white font-semibold text-sm mb-1">K plus proches voisins</h4>
-              <p className="text-slate-400 text-xs leading-relaxed">Trouve les saisons similaires et interpole le rendement par ponderation inverse de distance.</p>
+              <p className="text-slate-400 text-xs leading-relaxed">Trouve les saisons similaires et interpole le rendement par pond&eacute;ration inverse de distance.</p>
               <div className="mt-3 pt-3 border-t border-white/5 text-[10px] text-slate-500 font-mono">
-                y = S(yi.wi) / Swi
+                y = &Sigma;(yi&middot;wi) / &Sigma;wi
               </div>
             </div>
           </div>
 
-          {/* Sources */}
           <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-500">
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 bg-teal-500 rounded-full"></span>
-              Donnees ISRA (2015-2024)
+              Donn&eacute;es ISRA (2015-2024)
             </span>
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
@@ -399,7 +390,7 @@ function Hero({ onStart, onNavigate }) {
             </span>
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-              Zero dependance ML externe
+              Z&eacute;ro d&eacute;pendance ML externe
             </span>
           </div>
         </div>
@@ -410,12 +401,12 @@ function Hero({ onStart, onNavigate }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14">
           <div className="text-center max-w-2xl mx-auto">
             <p className="section-label mb-2">Inclusion</p>
-            <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-3">Concu pour les plus vulnerables</h2>
+            <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-3">Con&ccedil;u pour les plus vuln&eacute;rables</h2>
             <p className="text-slate-600 text-sm leading-relaxed mb-6">
-              Pas besoin de savoir lire. Parlez dans votre langue. Teranga AI est concu pour les femmes, les jeunes et les communautes rurales du Sahel.
+              Pas besoin de savoir lire. Parlez dans votre langue. Teranga AI est con&ccedil;u pour les femmes, les jeunes et les communaut&eacute;s rurales du Sahel.
             </p>
             <div className="flex flex-wrap justify-center gap-2">
-              {['Wolof', 'Pulaar', 'Hausa', 'Bambara', 'Serere', 'Diola', 'Mandinka', 'Soninke', 'Francais'].map(lang => (
+              {['Wolof', 'Pulaar', 'Hausa', 'Bambara', 'Sérère', 'Diola', 'Mandinka', 'Soninké', 'Français'].map(lang => (
                 <span key={lang} className="px-3 py-1.5 bg-teal-50 rounded-full text-xs font-medium text-teal-800 border border-teal-200">
                   {lang}
                 </span>
@@ -429,7 +420,7 @@ function Hero({ onStart, onNavigate }) {
       <section className="bg-slate-50 border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
           <p className="text-center text-xs font-medium text-slate-400 uppercase tracking-wider mb-6">
-            Aligne avec les priorites des partenaires
+            Align&eacute; avec les priorit&eacute;s des partenaires
           </p>
           <div className="flex flex-wrap items-center justify-center gap-8 text-slate-400">
             <span className="text-sm font-semibold px-4 py-2 bg-white rounded-lg border border-slate-200">PNUD</span>
@@ -446,16 +437,16 @@ function Hero({ onStart, onNavigate }) {
       <section className="bg-slate-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 text-center">
           <h2 className="text-xl md:text-2xl font-bold text-white mb-3">
-            Le Sahel a besoin de resilience, pas d'applications.
+            Le Sahel a besoin de r&eacute;silience, pas d&rsquo;applications.
           </h2>
           <p className="text-slate-400 mb-6 text-sm max-w-md mx-auto">
-            Teranga AI est un systeme d'aide a la decision, pas un gadget. Gratuit. Open source. Concu pour sauver des recoltes.
+            Teranga AI est un syst&egrave;me d&rsquo;aide &agrave; la d&eacute;cision, pas un gadget. Gratuit. Open source. Con&ccedil;u pour sauver des r&eacute;coltes.
           </p>
           <button
             onClick={() => onNavigate('alerts')}
             className="bg-teal-600 hover:bg-teal-500 text-white font-semibold px-8 py-3.5 rounded-xl transition-colors inline-flex items-center gap-2 shadow-lg shadow-teal-900/30"
           >
-            Explorer le systeme
+            Explorer le syst&egrave;me
             <FiArrowRight size={16} />
           </button>
         </div>

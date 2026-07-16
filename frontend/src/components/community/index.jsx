@@ -4,11 +4,11 @@ import { FiUsers, FiHeart, FiMapPin, FiAlertCircle, FiCheck, FiTrendingUp, FiMes
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
 const TYPE_CONFIG = {
-  crop_status: { label: 'Etat cultures', color: 'bg-green-100 text-green-800', icon: '🌾' },
-  pest_alert: { label: 'Ravageurs', color: 'bg-red-100 text-red-800', icon: '🐛' },
-  market_info: { label: 'Marche', color: 'bg-blue-100 text-blue-800', icon: '💰' },
-  weather_local: { label: 'Meteo locale', color: 'bg-amber-100 text-amber-800', icon: '🌧️' },
-  technique: { label: 'Technique', color: 'bg-purple-100 text-purple-800', icon: '🔧' },
+  crop_status: { label: 'État cultures', color: 'bg-green-100 text-green-800', icon: '\u{1F33E}' },
+  pest_alert: { label: 'Ravageurs', color: 'bg-red-100 text-red-800', icon: '\u{1F41B}' },
+  market_info: { label: 'Marché', color: 'bg-blue-100 text-blue-800', icon: '\u{1F4B0}' },
+  weather_local: { label: 'Météo locale', color: 'bg-amber-100 text-amber-800', icon: '\u{1F327}\u{FE0F}' },
+  technique: { label: 'Technique', color: 'bg-purple-100 text-purple-800', icon: '\u{1F527}' },
 };
 
 const SEVERITY_BADGE = {
@@ -21,7 +21,7 @@ const SEVERITY_BADGE = {
 function timeAgo(date) {
   const diff = Date.now() - new Date(date).getTime();
   const hours = Math.floor(diff / 3600000);
-  if (hours < 1) return 'Il y a moins d\'1h';
+  if (hours < 1) return 'Il y a moins d’1h';
   if (hours < 24) return `Il y a ${hours}h`;
   const days = Math.floor(hours / 24);
   return `Il y a ${days}j`;
@@ -75,7 +75,7 @@ function Community() {
       <div className="max-w-6xl mx-auto px-4 py-20 text-center">
         <div className="inline-flex items-center gap-2 text-slate-400 text-sm">
           <span className="w-2 h-2 bg-teal-500 rounded-full animate-pulse"></span>
-          Chargement du reseau communautaire...
+          Chargement du réseau communautaire...
         </div>
       </div>
     );
@@ -87,10 +87,10 @@ function Community() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
         <div>
           <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-            <FiUsers className="text-teal-600" /> Reseau Communautaire
+            <FiUsers className="text-teal-600" /> Réseau Communautaire
           </h2>
           <p className="text-slate-500 text-sm mt-0.5">
-            Intelligence collective des agricultrices du Sahel
+            Intelligence collective des agricultrices et agriculteurs du Sahel
           </p>
         </div>
         <div className="flex gap-2">
@@ -176,7 +176,7 @@ function Community() {
                     </div>
                     <div className="flex items-center gap-2">
                       {obs.verified && (
-                        <span className="flex items-center gap-0.5 text-xs text-green-600" title="Verifie">
+                        <span className="flex items-center gap-0.5 text-xs text-green-600" title="Vérifié">
                           <FiCheck size={12} />
                         </span>
                       )}
@@ -258,28 +258,28 @@ function Community() {
             <span className="text-lg">👩🏾‍🌾</span>
           </div>
           <div>
-            <h3 className="font-bold text-slate-900">Femmes & Resilience Alimentaire</h3>
+            <h3 className="font-bold text-slate-900">Femmes & Résilience Alimentaire</h3>
             <p className="text-xs text-slate-500">60% des agriculteurs du Sahel sont des femmes</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div className="bg-white/70 rounded-xl p-4 border border-purple-100">
-            <div className="text-lg font-bold text-purple-700 mb-1">Maraichage</div>
-            <p className="text-xs text-slate-600">Cultures a haute valeur (oignon, tomate, gombo) gerees par les groupements feminins</p>
+            <div className="text-lg font-bold text-purple-700 mb-1">Maraîchage</div>
+            <p className="text-xs text-slate-600">Cultures à haute valeur (oignon, tomate, gombo) gérées par les groupements féminins</p>
           </div>
           <div className="bg-white/70 rounded-xl p-4 border border-purple-100">
             <div className="text-lg font-bold text-purple-700 mb-1">Transformation</div>
-            <p className="text-xs text-slate-600">Cereales transformees (couscous, farine) pour plus-value et conservation longue duree</p>
+            <p className="text-xs text-slate-600">Céréales transformées (couscous, farine) pour plus-value et conservation longue durée</p>
           </div>
           <div className="bg-white/70 rounded-xl p-4 border border-purple-100">
-            <div className="text-lg font-bold text-purple-700 mb-1">Microcredit</div>
-            <p className="text-xs text-slate-600">Tontines et epargne collective pour financer semences et equipements</p>
+            <div className="text-lg font-bold text-purple-700 mb-1">Microcrédit</div>
+            <p className="text-xs text-slate-600">Tontines et épargne collective pour financer semences et équipements</p>
           </div>
         </div>
 
         <p className="text-xs text-slate-500 leading-relaxed">
-          Teranga AI donne la priorite aux femmes agricultrices : alertes vocales pour les non-alphabetisees, informations marche pour negocier les prix, et reseau d'entraide pour partager les bonnes pratiques.
+          Teranga AI donne la priorité aux femmes agricultrices : alertes vocales pour les non-alphabétisées, informations marché pour négocier les prix, et réseau d'entraide pour partager les bonnes pratiques.
         </p>
       </section>
     </div>

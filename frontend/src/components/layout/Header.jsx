@@ -4,9 +4,9 @@ import { useState } from 'react'
 const tabs = [
   { id: 'home', label: 'Accueil', icon: FiHome },
   { id: 'alerts', label: 'Alertes', icon: FiAlertTriangle },
-  { id: 'dashboard', label: 'Meteo', icon: FiBarChart2 },
-  { id: 'predict', label: 'Prediction', icon: FiTarget },
-  { id: 'community', label: 'Communaute', icon: FiUsers },
+  { id: 'dashboard', label: 'Météo', icon: FiBarChart2 },
+  { id: 'predict', label: 'Prédiction', icon: FiTarget },
+  { id: 'community', label: 'Communauté', icon: FiUsers },
   { id: 'chat', label: 'Conseiller', icon: FiMessageCircle },
   { id: 'sources', label: 'Sources', icon: FiBookOpen },
 ];
@@ -27,7 +27,7 @@ function Header({ activeTab, setActiveTab }) {
             </div>
             <div className="flex flex-col">
               <span className="font-bold text-sm text-white tracking-tight leading-none">Teranga AI</span>
-              <span className="text-[10px] text-teal-400 font-medium leading-none mt-0.5">Sahel Resilience</span>
+              <span className="text-[10px] text-teal-400 font-medium leading-none mt-0.5">Sahel R&eacute;silience</span>
             </div>
           </div>
 
@@ -51,16 +51,16 @@ function Header({ activeTab, setActiveTab }) {
 
           {/* Country flags (decorative) */}
           <div className="hidden lg:flex items-center gap-1 text-xs">
-            <span title="Burkina Faso">🇧🇫</span>
-            <span title="Cameroun">🇨🇲</span>
-            <span title="Gambie">🇬🇲</span>
-            <span title="Guinee">🇬🇳</span>
-            <span title="Mali">🇲🇱</span>
-            <span title="Mauritanie">🇲🇷</span>
-            <span title="Niger">🇳🇪</span>
-            <span title="Nigeria">🇳🇬</span>
-            <span title="Senegal">🇸🇳</span>
-            <span title="Tchad">🇹🇩</span>
+            <span title="Burkina Faso">{'\u{1F1E7}\u{1F1EB}'}</span>
+            <span title="Cameroun">{'\u{1F1E8}\u{1F1F2}'}</span>
+            <span title="Gambie">{'\u{1F1EC}\u{1F1F2}'}</span>
+            <span title="Guinée">{'\u{1F1EC}\u{1F1F3}'}</span>
+            <span title="Mali">{'\u{1F1F2}\u{1F1F1}'}</span>
+            <span title="Mauritanie">{'\u{1F1F2}\u{1F1F7}'}</span>
+            <span title="Niger">{'\u{1F1F3}\u{1F1EA}'}</span>
+            <span title="Nigéria">{'\u{1F1F3}\u{1F1EC}'}</span>
+            <span title="Sénégal">{'\u{1F1F8}\u{1F1F3}'}</span>
+            <span title="Tchad">{'\u{1F1F9}\u{1F1E9}'}</span>
           </div>
 
           {/* Mobile menu button */}
