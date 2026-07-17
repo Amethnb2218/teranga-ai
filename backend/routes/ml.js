@@ -75,7 +75,7 @@ router.get('/predict-yield/:crop/:city', async (req, res) => {
     }
   }
 
-  const result = predictYield(crop, cityData.zone, rainTotal, tempAvg, sowMonth);
+  const result = predictYield(crop, cityKey, rainTotal, tempAvg, sowMonth);
 
   // Add confidence interval and weather source
   if (result.ensemble) {

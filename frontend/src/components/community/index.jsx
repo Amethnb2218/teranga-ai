@@ -137,11 +137,11 @@ function Community() {
           <div className="flex flex-wrap gap-2 mb-5">
             {[
               { key: 'all', label: 'Tout' },
-              { key: 'crop_status', label: '🌾 Cultures' },
-              { key: 'pest_alert', label: '🐛 Ravageurs' },
-              { key: 'weather_local', label: '🌧️ Meteo' },
-              { key: 'technique', label: '🔧 Techniques' },
-              { key: 'market_info', label: '💰 Marche' },
+              { key: 'crop_status', label: 'Cultures' },
+              { key: 'pest_alert', label: 'Ravageurs' },
+              { key: 'weather_local', label: 'Météo' },
+              { key: 'technique', label: 'Techniques' },
+              { key: 'market_info', label: 'Marché' },
             ].map(f => (
               <button
                 key={f.key}
@@ -255,7 +255,7 @@ function Community() {
       <section className="mt-10 bg-gradient-to-br from-purple-50 to-teal-50 border border-purple-100 rounded-2xl overflow-hidden">
         <div className="relative h-48 sm:h-56">
           <img
-            src="https://images.unsplash.com/photo-1594708767771-a7502209ff7e?w=1200&q=80"
+            src="https://images.unsplash.com/photo-1523805009345-7448845a9e53?w=1200&q=80"
             alt="Femmes agricultrices du Sahel dans un champ"
             className="w-full h-full object-cover"
           />

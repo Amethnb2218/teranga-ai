@@ -233,7 +233,7 @@ function Alerts() {
       {/* Banner image */}
       <div className="relative rounded-2xl overflow-hidden mb-6 h-36 sm:h-44">
         <img
-          src="https://images.unsplash.com/photo-1473662711507-14f83558f5f4?w=1200&q=80"
+          src="https://images.unsplash.com/photo-1542810634-71277d95dcbb?w=1200&q=80"
           alt="Terre aride du Sahel"
           className="w-full h-full object-cover"
         />

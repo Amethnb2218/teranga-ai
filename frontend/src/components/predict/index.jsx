@@ -148,7 +148,7 @@ function Predict() {
             </div>
           </div>
           <div>
-            <label className="text-xs font-medium text-slate-600 block mb-2">Ou se trouve votre parcelle ?</label>
+            <label className="text-xs font-medium text-slate-600 block mb-2">O&ugrave; se trouve votre parcelle ?</label>
             <select
               value={selectedCity}
               onChange={(e) => setSelectedCity(e.target.value)}
@@ -170,15 +170,15 @@ function Predict() {
         <div className="text-center py-16">
           <div className="inline-block w-6 h-6 border-2 border-teal-700 border-t-transparent rounded-full animate-spin mb-3"></div>
           <p className="text-sm text-slate-500">Analyse de votre zone en cours...</p>
-          <p className="text-xs text-slate-300 mt-2">Premier chargement : ~30s (demarrage serveur)</p>
+          <p className="text-xs text-slate-300 mt-2">Premier chargement : ~30s (d&eacute;marrage serveur)</p>
         </div>
       )}
 
       {!prediction && !loading && (
         <div className="text-center py-16">
-          <p className="text-sm text-slate-500 mb-3">Le serveur n'a pas repondu a temps.</p>
+          <p className="text-sm text-slate-500 mb-3">Le serveur n&rsquo;a pas r&eacute;pondu &agrave; temps.</p>
           <button onClick={loadPrediction} className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700">
-            Reessayer
+            R&eacute;essayer
           </button>
         </div>
       )}
@@ -214,7 +214,7 @@ function Predict() {
           <div className="bg-white rounded-xl border border-slate-200 p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="font-semibold text-slate-900 text-sm">Varietes adaptees a votre zone</h3>
+                <h3 className="font-semibold text-slate-900 text-sm">Vari&eacute;t&eacute;s adapt&eacute;es &agrave; votre zone</h3>
                 <p className="text-xs text-slate-400 mt-0.5">Recommandations ISRA pour la zone {prediction.zone}</p>
               </div>
             </div>
@@ -253,7 +253,7 @@ function Predict() {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 2v4m0 12v4m-7-7H1m22 0h-4m-2.3-5.7l2.8-2.8M4.5 19.5l2.8-2.8m0-9.4L4.5 4.5m15 15l-2.8-2.8"/>
               </svg>
-              {showML ? 'Masquer l\'analyse avancee' : 'Voir l\'analyse algorithmique detaillee'}
+              {showML ? 'Masquer l’analyse avancée' : 'Voir l’analyse algorithmique détaillée'}
             </button>
           </div>
 
