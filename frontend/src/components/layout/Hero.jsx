@@ -29,8 +29,16 @@ const SEVERITY_CONFIG = {
   low: { bg: 'bg-blue-50', border: 'border-l-blue-500', badge: 'bg-blue-100 text-blue-800', label: 'Faible' },
 };
 
+const HERO_IMAGES = [
+  { src: 'https://images.unsplash.com/photo-1768775517205-7f4bc1b3f771?w=1600&q=80', alt: 'Agriculteur labourant un champ au Sahel' },
+  { src: 'https://images.unsplash.com/photo-1703604787785-e9ed9639ea6c?w=1600&q=80', alt: 'Champ de cultures au Sénégal' },
+  { src: 'https://images.unsplash.com/photo-1652002112237-bf53040554cc?w=1600&q=80', alt: 'Travailleurs agricoles au Sénégal' },
+  { src: 'https://images.unsplash.com/photo-1651999739984-0dc2a15dcd66?w=1600&q=80', alt: 'Paysage sahélien avec arbre et champ' },
+];
+
 function Hero({ onStart, onNavigate }) {
   const [alerts, setAlerts] = useState(DEMO_ALERTS);
+  const [currentImage, setCurrentImage] = useState(0);
 
   useEffect(() => {
     fetchAlerts({ limit: 4 })
@@ -42,16 +50,26 @@ function Hero({ onStart, onNavigate }) {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImage(prev => (prev + 1) % HERO_IMAGES.length);
+    }, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="relative">
       {/* Hero Section */}
       <section className="relative overflow-hidden min-h-[70vh] sm:min-h-[85vh] flex items-center">
         <div className="absolute inset-0">
-          <img
-            src="https://images.unsplash.com/photo-1504432842672-1a79f78e4084?w=1600&q=80"
-            alt="Paysage agricole du Sahel"
-            className="w-full h-full object-cover"
-          />
+          {HERO_IMAGES.map((img, idx) => (
+            <img
+              key={idx}
+              src={img.src}
+              alt={img.alt}
+              className={`absolute w-full h-full object-cover transition-opacity duration-1000 ${idx === currentImage ? 'opacity-100' : 'opacity-0'}`}
+            />
+          ))}
         </div>
         <div className="absolute inset-0 hero-overlay"></div>
 
