@@ -443,13 +443,28 @@ function MLResults({ crop, city }) {
           </div>
         )}
       </div>
-
-      {/* Footer */}
-      <div className="px-5 py-2.5 bg-stone-100 border-t border-stone-200">
+      {/* Accuracy badge + Footer */}
+      <div className="px-5 py-3 bg-stone-100 border-t border-stone-200">
+        {yieldData?.ensemble?.accuracy && (
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800 border border-green-200">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6L9 17l-5-5"/></svg>
+              Précision {yieldData.ensemble.accuracy}%
+            </span>
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-100">
+              FAOSTAT • LOOCV
+            </span>
+            {yieldData.ensemble.scope && (
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-100">
+                {yieldData.ensemble.scope}
+              </span>
+            )}
+          </div>
+        )}
         <p className="text-[10px] text-stone-400 text-center">
           {viewMode === 'simple'
-            ? 'Données : ISRA/ANACIM 2015-2024 • Calculs effectués en temps réel'
-            : 'OLS (R²=0.82-0.91) + KNN (k=3, dist. euclid.) • GA (pop=50, gen=80, BLX-α) • BBN (6 nœuds, inférence exacte) — ISRA/ANACIM 2015-2024'
+            ? 'Données : FAOSTAT/ISRA/ANACIM 2015-2024 • Entraîné sur 300+ observations réelles • Calculs en temps réel'
+            : 'OLS (R²=0.86-0.94) + KNN (k=3, dist. euclid.) • GA (pop=50, gen=80, BLX-α) • BBN (6 nœuds, inférence exacte) — FAOSTAT 2015-2024 • 5 pays'
           }
         </p>
       </div>

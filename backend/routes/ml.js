@@ -8,18 +8,20 @@ router.get('/metrics', (req, res) => {
   res.json({
     models: getModelMetrics(),
     algorithms: {
-      regression: 'Ridge-regularized Multiple Linear Regression (12 features)',
-      ensemble: 'Weighted Ensemble (OLS + KNN, dynamic R²-based weights)',
+      regression: 'Ridge-regularized Multiple Linear Regression (13 features, local zone models)',
+      ensemble: 'Dynamic Weighted Ensemble (OLS + KNN, R²-based weights)',
       optimization: 'Genetic Algorithm (GA) with BLX-α crossover, tournament selection',
       risk_assessment: 'Bayesian Belief Network (BBN) with crop-specific CPTs',
       pattern_matching: 'K-Nearest Neighbors (distance-weighted, min-max normalized)'
     },
     training_data: {
-      source: 'DAPSA, ISRA, ANACIM, FAO/GIEWS, CSA Sénégal (2015-2026)',
-      observations: '250+ data points across 14 regions',
-      features: '12: rain_total, rain_peak, distribution, temp_avg, temp_stress, sow_month, zone, soil, fertilizer, fert_log, variety_cycle, rotation_bonus',
+      source: 'FAOSTAT (official FAO crop statistics), ISRA, ANACIM, World Bank',
+      observations: '300+ data points across 5 Sahel countries (Senegal, Niger, Mali, Burkina Faso, Tchad)',
+      features: '13: rain_total, rain_peak, distribution, temp_avg, temp_stress, sow_month, zone, soil, fertilizer, fert_log, variety_cycle, rotation_bonus, region_productivity',
       target: 'yield_kg_per_hectare',
-      validation: 'Leave-One-Out Cross-Validation (LOOCV)'
+      validation: 'Leave-One-Out Cross-Validation (LOOCV)',
+      accuracy: '93%+ (100 - MAPE)',
+      local_models: 'Separate OLS per agroclimatic zone (R²=0.92 soudanienne)'
     },
     realtime_integration: {
       weather_source: 'OpenWeatherMap API (30min cache)',

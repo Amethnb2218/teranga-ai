@@ -34,7 +34,7 @@ function App() {
   return (
     <div className="min-h-screen bg-earth-50 flex flex-col">
       <Header activeTab={activeTab} setActiveTab={navigate} />
-      <main className="flex-1 pb-16 sm:pb-0">
+      <main id="main-content" className="flex-1 pb-16 sm:pb-0" role="main" aria-label="Contenu principal">
         {activeTab === 'home' && <Hero onStart={() => navigate('chat')} onNavigate={navigate} />}
         {activeTab === 'alerts' && <Alerts />}
         {activeTab === 'chat' && <Chat />}

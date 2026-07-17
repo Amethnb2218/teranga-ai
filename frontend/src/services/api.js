@@ -8,6 +8,23 @@ function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
     .catch(err => { clearTimeout(timer); throw err; });
 }
 
+async function fetchWithRetry(url, options = {}, { timeoutMs = 15000, retries = 2, delay = 1500 } = {}) {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const response = await fetchWithTimeout(url, options, timeoutMs);
+      if (response.ok) return response;
+      if (response.status >= 500 && attempt < retries) {
+        await new Promise(r => setTimeout(r, delay * (attempt + 1)));
+        continue;
+      }
+      throw new Error(`HTTP ${response.status}`);
+    } catch (err) {
+      if (attempt === retries) throw err;
+      await new Promise(r => setTimeout(r, delay * (attempt + 1)));
+    }
+  }
+}
+
 export async function sendChatMessage(messages, language = 'fr') {
   const response = await fetch(`${API_BASE}/api/chat`, {
     method: 'POST',
@@ -19,66 +36,56 @@ export async function sendChatMessage(messages, language = 'fr') {
 }
 
 export async function fetchWeather(city) {
-  const response = await fetchWithTimeout(`${API_BASE}/api/weather/${city}`);
-  if (!response.ok) throw new Error('Weather fetch failed');
+  const response = await fetchWithRetry(`${API_BASE}/api/weather/${city}`);
   return response.json();
 }
 
 export async function fetchMarketPrices(city) {
-  const response = await fetchWithTimeout(`${API_BASE}/api/market?city=${city}`);
-  if (!response.ok) throw new Error('Market fetch failed');
+  const response = await fetchWithRetry(`${API_BASE}/api/market?city=${city}`);
   return response.json();
 }
 
 export async function fetchMarketTrends() {
-  const response = await fetchWithTimeout(`${API_BASE}/api/market/trends`);
-  if (!response.ok) throw new Error('Trends fetch failed');
+  const response = await fetchWithRetry(`${API_BASE}/api/market/trends`);
   return response.json();
 }
 
 export async function fetchNews() {
-  const response = await fetchWithTimeout(`${API_BASE}/api/news`);
-  if (!response.ok) throw new Error('News fetch failed');
+  const response = await fetchWithRetry(`${API_BASE}/api/news`);
   return response.json();
 }
 
 export async function fetchPrediction(crop, city) {
-  const response = await fetchWithTimeout(`${API_BASE}/api/predict/${crop}/${city}`);
-  if (!response.ok) throw new Error('Prediction fetch failed');
+  const response = await fetchWithRetry(`${API_BASE}/api/predict/${crop}/${city}`, {}, { timeoutMs: 20000 });
   return response.json();
 }
 
 export async function fetchAvailableCrops() {
-  const response = await fetchWithTimeout(`${API_BASE}/api/predict/crops`);
-  if (!response.ok) throw new Error('Crops fetch failed');
+  const response = await fetchWithRetry(`${API_BASE}/api/predict/crops`);
   return response.json();
 }
 
 export async function fetchYieldPrediction(crop, city, month) {
-  const response = await fetchWithTimeout(`${API_BASE}/api/ml/predict-yield/${crop}/${city}?month=${month}`);
-  if (!response.ok) throw new Error('ML prediction failed');
+  const response = await fetchWithRetry(`${API_BASE}/api/ml/predict-yield/${crop}/${city}?month=${month}`, {}, { timeoutMs: 20000 });
   return response.json();
 }
 
 export async function fetchOptimizeCalendar(crops, city, parcels = 3) {
-  const response = await fetchWithTimeout(`${API_BASE}/api/ml/optimize-calendar`, {
+  const response = await fetchWithRetry(`${API_BASE}/api/ml/optimize-calendar`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ crops, city, parcels })
-  }, 15000);
-  if (!response.ok) throw new Error('Optimization failed');
+  }, { timeoutMs: 15000 });
   return response.json();
 }
 
 export async function fetchMLMetrics() {
-  const response = await fetchWithTimeout(`${API_BASE}/api/ml/metrics`);
-  if (!response.ok) throw new Error('Metrics fetch failed');
+  const response = await fetchWithRetry(`${API_BASE}/api/ml/metrics`);
   return response.json();
 }
 
 export async function fetchBayesianRisk(crop, city, month) {
-  const response = await fetchWithTimeout(`${API_BASE}/api/ml/risk/${crop}/${city}/${month}`);
-  if (!response.ok) throw new Error('Risk fetch failed');
+  const response = await fetchWithRetry(`${API_BASE}/api/ml/risk/${crop}/${city}/${month}`);
   return response.json();
 }
 
@@ -94,32 +101,27 @@ export async function transcribeAudio(audioBase64, language = 'fr') {
 
 export async function fetchAlerts(params = {}) {
   const query = new URLSearchParams(params).toString();
-  const response = await fetchWithTimeout(`${API_BASE}/api/alerts${query ? '?' + query : ''}`);
-  if (!response.ok) throw new Error('Alerts fetch failed');
+  const response = await fetchWithRetry(`${API_BASE}/api/alerts${query ? '?' + query : ''}`);
   return response.json();
 }
 
 export async function fetchAlertsSummary() {
-  const response = await fetchWithTimeout(`${API_BASE}/api/alerts/summary`);
-  if (!response.ok) throw new Error('Alerts summary failed');
+  const response = await fetchWithRetry(`${API_BASE}/api/alerts/summary`);
   return response.json();
 }
 
 export async function fetchCommunity(params = {}) {
   const query = new URLSearchParams(params).toString();
-  const response = await fetchWithTimeout(`${API_BASE}/api/community${query ? '?' + query : ''}`);
-  if (!response.ok) throw new Error('Community fetch failed');
+  const response = await fetchWithRetry(`${API_BASE}/api/community${query ? '?' + query : ''}`);
   return response.json();
 }
 
 export async function fetchCommunityGroups() {
-  const response = await fetchWithTimeout(`${API_BASE}/api/community/groups`);
-  if (!response.ok) throw new Error('Groups fetch failed');
+  const response = await fetchWithRetry(`${API_BASE}/api/community/groups`);
   return response.json();
 }
 
 export async function fetchCommunityStats() {
-  const response = await fetchWithTimeout(`${API_BASE}/api/community/stats`);
-  if (!response.ok) throw new Error('Stats fetch failed');
+  const response = await fetchWithRetry(`${API_BASE}/api/community/stats`);
   return response.json();
 }

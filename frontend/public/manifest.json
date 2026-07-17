@@ -1,0 +1,20 @@
+{
+  "name": "Teranga AI — Assistant Agricole Intelligent",
+  "short_name": "Teranga AI",
+  "description": "Aide à la décision agricole par IA pour les exploitants d'Afrique de l'Ouest",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fafaf9",
+  "theme_color": "#0f766e",
+  "orientation": "portrait-primary",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["agriculture", "weather", "education"]
+}

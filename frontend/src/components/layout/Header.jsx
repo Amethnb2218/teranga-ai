@@ -19,7 +19,7 @@ function Header({ activeTab, setActiveTab }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-14">
           {/* Logo */}
-          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => setActiveTab('home')}>
+          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => setActiveTab('home')} role="button" aria-label="Retour à l'accueil" tabIndex="0" onKeyDown={(e) => e.key === 'Enter' && setActiveTab('home')}>
             <div className="w-8 h-8 bg-teal-700 rounded-md flex items-center justify-center">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
                 <path d="M12 2L12 22M12 2C9 7 5 8 2 9C5 10 9 13 12 22M12 2C15 7 19 8 22 9C19 10 15 13 12 22"/>
@@ -32,7 +32,7 @@ function Header({ activeTab, setActiveTab }) {
           </div>
 
           {/* Desktop Nav */}
-          <nav className="hidden sm:flex items-center gap-0.5">
+          <nav className="hidden sm:flex items-center gap-0.5" aria-label="Navigation principale">
             {tabs.map(tab => (
               <button
                 key={tab.id}
