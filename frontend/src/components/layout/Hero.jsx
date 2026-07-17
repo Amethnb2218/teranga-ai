@@ -420,8 +420,8 @@ function Hero({ onStart, onNavigate }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
             <div className="rounded-2xl overflow-hidden h-64 md:h-80">
               <img
-                src="https://images.unsplash.com/photo-1509099836639-18ba1795216d?w=800&q=80"
-                alt="Femme africaine au march&eacute;"
+                src="https://images.unsplash.com/photo-1611258900587-7ec9262dac1c?w=800&q=80"
+                alt="Femme dans un champ au S&eacute;n&eacute;gal"
                 className="w-full h-full object-cover"
               />
             </div>

@@ -255,8 +255,8 @@ function Community() {
       <section className="mt-10 bg-gradient-to-br from-purple-50 to-teal-50 border border-purple-100 rounded-2xl overflow-hidden">
         <div className="relative h-48 sm:h-56">
           <img
-            src="https://images.unsplash.com/photo-1523805009345-7448845a9e53?w=1200&q=80"
-            alt="Femmes agricultrices du Sahel dans un champ"
+            src="https://images.unsplash.com/photo-1611258900587-7ec9262dac1c?w=1200&q=80"
+            alt="Femme dans un champ agricole au Sénégal"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-purple-900/70 via-purple-900/30 to-transparent"></div>

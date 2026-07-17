@@ -99,8 +99,8 @@ function Predict() {
       {/* Banner */}
       <div className="relative rounded-2xl overflow-hidden mb-6 h-40 sm:h-48">
         <img
-          src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1200&q=80"
-          alt="Champ de mil au Sahel"
+          src="https://images.unsplash.com/photo-1703604787785-e9ed9639ea6c?w=1200&q=80"
+          alt="Champ agricole au Sénégal"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-900/50 to-transparent"></div>
