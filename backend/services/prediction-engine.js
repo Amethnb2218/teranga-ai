@@ -107,18 +107,21 @@ const CROP_PROFILES = {
   }
 };
 
-// Algorithme de scoring du risque
-function computeRiskScore(crop, zone, month) {
-  const cityInfo = Object.values(SAHEL_CITIES).find(c => c.zone === zone) || Object.values(SAHEL_CITIES)[0];
+// Algorithme de scoring du risque (prend en compte la ville spécifique)
+function computeRiskScore(crop, zone, month, cityKey) {
+  const cityInfo = cityKey ? SAHEL_CITIES[cityKey] : (Object.values(SAHEL_CITIES).find(c => c.zone === zone) || Object.values(SAHEL_CITIES)[0]);
   const monthData = MONTH_DATA[month];
   const cropProfile = CROP_PROFILES[crop];
   if (!cropProfile) return null;
 
-  let score = 100; // Score parfait = 100
+  const tempOffset = cityInfo ? (cityInfo.tempOffset || 0) : 0;
+  let score = 100;
   const risks = [];
 
-  // 1. Risque hydrique (40% du score)
-  const expectedRainInCycle = computeExpectedRain(month, cropProfile.cycleDays, zone);
+  // 1. Risque hydrique (40% du score) — ajusté par type de ville
+  const cityZone = cityInfo ? cityInfo.zone : zone;
+  const typeMultiplier = (cityInfo && cityInfo.type === 'cotiere') ? 0.8 : 1.0;
+  const expectedRainInCycle = computeExpectedRain(month, cropProfile.cycleDays, cityZone, cityKey) * typeMultiplier;
   const waterDeficit = Math.max(0, cropProfile.waterNeeds - expectedRainInCycle);
   const waterRatio = expectedRainInCycle / cropProfile.waterNeeds;
 
@@ -132,8 +135,8 @@ function computeRiskScore(crop, zone, month) {
     risks.push({ type: 'flood', severity: waterRatio > 2 ? 'high' : 'medium', detail: `Excès d'eau: risque d'engorgement` });
   }
 
-  // 2. Risque thermique (25% du score)
-  const avgTemp = (monthData.temp_max + monthData.temp_min) / 2;
+  // 2. Risque thermique (25% du score) — utilise le tempOffset de la ville
+  const avgTemp = ((monthData.temp_max + tempOffset) + (monthData.temp_min + tempOffset)) / 2;
   const tempDiff = Math.abs(avgTemp - cropProfile.optimalTemp);
   if (tempDiff > 8) {
     score -= 20;
@@ -151,10 +154,10 @@ function computeRiskScore(crop, zone, month) {
   }
 
   // 4. Adaptation zonale (15% du score)
-  const zoneVarieties = cropProfile.varieties.filter(v => v.zone === zone || v.zone === 'toutes');
+  const zoneVarieties = cropProfile.varieties.filter(v => v.zone === cityZone || v.zone === 'toutes');
   if (zoneVarieties.length === 0) {
     score -= 10;
-    risks.push({ type: 'zone', severity: 'medium', detail: `Peu de variétés adaptées à la zone ${zone}` });
+    risks.push({ type: 'zone', severity: 'medium', detail: `Peu de variétés adaptées à la zone ${cityZone}` });
   }
 
   return {
@@ -170,15 +173,27 @@ function computeRiskScore(crop, zone, month) {
   };
 }
 
-function computeExpectedRain(startMonth, cycleDays, zone) {
+function computeExpectedRain(startMonth, cycleDays, zone, cityKey) {
   const zoneMultiplier = (zone === 'casamançaise' || zone === 'guineenne') ? 1.5 : zone === 'soudanienne' ? 1.2 : 0.8;
+
+  // Latitude-based adjustment: higher latitude = less rain in the Sahel
+  let latFactor = 1.0;
+  if (cityKey && SAHEL_CITIES[cityKey]) {
+    const lat = SAHEL_CITIES[cityKey].lat;
+    if (lat > 16) latFactor = 0.6;
+    else if (lat > 15) latFactor = 0.75;
+    else if (lat > 14) latFactor = 0.9;
+    else if (lat < 11) latFactor = 1.3;
+    else if (lat < 12) latFactor = 1.15;
+  }
+
   let totalRain = 0;
   let daysLeft = cycleDays;
   let currentMonth = startMonth;
 
   while (daysLeft > 0) {
     const daysInMonth = Math.min(daysLeft, 30);
-    const monthRain = (MONTH_DATA[currentMonth]?.rain_mm || 0) * zoneMultiplier;
+    const monthRain = (MONTH_DATA[currentMonth]?.rain_mm || 0) * zoneMultiplier * latFactor;
     totalRain += monthRain * (daysInMonth / 30);
     daysLeft -= daysInMonth;
     currentMonth = currentMonth >= 12 ? 1 : currentMonth + 1;
@@ -211,7 +226,7 @@ function findOptimalSowingDate(crop, city) {
 
   for (let i = 0; i < 6; i++) {
     const month = ((currentMonth - 1 + i) % 12) + 1;
-    const risk = computeRiskScore(crop, cityData.zone, month);
+    const risk = computeRiskScore(crop, cityData.zone, month, city);
     results.push({ month, monthName: getMonthName(month), ...risk });
   }
 
@@ -225,7 +240,7 @@ function findOptimalSowingDate(crop, city) {
     crop: cropProfile.name,
     city,
     zone: cityData.zone,
-    currentMonth: { month: currentMonth, name: getMonthName(currentMonth), ...computeRiskScore(crop, cityData.zone, currentMonth) },
+    currentMonth: { month: currentMonth, name: getMonthName(currentMonth), ...computeRiskScore(crop, cityData.zone, currentMonth, city) },
     optimal: best,
     timeline: results,
     recommendedVarieties: bestVarieties.length > 0 ? bestVarieties : cropProfile.varieties.slice(0, 2),

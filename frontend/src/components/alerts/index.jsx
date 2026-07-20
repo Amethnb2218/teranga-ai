@@ -203,20 +203,24 @@ function Alerts() {
     }
   };
 
-  // Filter alerts
+  // Filter alerts (normalize country to lowercase slug for comparison)
   const filteredAlerts = alerts.filter(alert => {
-    if (countryFilter !== 'all' && alert.country !== countryFilter) return false;
+    if (countryFilter !== 'all') {
+      const normalizedCountry = (alert.country || '').toLowerCase().replace(/\s+/g, '_');
+      if (normalizedCountry !== countryFilter) return false;
+    }
     if (severityFilter !== 'all' && alert.severity !== severityFilter) return false;
     return true;
   });
 
-  // Compute stats from current alerts
+  // Compute stats from current alerts (normalize country keys to match COUNTRIES ids)
+  const normalizeCountry = (c) => (c || '').toLowerCase().replace(/\s+/g, '_');
   const stats = {
     total: alerts.length,
     critical: alerts.filter(a => a.severity === 'critical').length,
-    countries: [...new Set(alerts.map(a => a.country))].length,
+    countries: [...new Set(alerts.map(a => normalizeCountry(a.country)))].length,
     byType: alerts.reduce((acc, a) => { acc[a.type] = (acc[a.type] || 0) + 1; return acc; }, {}),
-    byCountry: alerts.reduce((acc, a) => { acc[a.country] = (acc[a.country] || 0) + 1; return acc; }, {}),
+    byCountry: alerts.reduce((acc, a) => { const key = normalizeCountry(a.country); acc[key] = (acc[key] || 0) + 1; return acc; }, {}),
   };
 
   const formatDate = (dateStr) => {
