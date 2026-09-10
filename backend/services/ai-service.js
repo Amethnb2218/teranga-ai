@@ -1,6 +1,7 @@
 const { getSystemPrompt } = require('../config/prompts');
 const { OFFLINE_RESPONSES } = require('../data/offline-responses');
 const { translateForChat, isTranslationAvailable } = require('./translate-service');
+const { createAICompletion } = require('./ai-provider-service');
 
 const ZONE_DATA = {
   dakar: { zone: 'Niayes', cultures: 'tomate, oignon, chou, piment, salade', sol: 'sablonneux riche (Niayes)', pluviometrie: '400mm', irrigation: 'nappe phréatique accessible', conseil: 'Zone maraîchère par excellence. Culture toute l\'année avec irrigation. Privilégiez les légumes à haute valeur (tomate, oignon, piment).' },
@@ -31,8 +32,9 @@ const ZONE_DATA = {
 
 function matchOfflineResponse(userMessage) {
   const msg = userMessage.toLowerCase().trim();
+  const greetingOnly = /^(bonjour|salut|bonsoir|hello|hi|hey|salam|na nga def|assalamou|waw|nanga def)[\s!,.?]*$/;
 
-  if (msg.match(/^(bonjour|salut|bonsoir|hello|hi|hey|salam|na nga def|assalamou|waw|nanga def)/)) return OFFLINE_RESPONSES.bonjour;
+  if (greetingOnly.test(msg)) return OFFLINE_RESPONSES.bonjour;
 
   const locationMatch = msg.match(/(?:à|a|de|vers|dans|zone|region|région)\s+(dakar|thies|thiès|kaolack|saint.?louis|tambacounda|tamba|ziguinchor|zigui|kolda|fatick|louga|matam|bakel|kedougou|kédougou|sédhiou|sedhiou|diourbel|kaffrine|touba|richard.?toll|podor|velingara|vélingara|bignona|oussouye|mbour|nioro|linguère|linguere)/i);
   const cityInMessage = msg.match(/\b(dakar|thies|thiès|kaolack|saint.?louis|tambacounda|tamba|ziguinchor|zigui|kolda|fatick|louga|matam|bakel|kedougou|kédougou|sédhiou|sedhiou|diourbel|kaffrine|touba|richard.?toll|podor|velingara|vélingara|bignona|oussouye|mbour|nioro|linguère|linguere)\b/i);
@@ -76,29 +78,38 @@ function matchOfflineResponse(userMessage) {
   return OFFLINE_RESPONSES.default;
 }
 
-async function callGroqAPI(messages, language) {
+function getLocationContext(userMessage) {
+  const msg = userMessage.toLowerCase();
+  const aliases = {
+    'thiès': 'thies', 'tamba': 'tambacounda', 'zigui': 'ziguinchor',
+    'kédougou': 'kedougou', 'sédhiou': 'sedhiou', 'vélingara': 'velingara',
+    'linguère': 'linguere', 'saint louis': 'saint_louis', 'saint-louis': 'saint_louis',
+    'richard toll': 'richard_toll', 'richard-toll': 'richard_toll', 'nioro': 'nioro_du_rip'
+  };
+  const candidates = [...Object.keys(ZONE_DATA), ...Object.keys(aliases)];
+  const match = candidates.find(city => msg.includes(city.replace('_', ' ')));
+  if (!match) return '';
+
+  const cityKey = aliases[match] || match;
+  const data = ZONE_DATA[cityKey];
+  if (!data) return '';
+
+  return `\n\nCONTEXTE LOCAL VÉRIFIÉ POUR ${cityKey.toUpperCase().replace('_', ' ')} :
+- Zone : ${data.zone}
+- Cultures adaptées : ${data.cultures}
+- Sol : ${data.sol}
+- Pluviométrie annuelle indicative : ${data.pluviometrie}
+${data.irrigation ? `- Irrigation : ${data.irrigation}\n` : ''}- Conseil local : ${data.conseil}
+Utilise ces données pour répondre précisément à la question, sans réciter toute la fiche si ce n'est pas utile.`;
+}
+
+async function callAIAPI(messages, language) {
+  const lastUserMessage = messages.filter(message => message.role === 'user').pop()?.content || '';
   const systemMessage = {
     role: 'system',
-    content: getSystemPrompt(language)
+    content: `${getSystemPrompt(language)}${getLocationContext(lastUserMessage)}`
   };
-
-  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
-      messages: [systemMessage, ...messages],
-      max_tokens: 1500,
-      temperature: 0.7
-    })
-  });
-
-  if (!response.ok) throw new Error(`Groq API error: ${response.status}`);
-  const data = await response.json();
-  return data.choices[0].message.content;
+  return createAICompletion([systemMessage, ...messages], { maxTokens: 1500, temperature: 0.55 });
 }
 
 const LANGS_NEED_TRANSLATION = ['wo', 'pu', 'sr', 'di', 'mn', 'sn'];
@@ -150,38 +161,53 @@ async function translateUserInput(text, language) {
     } catch (e) {}
   }
 
-  // Fallback: Groq with vocabulary hints
-  if (!process.env.GROQ_API_KEY) return vocabTranslation;
+  // Fallback: AI provider with vocabulary hints
+  if (!process.env.GROQ_API_KEY && !process.env.GEMINI_API_KEY) return vocabTranslation;
   const langName = { wo: 'wolof', pu: 'pulaar', sr: 'sérère', di: 'diola', mn: 'mandinka', sn: 'soninké' }[language];
   try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.GROQ_API_KEY}` },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: `Traduis ce texte du ${langName} vers le français. Vocabulaire agricole ${langName}: gerte=arachide, dugub=mil, maalo=riz, mboq=maïs, tool=champ, nawet=hivernage, taw=pluie, ndox=eau, fetal=engrais, njëg=prix, waral=cultiver, naka=comment, lañu=on/nous, kañ=quand, fan=où.\n\nDonne UNIQUEMENT la traduction française:\n"${text}"` }],
-        max_tokens: 500, temperature: 0.2
-      })
-    });
-    if (!response.ok) return vocabTranslation;
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content?.trim() || vocabTranslation;
-  } catch (e) { return vocabTranslation; }
+    const result = await createAICompletion([{
+      role: 'user',
+      content: `Traduis ce texte du ${langName} vers le français. Vocabulaire agricole ${langName}: gerte=arachide, dugub=mil, maalo=riz, mboq=maïs, tool=champ, nawet=hivernage, taw=pluie, ndox=eau, fetal=engrais, njëg=prix, waral=cultiver, naka=comment, lañu=on/nous, kañ=quand, fan=où.\n\nDonne UNIQUEMENT la traduction française:\n"${text}"`
+    }], { maxTokens: 500, temperature: 0.2 });
+    return result.content || vocabTranslation;
+  } catch (e) {
+    return vocabTranslation;
+  }
 }
 
-async function getAIResponse(messages, language) {
+async function getAIResponse(messages, language = 'fr') {
   const lastUserMessage = messages.filter(m => m.role === 'user').pop()?.content || '';
 
   // For non-local languages (fr, en, ar): generate directly
   if (!LANGS_NEED_TRANSLATION.includes(language)) {
-    if (process.env.GROQ_API_KEY) {
+    if (process.env.GROQ_API_KEY || process.env.GEMINI_API_KEY) {
       try {
-        return await callGroqAPI(messages, language);
+        const result = await callAIAPI(messages, language);
+        const fallbackNotice = result.provider === 'groq' && result.providerFailures?.length
+          ? 'Groq a pris le relais car Gemini était indisponible.'
+          : result.provider === 'groq' && result.usedFallback ? 'Le modèle Groq secondaire a été utilisé.' : null;
+        return {
+          message: result.content,
+          source: result.provider,
+          model: result.model,
+          degraded: result.usedFallback,
+          notice: fallbackNotice
+        };
       } catch (error) {
-        console.error('Groq API error:', error.message);
+        console.error('AI chat unavailable:', {
+          code: error.code || 'unknown_error',
+          category: error.category || 'unknown',
+          status: error.status || 500
+        });
       }
     }
-    return matchOfflineResponse(lastUserMessage);
+    return {
+      message: matchOfflineResponse(lastUserMessage),
+      source: 'offline',
+      model: null,
+      degraded: true,
+      notice: 'Réponse locale utilisée temporairement.'
+    };
   }
 
   // For local African languages:
@@ -199,14 +225,26 @@ async function getAIResponse(messages, language) {
 
   // Step 2: Get French response from LLM
   let frenchResponse = '';
-  if (process.env.GROQ_API_KEY) {
+  let responseModel = null;
+  let responseProvider = null;
+  let usedModelFallback = false;
+  if (process.env.GROQ_API_KEY || process.env.GEMINI_API_KEY) {
     try {
-      frenchResponse = await callGroqAPI(messagesForLLM, 'fr');
+      const result = await callAIAPI(messagesForLLM, 'fr');
+      frenchResponse = result.content;
+      responseModel = result.model;
+      responseProvider = result.provider;
+      usedModelFallback = result.usedFallback;
     } catch (error) {
-      console.error('Groq API error:', error.message);
+      console.error('AI local-language chat unavailable:', {
+        code: error.code || 'unknown_error',
+        category: error.category || 'unknown',
+        status: error.status || 500
+      });
     }
   }
-  if (!frenchResponse) {
+  const usedOfflineFallback = !frenchResponse;
+  if (usedOfflineFallback) {
     frenchResponse = matchOfflineResponse(lastUserMessage);
   }
 
@@ -218,15 +256,25 @@ async function getAIResponse(messages, language) {
         new Promise(resolve => setTimeout(() => resolve(null), 10000))
       ]);
       if (nllbResult && nllbResult !== frenchResponse) {
-        return nllbResult;
+        return {
+          message: nllbResult,
+          source: usedOfflineFallback ? 'offline+nllb' : `${responseProvider}+nllb`,
+          model: responseModel,
+          degraded: usedOfflineFallback || usedModelFallback,
+          notice: usedOfflineFallback
+            ? 'Réponse locale utilisée temporairement.'
+            : responseProvider === 'groq' && usedModelFallback
+              ? 'Groq a pris le relais car Gemini était indisponible.'
+              : null
+        };
       }
     } catch (e) {
       console.log('NLLB translation failed:', e.message);
     }
   }
 
-  // Fallback: Ask Groq to rewrite in bilingual local+French style
-  if (process.env.GROQ_API_KEY) {
+  // Fallback: Ask an AI provider to rewrite in bilingual local+French style
+  if (process.env.GROQ_API_KEY || process.env.GEMINI_API_KEY) {
     try {
       const langConfig = {
         wo: { name: 'wolof', greeting: 'Jërejëf ci sa laaj.', style: 'wolof-français comme on parle au Sénégal' },
@@ -237,38 +285,38 @@ async function getAIResponse(messages, language) {
         sn: { name: 'soninké', greeting: 'An maarandi.', style: 'soninké-français' }
       };
       const cfg = langConfig[language] || langConfig.wo;
-
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          messages: [{
-            role: 'user',
-            content: `Réécris ce conseil agricole en style ${cfg.style}. Commence par "${cfg.greeting}" puis donne le contenu technique en français simple et clair. Les termes agricoles, chiffres, noms de variétés restent en français. Le but est que ce soit COMPRÉHENSIBLE et UTILE pour un agriculteur ${cfg.name}phone. Ne génère PAS de ${cfg.name} inventé. Si tu ne connais pas le mot en ${cfg.name}, laisse-le en français.\n\nTexte à réécrire :\n${frenchResponse}`
-          }],
-          max_tokens: 2000,
-          temperature: 0.3
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const translated = data.choices?.[0]?.message?.content?.trim();
-        if (translated && translated.length > 10 && translated !== frenchResponse) {
-          return translated;
-        }
+      const result = await createAICompletion([{
+        role: 'user',
+        content: `Réécris ce conseil agricole en style ${cfg.style}. Commence par "${cfg.greeting}" puis donne le contenu technique en français simple et clair. Les termes agricoles, chiffres, noms de variétés restent en français. Le but est que ce soit COMPRÉHENSIBLE et UTILE pour un agriculteur ${cfg.name}phone. Ne génère PAS de ${cfg.name} inventé. Si tu ne connais pas le mot en ${cfg.name}, laisse-le en français.\n\nTexte à réécrire :\n${frenchResponse}`
+      }], { maxTokens: 2000, temperature: 0.3 });
+      if (result.content.length > 10 && result.content !== frenchResponse) {
+        return {
+          message: result.content,
+          source: usedOfflineFallback ? `offline+${result.provider}-translation` : result.provider,
+          model: result.model,
+          degraded: usedOfflineFallback || usedModelFallback || result.usedFallback,
+          notice: usedOfflineFallback
+            ? 'Réponse locale utilisée temporairement.'
+            : result.provider === 'groq' && result.providerFailures?.length
+              ? 'Groq a pris le relais car Gemini était indisponible.'
+              : null
+        };
       }
     } catch (e) {
-      console.log('Groq bilingual fallback failed:', e.message);
+      console.log(`AI bilingual fallback failed: ${e.code || 'unknown_error'}`);
     }
   }
 
   // Last resort: return French
-  return frenchResponse;
+  return {
+    message: frenchResponse,
+    source: usedOfflineFallback ? 'offline' : responseProvider,
+    model: responseModel,
+    degraded: usedOfflineFallback || usedModelFallback,
+    notice: usedOfflineFallback
+      ? 'Réponse locale utilisée temporairement.'
+      : 'La traduction locale est temporairement indisponible; réponse fournie en français.'
+  };
 }
 
-module.exports = { getAIResponse };
+module.exports = { getAIResponse, matchOfflineResponse, getLocationContext };

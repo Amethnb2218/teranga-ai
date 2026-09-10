@@ -10,10 +10,14 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Messages array required' });
     }
 
-    const response = await getAIResponse(messages, language);
-    res.json({ message: response });
+    const result = await getAIResponse(messages, language);
+    res.json(result);
   } catch (error) {
-    console.error('Chat error:', error.message);
+    console.error('Chat error:', {
+      code: error.code || 'unknown_error',
+      category: error.category || 'unknown',
+      status: error.status || 500
+    });
     res.status(500).json({
       error: 'Service temporarily unavailable',
       message: 'Veuillez réessayer dans quelques instants.'

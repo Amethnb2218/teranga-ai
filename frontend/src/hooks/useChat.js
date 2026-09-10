@@ -107,10 +107,16 @@ export function useChat() {
         language
       );
       const reply = data.message;
-      setMessages([...newMessages, { role: 'assistant', content: reply }]);
+      const assistantMessage = {
+        role: 'assistant',
+        content: reply,
+        notice: data.notice || null,
+        source: data.source || null
+      };
+      setMessages([...newMessages, assistantMessage]);
       if (autoSpeak) speak(reply);
     } catch (error) {
-      const errMsg = "Désolé, je rencontre un problème technique. Veuillez réessayer dans quelques instants.";
+      const errMsg = error.message || "Désolé, je rencontre un problème technique. Veuillez réessayer dans quelques instants.";
       setMessages([...newMessages, { role: 'assistant', content: errMsg }]);
     } finally {
       setLoading(false);

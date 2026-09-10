@@ -4,6 +4,8 @@
  * Groq LLM for English/Arabic only
  */
 
+const { createAICompletion } = require('./ai-provider-service');
+
 const NLLB_LANG_CODES = {
   fr: 'fra_Latn',
   wo: 'wol_Latn',
@@ -42,8 +44,10 @@ async function warmupNLLB() {
 }
 
 // Warmup at start + keep alive every 10 min
-setTimeout(warmupNLLB, 2000);
-setInterval(warmupNLLB, 10 * 60 * 1000);
+const warmupTimer = setTimeout(warmupNLLB, 2000);
+const keepAliveTimer = setInterval(warmupNLLB, 10 * 60 * 1000);
+warmupTimer.unref?.();
+keepAliveTimer.unref?.();
 
 async function translateWithNLLB(text, sourceLang, targetLang, retries = 3) {
   const apiKey = process.env.HF_API_KEY || process.env.HUGGINGFACE_API_KEY;
@@ -105,32 +109,18 @@ async function translateWithNLLB(text, sourceLang, targetLang, retries = 3) {
   return null;
 }
 
-async function translateWithGroq(text, targetLang) {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) return null;
+async function translateWithAI(text, targetLang) {
+  if (!process.env.GROQ_API_KEY && !process.env.GEMINI_API_KEY) return null;
   if (LOCAL_LANGS.includes(targetLang)) return null;
 
   const langName = LANG_NAMES[targetLang] || 'English';
 
   try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: `Translate to ${langName}. Keep numbers, names, acronyms unchanged. Only output the translation:\n\n${text}` }],
-        max_tokens: 2000,
-        temperature: 0.2
-      })
-    });
-
-    if (!response.ok) return null;
-    const data = await response.json();
-    const result = data.choices?.[0]?.message?.content?.trim();
-    if (result && result !== text.trim()) return result;
+    const result = await createAICompletion([{
+      role: 'user',
+      content: `Translate to ${langName}. Keep numbers, names, acronyms unchanged. Only output the translation:\n\n${text}`
+    }], { maxTokens: 2000, temperature: 0.2 });
+    if (result.content && result.content !== text.trim()) return result.content;
     return null;
   } catch (error) {
     return null;
@@ -145,8 +135,8 @@ async function translateText(text, sourceLang = 'fr', targetLang = 'wo') {
     return await translateWithNLLB(text, sourceLang, targetLang);
   }
 
-  const groqResult = await translateWithGroq(text, targetLang);
-  if (groqResult) return groqResult;
+  const aiResult = await translateWithAI(text, targetLang);
+  if (aiResult) return aiResult;
 
   return await translateWithNLLB(text, sourceLang, targetLang);
 }
@@ -199,7 +189,7 @@ async function translateForChat(text, targetLang) {
 }
 
 function isTranslationAvailable() {
-  return !!(process.env.HF_API_KEY || process.env.HUGGINGFACE_API_KEY || process.env.GROQ_API_KEY);
+  return !!(process.env.HF_API_KEY || process.env.HUGGINGFACE_API_KEY || process.env.GROQ_API_KEY || process.env.GEMINI_API_KEY);
 }
 
 module.exports = {

@@ -17,7 +17,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
       - run: cd backend && npm ci
-      - run: node backend/tests/ml-engine.test.js
+      - run: cd backend && npm test
 
   build-frontend:
     runs-on: ubuntu-latest

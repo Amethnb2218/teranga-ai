@@ -26,13 +26,28 @@ async function fetchWithRetry(url, options = {}, { timeoutMs = 15000, retries = 
 }
 
 export async function sendChatMessage(messages, language = 'fr') {
-  const response = await fetch(`${API_BASE}/api/chat`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages, language })
-  });
-  if (!response.ok) throw new Error('Network error');
-  return response.json();
+  let response;
+  try {
+    response = await fetchWithTimeout(`${API_BASE}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages, language })
+    }, 30000);
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      throw new Error('Le conseiller met trop de temps à répondre. Veuillez réessayer.');
+    }
+    throw new Error('Impossible de joindre le conseiller. Vérifiez votre connexion puis réessayez.');
+  }
+
+  const data = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(data?.message || 'Le conseiller est temporairement indisponible.');
+  }
+  if (!data?.message || typeof data.message !== 'string') {
+    throw new Error('La réponse du conseiller est invalide. Veuillez réessayer.');
+  }
+  return data;
 }
 
 export async function fetchWeather(city) {

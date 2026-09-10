@@ -45,6 +45,11 @@ function ChatBubble({ message, onSpeak, onStop, isSpeaking }) {
                 {message.content}
               </ReactMarkdown>
             </div>
+            {message.notice && (
+              <p className="mt-2 text-[11px] text-amber-700 bg-amber-50 border border-amber-100 rounded px-2 py-1">
+                {message.notice}
+              </p>
+            )}
             {onSpeak && (
               <button
                 onClick={() => {

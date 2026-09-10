@@ -12,6 +12,8 @@ const translateRoutes = require('./routes/translate');
 const alertsRoutes = require('./routes/alerts');
 const communityRoutes = require('./routes/community');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
+const { getGroqStatus } = require('./services/groq-service');
+const { getGeminiStatus } = require('./services/gemini-service');
 
 dotenv.config();
 
@@ -36,11 +38,21 @@ app.use('/api/alerts', alertsRoutes);
 app.use('/api/community', communityRoutes);
 
 app.get('/api/health', (req, res) => {
+  const groq = getGroqStatus();
+  const gemini = getGeminiStatus();
+  const aiMode = gemini.status === 'available' || gemini.status === 'degraded'
+    ? 'gemini'
+    : groq.status === 'available' || groq.status === 'degraded' ? 'groq'
+      : groq.status === 'not_configured' && gemini.status === 'not_configured' ? 'offline'
+        : 'configured_unverified';
+
   res.json({
     status: 'ok',
     service: 'Teranga AI Backend',
-    version: '3.0.0',
-    ai_mode: process.env.GROQ_API_KEY ? 'groq' : 'offline',
+    version: '3.1.0',
+    ai_mode: aiMode,
+    ai_providers: { groq, gemini },
+    ai_fallback_order: ['gemini', 'groq', 'offline'],
     translation: (process.env.HF_API_KEY || process.env.HUGGINGFACE_API_KEY) ? 'nllb (active)' : 'unavailable',
     weather_source: process.env.OPENWEATHER_API_KEY ? 'openweathermap (live)' : 'model (simulated)',
     ml_engine: 'v3.0 (12 features, 8 crops, 2015-2026)',
@@ -51,10 +63,12 @@ app.get('/api/health', (req, res) => {
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`Teranga AI v3.0 running on port ${PORT}`);
-  console.log(`AI: ${process.env.GROQ_API_KEY ? 'Groq' : 'Offline'}`);
-  console.log(`Weather: ${process.env.OPENWEATHER_API_KEY ? 'OpenWeatherMap (live)' : 'Simulated'}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Teranga AI v3.1 running on port ${PORT}`);
+    console.log(`AI providers: Groq=${getGroqStatus().status}, Gemini=${getGeminiStatus().status}`);
+    console.log(`Weather: ${process.env.OPENWEATHER_API_KEY ? 'OpenWeatherMap (live)' : 'Simulated'}`);
+  });
+}
 
 module.exports = app;

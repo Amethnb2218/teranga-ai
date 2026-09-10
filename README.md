@@ -73,7 +73,7 @@ Teranga AI provides **algorithmic decision support** through:
 │                                                                    │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────────┐  │
 │  │ AI Chat Service │  │  Weather Service │  │  Market Engine   │  │
-│  │ Groq LLama 3.3  │  │  OpenWeatherMap  │  │  FAO/GIEWS       │  │
+│  │ Gemini + Groq   │  │  OpenWeatherMap  │  │  FAO/GIEWS       │  │
 │  │ + NLLB + MMS   │  │  + RT Injection  │  │  + Seasonal Adj  │  │
 │  └─────────────────┘  └─────────────────┘  └──────────────────┘  │
 │                                                                    │
@@ -104,8 +104,8 @@ Teranga AI provides **algorithmic decision support** through:
         │              │              │
         ▼              ▼              ▼
 ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
-│  Groq API    │ │OpenWeatherMap│ │ Google News  │ │ HuggingFace  │
-│  (LLM+STT)  │ │  (RT weather)│ │    RSS       │ │ (NLLB+MMS)   │
+│  Gemini API  │ │  Groq API    │ │OpenWeatherMap│ │ Google News  │ │ HuggingFace  │
+│ (Primary LLM)│ │(Fallback+STT)│ │  (RT weather)│ │    RSS       │ │ (NLLB+MMS)   │
 └──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘
 ```
 
@@ -287,7 +287,7 @@ Deterministic scoring engine combining domain expertise:
 | Risk Assessment | Bayesian Network | Forward propagation, CPT inference |
 | Weather Forecasting | OpenWeatherMap + Calibration | Coastal temperature offset model |
 | Market Intelligence | Dynamic pricing engine | Seasonal multipliers + pseudo-random daily variance |
-| AI Chat | Groq LLama 3.1 70B | Context-aware NLP with domain prompting |
+| AI Chat | Gemini 2.5 Flash + Groq fallback | Context-aware NLP with domain prompting |
 | Voice Output | Web Speech API | Multilingual TTS (FR, Wolof, EN, AR) |
 | Offline Mode | Keyword matching | TF-IDF-inspired topic detection |
 
@@ -336,8 +336,11 @@ npm install
 
 Create `.env`:
 ```
-GROQ_API_KEY=gsk_xxx          # Free at console.groq.com
-OPENWEATHER_API_KEY=xxx        # Free at openweathermap.org
+GEMINI_API_KEY=xxx        # Google AI Studio — primary agricultural advisor
+GROQ_API_KEY=gsk_xxx      # Groq — automatic fallback and speech-to-text
+GROQ_MODEL=openai/gpt-oss-120b
+GROQ_FALLBACK_MODEL=openai/gpt-oss-20b
+OPENWEATHER_API_KEY=xxx   # Free at openweathermap.org
 PORT=3001
 ```
 
@@ -433,7 +436,7 @@ teranga-ai/
 |-------|-----------|---------|
 | Frontend | React 18 + Vite + TailwindCSS | SPA, responsive UI |
 | Backend | Node.js + Express | REST API, ML engine |
-| LLM | Groq (Llama 3.3 70B) | Agricultural Q&A |
+| LLM | Gemini 2.5 Flash + Groq GPT-OSS fallback | Agricultural Q&A with offline fallback |
 | Speech-to-Text | Groq Whisper v3 + Meta MMS | Voice input (9 languages) |
 | Translation | Meta NLLB-200 (HuggingFace) | 6 African languages |
 | Weather | OpenWeatherMap API | Real-time forecasts |
@@ -463,7 +466,10 @@ npm run dev
 
 **Required Environment Variables:**
 ```
-GROQ_API_KEY=        # groq.com (free) — LLM + Whisper
+GEMINI_API_KEY=      # Google AI Studio — primary LLM
+GROQ_API_KEY=        # groq.com — fallback LLM + Whisper
+GROQ_MODEL=openai/gpt-oss-120b
+GROQ_FALLBACK_MODEL=openai/gpt-oss-20b
 HF_API_KEY=          # huggingface.co (free) — NLLB + MMS
 OPENWEATHER_API_KEY= # openweathermap.org (free) — Weather
 ```
