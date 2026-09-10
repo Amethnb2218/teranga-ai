@@ -12,7 +12,7 @@ async function fetchAgriNews() {
       { headers: { 'User-Agent': 'Teranga-AI/1.0' }, signal: AbortSignal.timeout(8000) }
     );
 
-    if (!response.ok) return getDefaultNews();
+    if (!response.ok) return [];
 
     const xml = await response.text();
     const items = parseGoogleNewsRSS(xml);
@@ -26,7 +26,7 @@ async function fetchAgriNews() {
     console.error('News fetch error:', error.message);
   }
 
-  return getDefaultNews();
+  return [];
 }
 
 function parseGoogleNewsRSS(xml) {
@@ -133,14 +133,4 @@ function isAgriRelated(text) {
   return keywords.some(k => lower.includes(k));
 }
 
-function getDefaultNews() {
-  return [
-    { title: "Campagne agricole 2026 : prévisions pluviométriques de l'ANACIM", source: 'ANACIM', date: 'Récent', link: '' },
-    { title: "Prix de l'arachide : le gouvernement fixe le prix plancher de la campagne", source: 'APS', date: 'Récent', link: '' },
-    { title: "Production céréalière record : 3,8 millions de tonnes en 2024", source: 'FAO', date: 'Récent', link: '' },
-    { title: "Nouvelles variétés ISRA disponibles pour la prochaine campagne", source: 'ISRA', date: 'Récent', link: '' },
-    { title: "Programme de subventions engrais 2026 lancé par le ministère", source: 'Min. Agriculture', date: 'Récent', link: '' }
-  ];
-}
-
-module.exports = { fetchAgriNews };
+module.exports = { fetchAgriNews, parseGoogleNewsRSS };

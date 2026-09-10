@@ -90,7 +90,10 @@ function Community() {
             <FiUsers className="text-teal-600" /> Réseau Communautaire
           </h2>
           <p className="text-slate-500 text-sm mt-0.5">
-            Intelligence collective des agricultrices et agriculteurs du Sahel
+            Démonstration simulée d’un futur réseau communautaire au Sahel
+          </p>
+          <p className="text-amber-700 text-xs mt-1">
+            Profils, observations et statistiques fictifs — ne pas utiliser comme information terrain.
           </p>
         </div>
         <div className="flex gap-2">
@@ -114,11 +117,11 @@ function Community() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           <div className="bg-teal-50 border border-teal-100 rounded-xl p-4 text-center">
             <div className="text-2xl font-bold text-teal-700">{stats.totalMembers?.toLocaleString()}</div>
-            <p className="text-xs text-teal-600 mt-1">Membres actifs</p>
+            <p className="text-xs text-teal-600 mt-1">Membres fictifs</p>
           </div>
           <div className="bg-purple-50 border border-purple-100 rounded-xl p-4 text-center">
             <div className="text-2xl font-bold text-purple-700">{stats.avgWomenPercent}%</div>
-            <p className="text-xs text-purple-600 mt-1">Femmes</p>
+            <p className="text-xs text-purple-600 mt-1">Part simulée de femmes</p>
           </div>
           <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 text-center">
             <div className="text-2xl font-bold text-amber-700">{stats.totalObservations}</div>
@@ -176,7 +179,7 @@ function Community() {
                     </div>
                     <div className="flex items-center gap-2">
                       {obs.verified && (
-                        <span className="flex items-center gap-0.5 text-xs text-green-600" title="Vérifié">
+                        <span className="flex items-center gap-0.5 text-xs text-green-600" title="Modéré">
                           <FiCheck size={12} />
                         </span>
                       )}
@@ -262,7 +265,7 @@ function Community() {
           <div className="absolute inset-0 bg-gradient-to-t from-purple-900/70 via-purple-900/30 to-transparent"></div>
           <div className="absolute bottom-4 left-6 right-6">
             <h3 className="font-bold text-white text-lg">Femmes & R&eacute;silience Alimentaire</h3>
-            <p className="text-purple-100 text-sm">60% des agriculteurs du Sahel sont des femmes</p>
+            <p className="text-purple-100 text-sm">Réseau de démonstration — données communautaires simulées</p>
           </div>
         </div>
 

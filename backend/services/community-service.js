@@ -1,24 +1,27 @@
+const { getDatasetProvenance } = require('./provenance-service');
 const { SAHEL_CITIES } = require('../config/constants');
 
-// In-memory store (production would use a database)
+// In-memory demonstration store (production would use a moderated database)
 const observations = [];
 const groups = [];
 
-// Seed with realistic community observations
+const COMMUNITY_PROVENANCE = getDatasetProvenance('community_demo');
+
+// Seed with explicitly simulated examples
 function seedData() {
   const seedObservations = [
     {
       id: 'obs_001', city: 'kaolack', country: 'Senegal',
       type: 'crop_status', author: 'Fatou Diop', authorGender: 'F',
       content: 'Le mil a bien leve malgre le retard des pluies. Les varietes Souna III resistent bien.',
-      crop: 'mil', severity: 'info', likes: 12, verified: true,
+      crop: 'mil', severity: 'info', likes: 12, verified: false,
       createdAt: new Date('2026-07-10T08:30:00Z')
     },
     {
       id: 'obs_002', city: 'maradi', country: 'Niger',
       type: 'pest_alert', author: 'Aminata Moussa', authorGender: 'F',
       content: 'Presence de chenilles legionnaires sur les parcelles de mais. Traitement naturel au neem en cours.',
-      crop: 'mais', severity: 'high', likes: 28, verified: true,
+      crop: 'mais', severity: 'high', likes: 28, verified: false,
       createdAt: new Date('2026-07-12T14:20:00Z')
     },
     {
@@ -32,35 +35,35 @@ function seedData() {
       id: 'obs_004', city: 'tillaberi', country: 'Niger',
       type: 'weather_local', author: 'Ibrahim Hamidou', authorGender: 'M',
       content: 'Pas de pluie depuis 18 jours. Les jeunes pousses de mil commencent a faner. Besoin de semences de remplacement.',
-      crop: 'mil', severity: 'critical', likes: 45, verified: true,
+      crop: 'mil', severity: 'critical', likes: 45, verified: false,
       createdAt: new Date('2026-07-13T07:45:00Z')
     },
     {
       id: 'obs_005', city: 'ouagadougou', country: 'Burkina Faso',
       type: 'technique', author: 'Aissatou Ouedraogo', authorGender: 'F',
       content: 'Le zaï ameliore fonctionne bien cette annee. 3x plus de rendement sur les parcelles degradees.',
-      crop: 'sorgho', severity: 'info', likes: 67, verified: true,
+      crop: 'sorgho', severity: 'info', likes: 67, verified: false,
       createdAt: new Date('2026-07-11T16:30:00Z')
     },
     {
       id: 'obs_006', city: 'ziguinchor', country: 'Senegal',
       type: 'crop_status', author: 'Adama Coly', authorGender: 'F',
       content: 'Le riz de bas-fond se developpe bien. Repiquage termine sur 2 hectares. Les femmes du GIE sont optimistes.',
-      crop: 'riz', severity: 'info', likes: 22, verified: true,
+      crop: 'riz', severity: 'info', likes: 22, verified: false,
       createdAt: new Date('2026-07-09T11:15:00Z')
     },
     {
       id: 'obs_007', city: 'niamey', country: 'Niger',
       type: 'pest_alert', author: 'Haoua Garba', authorGender: 'F',
       content: 'Oiseaux granivores tres presents sur le mil en epiaison. Surveillance collective organisee par le groupement feminin.',
-      crop: 'mil', severity: 'medium', likes: 19, verified: true,
+      crop: 'mil', severity: 'medium', likes: 19, verified: false,
       createdAt: new Date('2026-07-15T06:00:00Z')
     },
     {
       id: 'obs_008', city: 'sikasso', country: 'Mali',
       type: 'technique', author: 'Kadiatou Coulibaly', authorGender: 'F',
       content: 'Association mais-niebe sur la meme parcelle. Le niebe fixe l\'azote et protege le sol. Technique validee par le groupement.',
-      crop: 'mais', severity: 'info', likes: 53, verified: true,
+      crop: 'mais', severity: 'info', likes: 53, verified: false,
       createdAt: new Date('2026-07-08T09:00:00Z')
     },
     {
@@ -74,7 +77,7 @@ function seedData() {
       id: 'obs_010', city: 'maroua', country: 'Cameroun',
       type: 'weather_local', author: 'Djamilatou Aoudou', authorGender: 'F',
       content: 'Fortes pluies hier soir (environ 80mm). Inondation des parcelles basses. Replanter le gombo et les legumes.',
-      crop: 'gombo', severity: 'high', likes: 38, verified: true,
+      crop: 'gombo', severity: 'high', likes: 38, verified: false,
       createdAt: new Date('2026-07-15T08:30:00Z')
     }
   ];
@@ -96,7 +99,7 @@ function seedData() {
     },
     {
       id: 'grp_003', name: 'Sentinelles Climat Kaolack',
-      description: 'Observateurs locaux qui remontent les donnees terrain en temps reel pour le systeme d\'alerte.',
+      description: 'Exemple simulé d’un collectif d’observation locale ; aucune remontée en temps réel n’est connectée.',
       country: 'Senegal', members: 156, womenPercent: 65,
       topics: ['pluviometrie', 'ravageurs', 'semis', 'alerte_precoce'],
       createdAt: new Date('2026-02-20')
@@ -145,7 +148,9 @@ function getObservations(filters = {}) {
   return {
     observations: result.slice(0, limit),
     total: result.length,
-    stats: getStats()
+    stats: getStats(),
+    served_at: new Date().toISOString(),
+    provenance: COMMUNITY_PROVENANCE
   };
 }
 
@@ -167,7 +172,9 @@ function getStats() {
     verifiedObservations: verified,
     totalGroups: groups.length,
     totalMembers,
-    avgWomenPercent: avgWomen
+    avgWomenPercent: avgWomen,
+    served_at: new Date().toISOString(),
+    provenance: COMMUNITY_PROVENANCE
   };
 }
 
@@ -180,7 +187,9 @@ function getGroups(filters = {}) {
 
   return {
     groups: result,
-    total: result.length
+    total: result.length,
+    served_at: new Date().toISOString(),
+    provenance: COMMUNITY_PROVENANCE
   };
 }
 

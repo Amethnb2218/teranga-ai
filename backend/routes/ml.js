@@ -99,6 +99,15 @@ router.get('/predict-yield/:crop/:city', async (req, res) => {
   }
 
   result.weather_source = weatherSource;
+  result.weather_provenance = {
+    type: realWeather ? 'live' : 'estimated',
+    availability: realWeather ? 'available' : 'degraded',
+    observed_at: realWeather?.last_updated || null,
+    method: realWeather
+      ? 'Prévision OpenWeatherMap sur sept jours extrapolée heuristiquement à une saison culturale'
+      : 'Climatologie mensuelle locale codée extrapolée sur quatre mois',
+    limitations: ['Le cumul saisonnier injecté au modèle est une estimation heuristique, pas une observation saisonnière.']
+  };
   result.realtime_data = realWeather ? {
     current_temp: realWeather.current?.temp,
     humidity: realWeather.current?.humidity,

@@ -1,17 +1,18 @@
 /**
  * Alerts & Resilience Service - Teranga AI
  *
- * Generates climate-related alerts for all Sahel cities based on:
- * - Weather forecasts (real or simulated)
+ * Generates indicative climate-risk scenarios for all Sahel cities based on:
+ * - Locally encoded monthly climatology
  * - Crop vulnerability thresholds
  * - Seasonal patterns typical for the Sahel belt
+ *
+ * These outputs are estimates, not observed events or official alerts.
  *
  * Alert types: drought, flood, heat, pest, sowing_window, food_security
  */
 
 const { SAHEL_CITIES, MONTH_DATA } = require('../config/constants');
 const { CROP_PROFILES } = require('./prediction-engine');
-const { getCityWeather } = require('./weather-service');
 
 // Thresholds for alert generation (calibrated for Sahel realities)
 const THRESHOLDS = {
@@ -133,8 +134,8 @@ function generateAlerts() {
         zone,
         lat: cityData.lat,
         lon: cityData.lon,
-        title: `Risque de secheresse severe - ${formatCityName(cityKey)}`,
-        description: `Precipitations inferieures a ${Math.round(expected7DayRain)}mm attendues sur les 7 prochains jours en pleine saison des pluies. Le deficit hydrique menace les cultures en cours de croissance.`,
+        title: `Scénario de sécheresse sévère - ${formatCityName(cityKey)}`,
+        description: `La climatologie mensuelle codée implique moins de ${Math.round(expected7DayRain)} mm sur 7 jours. Il ne s’agit pas d’une prévision observée ; confirmez avec le service météo local.`,
         recommendation: `Activez l'irrigation d'appoint si disponible. Paillez les cultures pour reduire l'evaporation. Privilegiez les varietes tolerantes a la secheresse (mil Souna 3, niebe Melakh). Contactez les services agricoles locaux.`,
         affectedCrops: getAffectedCrops('drought', zone),
         timestamp: now.toISOString(),
@@ -153,9 +154,9 @@ function generateAlerts() {
         zone,
         lat: cityData.lat,
         lon: cityData.lon,
-        title: `Retard de l'hivernage - ${formatCityName(cityKey)}`,
-        description: `Installation tardive de la saison des pluies dans la zone soudanienne. Les semis pourraient etre retardes.`,
-        recommendation: `Attendez une pluie utile (>=20mm) avant de semer. Preparez les semences a cycle court en plan B. Surveillez les previsions quotidiennes.`,
+        title: `Scénario de décalage de l'hivernage - ${formatCityName(cityKey)}`,
+        description: `La climatologie mensuelle codée suggère un risque de démarrage tardif dans cette zone. Ce scénario n’est pas une observation de la campagne en cours.`,
+        recommendation: `Attendez une pluie utile (>=20mm) avant de semer. Preparez les semences a cycle court en plan B. Consultez les previsions officielles quotidiennes.`,
         affectedCrops: getAffectedCrops('sowing_window', zone),
         timestamp: now.toISOString(),
         expiresAt: getExpiry('drought')
@@ -176,8 +177,8 @@ function generateAlerts() {
           zone,
           lat: cityData.lat,
           lon: cityData.lon,
-          title: `Risque d'inondation - ${formatCityName(cityKey)}`,
-          description: `Precipitations intenses attendues (pic > ${Math.round(peakDailyRain)}mm/jour possible). Risque d'engorgement des parcelles basses et d'erosion des sols.`,
+          title: `Scénario de fortes pluies - ${formatCityName(cityKey)}`,
+          description: `La climatologie mensuelle codée produit un pic indicatif supérieur à ${Math.round(peakDailyRain)} mm/jour. Ce n’est pas une prévision ; confirmez avec le service météo local.`,
           recommendation: `Drainez les parcelles basses. Ne semez pas dans les bas-fonds cette semaine. Protegez les recoltes stockees. Verifiez les digues et canaux de drainage.`,
           affectedCrops: getAffectedCrops('flood', zone),
           timestamp: now.toISOString(),
@@ -197,8 +198,8 @@ function generateAlerts() {
         zone,
         lat: cityData.lat,
         lon: cityData.lon,
-        title: `Stress thermique extreme - ${formatCityName(cityKey)}`,
-        description: `Temperatures maximales prevues de ${tempMax} degres C. Stress thermique severe pour les cultures et le betail. Risque de dessechement rapide des sols.`,
+        title: `Scénario de stress thermique - ${formatCityName(cityKey)}`,
+        description: `La climatologie mensuelle codée estime une maximale de ${tempMax} °C. Ce n’est pas une observation ni une prévision en temps réel.`,
         recommendation: `Irriguez tot le matin ou tard le soir. Protegez le betail (ombre, eau). Evitez les traitements phytosanitaires aux heures chaudes. Paillez abondamment au pied des cultures.`,
         affectedCrops: getAffectedCrops('heat', zone),
         timestamp: now.toISOString(),
@@ -214,8 +215,8 @@ function generateAlerts() {
         zone,
         lat: cityData.lat,
         lon: cityData.lon,
-        title: `Forte chaleur - ${formatCityName(cityKey)}`,
-        description: `Temperatures maximales prevues de ${tempMax} degres C. Stress modere sur les cultures sensibles.`,
+        title: `Scénario de forte chaleur - ${formatCityName(cityKey)}`,
+        description: `La climatologie mensuelle codée estime une maximale de ${tempMax} °C. Ce n’est pas une observation ni une prévision en temps réel.`,
         recommendation: `Augmentez la frequence d'irrigation. Surveillez les signes de fletrissement. Reportez les operations de desherbage aux heures fraiches.`,
         affectedCrops: getAffectedCrops('heat', zone),
         timestamp: now.toISOString(),
@@ -259,9 +260,9 @@ function generateAlerts() {
           zone,
           lat: cityData.lat,
           lon: cityData.lon,
-          title: `Periode de soudure - ${formatCityName(cityKey)}`,
-          description: `Periode de soudure alimentaire en cours. Les stocks cerealiers sont au plus bas et les prix au plus haut avant les prochaines recoltes (octobre).`,
-          recommendation: `Diversifiez l'alimentation (cueillette, petit elevage). Contactez les programmes de filets sociaux. Privilegiez les cultures a cycle court pour une recolte rapide. Consultez les banques cerealieres communautaires.`,
+          title: `Scénario saisonnier de soudure - ${formatCityName(cityKey)}`,
+          description: `La période calendaire correspond habituellement à un risque accru de soudure. Aucun niveau de stock ni prix actuel n’est observé par ce moteur.`,
+          recommendation: `Consultez les évaluations officielles de sécurité alimentaire et les services sociaux locaux. Envisagez, selon le contexte local, la diversification alimentaire et des cultures a cycle court.`,
           affectedCrops: ['Mil (souna)', 'Niebe', 'Mais'],
           timestamp: now.toISOString(),
           expiresAt: getExpiry('food_security')

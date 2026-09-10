@@ -146,7 +146,7 @@ Vous pouvez me poser des questions sur vos cultures, la météo, les prix du mar
 
   riz: `**Culture du riz au Sénégal**
 
-Le Sénégal produit 1.2 million tonnes de paddy (2024) mais importe encore 70% de sa consommation. L'autosuffisance en riz est une priorité nationale.
+Le riz est cultivé au Sénégal en systèmes irrigué, pluvial et de bas-fonds. Les statistiques nationales récentes doivent être consultées avec leur campagne, leur unité et leur source ; ce conseil agronomique ne constitue pas une statistique de production.
 
 **Systèmes de production :**
 - Irrigué (Vallée du Fleuve) : 2 récoltes/an, 5-8 t/ha avec Sahel 108 ou Sahel 202
@@ -166,7 +166,7 @@ Le Sénégal produit 1.2 million tonnes de paddy (2024) mais importe encore 70% 
 
   mais: `**Culture du maïs au Sénégal**
 
-Production nationale : 450 000 tonnes (2024). Cultivé surtout en zone soudanienne et Casamance.
+Cultivé surtout en zone soudanienne et en Casamance. Les chiffres nationaux de production varient selon la campagne et doivent être lus dans la publication officielle correspondante.
 
 **Variétés ISRA :**
 - Early Thai : 75 jours, toutes zones, 2-3 t/ha
@@ -198,10 +198,10 @@ Excellente légumineuse qui fixe l'azote atmosphérique — parfaite en rotation
 
   calendrier: `**Calendrier cultural — que faire et quand ?**
 
-En mai-juin (maintenant) :
+**Avant l'hivernage :**
 - Préparer les sols (labour 15-20cm)
-- Acheter semences certifiées ISRA
-- Retirer votre engrais subventionné
+- Acheter des semences certifiées auprès d'un distributeur agréé
+- Vérifier les modalités courantes d'accès aux intrants
 - Préparer le matériel (semoir, houe sine)
 
 Dès les premières pluies utiles (20-30mm) :
@@ -209,14 +209,12 @@ Dès les premières pluies utiles (20-30mm) :
 - Zone soudanienne : semer arachide, puis mil/maïs
 - Casamance : riz pluvial et maïs
 
-L'ANACIM prévoit un hivernage 2025 normal à excédentaire. Installation des pluies : fin juin au sud, mi-juillet au nord.`,
+Consultez le bulletin saisonnier ANACIM le plus récent avant de fixer la date de semis : une prévision saisonnière n'est pas une observation locale de pluie.`,
 
   engrais: `**Fertilisation — doses recommandées**
 
-**Prix 2025 (subventionnés à 50%) :**
-- NPK 15-15-15 : 18 000 FCFA/sac 50kg
-- Urée 46% : 16 000 FCFA/sac 50kg
-- DAP : 20 000 FCFA/sac 50kg
+**Prix des engrais :**
+Les prix et subventions changent selon la campagne. Vérifiez le barème officiel en vigueur auprès du service départemental de l'agriculture ou d'un point de vente agréé.
 
 **Doses par culture :**
 - Arachide : 150 kg/ha NPK 6-20-10 au semis
@@ -273,18 +271,17 @@ L'ANACIM prévoit un hivernage 2025 normal à excédentaire. Installation des pl
 - Agroforesterie : Faidherbia albida dans les champs (ombre, azote, ne perd pas ses feuilles en hivernage)
 - RNA (Régénération Naturelle Assistée) : protéger les repousses d'arbres`,
 
-  saison: `**Que faire maintenant ? (Mai 2025)**
+  saison: `**Conseils selon la saison actuelle**
 
-Nous sommes en période de pré-hivernage. Voici les actions prioritaires :
+Consultez d'abord la météo de votre ville et le bulletin ANACIM le plus récent. Avant l'hivernage, les actions généralement utiles sont :
 
-1. **Acheter vos semences** certifiées ISRA maintenant (elles seront en rupture en juin)
-2. **Labourer vos parcelles** — labour profond 15-20cm avant les pluies
-3. **Retirer votre engrais** subventionné au point de vente agréé
-4. **Planifier votre rotation** — ne pas remettre la même culture 2 ans de suite
-5. **Préparer le compost** — les résidus de récolte dans la fosse fumière
-6. **Vérifier le matériel** — semoir, houe sine, pulvérisateur
+1. **Vérifier vos semences** et leur taux de germination
+2. **Préparer les parcelles** sans dégrader les sols
+3. **Confirmer la disponibilité des intrants** auprès d'un point agréé
+4. **Planifier la rotation** — ne pas remettre la même culture deux ans de suite
+5. **Préparer le compost** et entretenir le matériel
 
-L'ANACIM prévoit un hivernage 2025 normal à excédentaire. Premières pluies utiles attendues fin juin au sud, mi-juillet au nord.`,
+Ne semez pas sur la seule base d'une date calendaire : attendez une pluie utile observée et tenez compte des conseils agronomiques locaux.`,
 
   default: `Je peux vous aider sur tout ce qui concerne l'agriculture au Sénégal : cultures, semis, engrais, maladies, sols, météo, prix, financement...
 

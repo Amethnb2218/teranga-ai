@@ -119,8 +119,8 @@ function MLResults({ crop, city }) {
           type: 'estimated',
           availability: 'available',
           source: yieldData.ensemble?.data_source || 'Corpus expérimental embarqué',
-          source_url: 'https://www.fao.org/faostat/',
-          note: 'Prototype expérimental : les sorties ne sont pas validées comme recommandations agronomiques de terrain. Le corpus combine valeurs codées et références institutionnelles revendiquées.'
+          source_url: null,
+          note: 'Prototype expérimental : aucune ligne du corpus n’est encore revendiquée comme vérifiée et les sorties ne sont pas validées comme recommandations agronomiques de terrain.'
         }}
         className="mx-5 mt-4"
       />
@@ -165,10 +165,10 @@ function MLResults({ crop, city }) {
                   );
                 })()}
 
-                {yieldData.ensemble?.confidence_interval && (
+                {yieldData.ensemble?.error_band && (
                   <div className="bg-amber-50 rounded-lg p-3 border border-amber-200">
-                    <p className="text-xs font-semibold text-amber-900">Bande indicative dérivée de la MAPE : {yieldData.ensemble.confidence_interval.low}–{yieldData.ensemble.confidence_interval.high} kg/ha</p>
-                    <p className="text-[10px] text-amber-800 mt-1">Bande non calibrée : l’étiquette « {yieldData.ensemble.confidence_interval.level || 'niveau non fourni'} » du backend ne constitue pas un intervalle de confiance statistique validé.</p>
+                    <p className="text-xs font-semibold text-amber-900">Bande indicative dérivée de la MAPE : {yieldData.ensemble.error_band.low}–{yieldData.ensemble.error_band.high} kg/ha</p>
+                    <p className="text-[10px] text-amber-800 mt-1">Bande non calibrée : aucun niveau probabiliste n’est revendiqué.</p>
                   </div>
                 )}
 
@@ -191,7 +191,7 @@ function MLResults({ crop, city }) {
                       <span className="text-xs font-semibold text-stone-700">Parcelles similaires</span>
                     </div>
                     <p className="text-xl font-bold text-stone-800 mb-1">{yieldData.knn?.predicted_yield_kg} kg/ha</p>
-                    <p className="text-xs text-stone-500">Basée sur des parcelles avec les mêmes conditions que vous.</p>
+                    <p className="text-xs text-stone-500">Comparaison à des lignes du corpus expérimental ayant des variables proches.</p>
                   </div>
                 </div>
               </>
@@ -210,9 +210,9 @@ function MLResults({ crop, city }) {
                         <div>Pondération : OLS {yieldData.ensemble.weights?.regression} | KNN {yieldData.ensemble.weights?.knn}</div>
                       </div>
                     </div>
-                  {yieldData.ensemble.confidence_interval && (
+                  {yieldData.ensemble.error_band && (
                     <div className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-2 text-[10px] text-amber-900">
-                      Bande MAPE indicative : {yieldData.ensemble.confidence_interval.low}–{yieldData.ensemble.confidence_interval.high} kg/ha. Non calibrée comme intervalle probabiliste.
+                      Bande MAPE indicative : {yieldData.ensemble.error_band.low}–{yieldData.ensemble.error_band.high} kg/ha. Non calibrée comme intervalle probabiliste.
                     </div>
                   )}
                 </div>
@@ -283,7 +283,9 @@ function MLResults({ crop, city }) {
                 {optimization.optimization && (
                   <div className="bg-stone-100 rounded-lg p-3 text-center">
                     <p className="text-xs text-stone-600">
-                      Gain estimé par rapport à un semis non planifié : <span className="font-bold text-green-700">{optimization.optimization.convergence?.improvement || '+15%'}</span>
+                      {optimization.optimization.convergence?.improvement && (
+                        <>Amélioration interne de la fonction d’optimisation : <span className="font-bold text-green-700">{optimization.optimization.convergence.improvement}</span></>
+                      )}
                     </p>
                   </div>
                 )}
@@ -328,7 +330,7 @@ function MLResults({ crop, city }) {
                     </div>
                     <div>
                       <span className="text-stone-400 block">Amélioration</span>
-                      <span className="font-medium text-green-700">{optimization.optimization?.convergence?.improvement || '+15%'}</span>
+                      <span className="font-medium text-green-700">{optimization.optimization?.convergence?.improvement || 'Non calculée'}</span>
                     </div>
                   </div>
                   <div className="mt-3 pt-2 border-t border-stone-100 text-[10px] text-stone-400 font-mono">

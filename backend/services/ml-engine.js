@@ -403,25 +403,39 @@ const FEATURE_NAMES = [
   'variety_cycle', 'rotation_bonus', 'region_productivity'
 ];
 
+const QUARANTINE_START_YEAR = 2025;
+
+function isQuarantinedRecord(record) {
+  return Number.isFinite(record.year) && record.year >= QUARANTINE_START_YEAR;
+}
+
 function getCorpusManifest() {
   const crops = Object.keys(HISTORICAL_YIELDS);
   const records = Object.values(HISTORICAL_YIELDS).flat();
-  const years = records.map(record => record.year).filter(Number.isFinite);
+  const quarantinedRecords = records.filter(isQuarantinedRecord);
+  const trainingRecords = records.filter(record => !isQuarantinedRecord(record));
+  const trainingYears = trainingRecords.map(record => record.year).filter(Number.isFinite);
+  const embeddedYears = records.map(record => record.year).filter(Number.isFinite);
 
   return {
     corpus_status: 'experimental',
     record_counts: {
       total: records.length,
+      training: trainingRecords.length,
       verified: 0,
-      quarantined: 0,
-      unreviewed: records.length
+      quarantined: quarantinedRecords.length,
+      unreviewed: trainingRecords.length
     },
-    quarantine_reason: null,
-    verification_note: 'No record-level verification or quarantine manifest is available in this repository.',
+    quarantine_reason: 'Records dated 2025-2026 lack traceable record-level artifacts and are excluded from training and validation.',
+    verification_note: 'No remaining training record is claimed as verified; pre-2025 records remain unreviewed.',
     period: {
-      min_year: Math.min(...years),
-      max_year: Math.max(...years),
-      basis: 'minimum and maximum years present in the embedded corpus; record-level temporal provenance unavailable'
+      min_year: Math.min(...trainingYears),
+      max_year: Math.max(...trainingYears),
+      basis: 'years used for model training after excluding quarantined 2025-2026 records'
+    },
+    embedded_period: {
+      min_year: Math.min(...embeddedYears),
+      max_year: Math.max(...embeddedYears)
     },
     crops: { count: crops.length, values: crops },
     features: { count: FEATURE_NAMES.length, values: [...FEATURE_NAMES] },
@@ -879,7 +893,8 @@ const localKnnModels = {};
 const localModelStats = {};
 
 function trainModels() {
-  for (const [crop, data] of Object.entries(HISTORICAL_YIELDS)) {
+  for (const [crop, embeddedData] of Object.entries(HISTORICAL_YIELDS)) {
+    const data = embeddedData.filter(record => !isQuarantinedRecord(record));
     if (data.length < 5) continue;
 
     const X = data.map(d => extractFeatures(d));
@@ -973,7 +988,7 @@ function predictYield(crop, zone, rainTotal, tempAvg, sowMonth) {
   const soilCode = SOIL_CODES[cityFeatures.soil] || 0;
   const zoneCode = ZONE_CODES[actualZone] || 0;
 
-  // Estimate rain distribution from total (calibrated on ANACIM monthly patterns)
+  // Estimate rain distribution with fixed local heuristic ratios.
   const rainJuly = rainTotal * 0.22;
   const rainAug = rainTotal * 0.38;
   const rainSep = rainTotal * 0.28;
@@ -984,7 +999,7 @@ function predictYield(crop, zone, rainTotal, tempAvg, sowMonth) {
   const tempMaxAug = isCounterSeason ? (tempAvg + 5) : (tempAvg + 5);
   const tempStress = Math.max(0, tempMaxAug - 35);
 
-  // Zone-appropriate fertilizer defaults (DAPSA survey averages)
+  // Zone-appropriate fertilizer defaults encoded as experimental assumptions.
   const defaultFertilizer = {
     tomate: 350, oignon: 300, riz: 230, mais: 120, pasteque: 80,
     arachide: 60, mil: 40, sorgho: 60, niebe: 20

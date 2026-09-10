@@ -269,7 +269,7 @@ Deterministic scoring engine combining domain expertise:
 
 | Source | Data Type | Coverage | Update |
 |--------|-----------|----------|--------|
-| [FAOSTAT](https://www.fao.org/faostat) | Official national crop-yield reference series | Senegal, Niger, Mali, Burkina, Tchad | Static references embedded in experimental corpus |
+| [FAOSTAT](https://www.fao.org/faostat) | Declared source family; record-level lineage is not archived | Senegal, Niger, Mali, Burkina, Tchad | Documentary reference only; embedded corpus remains unverified |
 | [World Bank](https://data.worldbank.org) | Cereal-yield reference | 5 Sahel countries | Static reference |
 | [ISRA](https://www.isra.sn) | Crop profiles, varieties | Senegal (6 crops) | Static agronomic reference |
 | [ANACIM](https://www.anacim.sn) | Climate reference | Senegal | Static/historical assumptions; no live API ingestion |

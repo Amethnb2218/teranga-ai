@@ -11,6 +11,8 @@ const speechRoutes = require('./routes/speech');
 const translateRoutes = require('./routes/translate');
 const alertsRoutes = require('./routes/alerts');
 const communityRoutes = require('./routes/community');
+const provenanceRoutes = require('./routes/provenance');
+const { REGISTRY_VERSION } = require('./data/provenance');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 const { getGroqStatus } = require('./services/groq-service');
 const { getGeminiStatus } = require('./services/gemini-service');
@@ -36,6 +38,7 @@ app.use('/api/predict', predictRoutes);
 app.use('/api/ml', mlRoutes);
 app.use('/api/alerts', alertsRoutes);
 app.use('/api/community', communityRoutes);
+app.use('/api/provenance', provenanceRoutes);
 
 app.get('/api/health', (req, res) => {
   const groq = getGroqStatus();
@@ -54,8 +57,9 @@ app.get('/api/health', (req, res) => {
     ai_providers: { groq, gemini },
     ai_fallback_order: ['gemini', 'groq', 'offline'],
     translation: (process.env.HF_API_KEY || process.env.HUGGINGFACE_API_KEY) ? 'nllb (active)' : 'unavailable',
-    weather_source: process.env.OPENWEATHER_API_KEY ? 'openweathermap (live)' : 'model (simulated)',
-    ml_engine: 'v3.0 (12 features, 8 crops, 2015-2026)',
+    weather_source: process.env.OPENWEATHER_API_KEY ? 'openweathermap (live)' : 'climatologie locale (estimated)',
+    ml_engine: 'v3.1 expérimental (13 features, 9 cultures, corpus partiellement traçable)',
+    provenance_registry: REGISTRY_VERSION,
     timestamp: new Date().toISOString()
   });
 });
@@ -67,7 +71,7 @@ if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`Teranga AI v3.1 running on port ${PORT}`);
     console.log(`AI providers: Groq=${getGroqStatus().status}, Gemini=${getGeminiStatus().status}`);
-    console.log(`Weather: ${process.env.OPENWEATHER_API_KEY ? 'OpenWeatherMap (live)' : 'Simulated'}`);
+    console.log(`Weather: ${process.env.OPENWEATHER_API_KEY ? 'OpenWeatherMap (live)' : 'Local climatology (estimated)'}`);
   });
 }
 

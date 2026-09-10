@@ -1,7 +1,6 @@
 /**
  * Base de connaissances agricoles — Sénégal
- * Sources: ISRA, ANACIM, DAPSA, FAO, ANCAR, ARM, CSA
- * Dernière mise à jour: Campagne 2024-2025
+ * Référentiel agronomique local — valeurs à vérifier dans le registre de provenance avant publication
  */
 
 const KNOWLEDGE_BASE = {
@@ -74,7 +73,7 @@ const KNOWLEDGE_BASE = {
     arachide: {
       nom: "Arachide (Arachis hypogaea)",
       importance: "1ère culture de rente du Sénégal, 40% des terres cultivées",
-      production_nationale: "1.8 million tonnes (2024), principalement bassin arachidier",
+      production_nationale: "Voir SESN 2024 dans le registre de provenance (unité du tableau à confirmer)",
       varietes: {
         "55-437": { cycle: 90, zone: "sahélienne, nord bassin arachidier", rendement: "1.5-2 t/ha", usage: "huilerie" },
         "Fleur 11": { cycle: 95, zone: "bassin arachidier nord", rendement: "1.8-2.2 t/ha", usage: "huilerie, résistante sécheresse" },
@@ -104,7 +103,7 @@ const KNOWLEDGE_BASE = {
     mil: {
       nom: "Mil souna (Pennisetum glaucum)",
       importance: "Céréale de base au Sénégal, 1.2 M ha cultivés",
-      production_nationale: "950 000 tonnes (2024)",
+      production_nationale: "Voir SESN 2024 dans le registre de provenance (unité du tableau à confirmer)",
       varietes: {
         "Souna 3": { cycle: 90, zone: "sahélienne", rendement: "1.5-2 t/ha" },
         "Thialack 2": { cycle: 85, zone: "sahélienne/soudanienne", rendement: "1.8-2.2 t/ha" },
@@ -131,7 +130,7 @@ const KNOWLEDGE_BASE = {
     riz: {
       nom: "Riz (Oryza sativa / Oryza glaberrima)",
       importance: "Sénégal importe 70% de son riz. Autosuffisance = priorité nationale",
-      production_nationale: "1.2 million tonnes paddy (2024), objectif 1.6M en 2025",
+      production_nationale: "Voir SESN 2024 dans le registre de provenance (unité du tableau à confirmer)",
       systemes: {
         "irrigue_fleuve": "Vallée du Sénégal, 2 récoltes/an, 5-8 t/ha, variétés Sahel 108/202",
         "pluvial_casamance": "Basse et Moyenne Casamance, 1 récolte, 2-4 t/ha, NERICA",
@@ -152,7 +151,7 @@ const KNOWLEDGE_BASE = {
     },
     mais: {
       nom: "Maïs (Zea mays)",
-      production_nationale: "450 000 tonnes (2024)",
+      production_nationale: "Voir SESN 2024 dans le registre de provenance (unité du tableau à confirmer)",
       varietes: {
         "Early Thai": { cycle: 75, zone: "toutes", rendement: "2-3 t/ha" },
         "Synthetic C": { cycle: 90, zone: "soudanienne", rendement: "3-4 t/ha" },
@@ -275,10 +274,10 @@ const KNOWLEDGE_BASE = {
     }
   },
 
-  // ===== SAISON EN COURS (MAI 2025) =====
+  // ===== CONSEILS PRÉ-CAMPAGNE INTEMPORELS =====
   saison_actuelle: {
-    mois: "Mai 2025",
-    phase: "Pré-hivernage — préparation de la campagne 2025",
+    mois: "Selon le calendrier local et les observations météo",
+    phase: "Consulter la météo et le bulletin saisonnier le plus récent",
     conseils_immediats: [
       "Acheter vos semences certifiées MAINTENANT (disponibilité limitée en juin)",
       "Faire le labour de préparation avant les premières pluies",
@@ -287,7 +286,7 @@ const KNOWLEDGE_BASE = {
       "Préparer les fosses fumières pour le compost",
       "Planifier la rotation : ne pas remettre arachide après arachide"
     ],
-    previsions_hivernage_2025: "ANACIM prévoit un hivernage normal à excédentaire pour 2025. Installation probable des pluies fin juin au sud, mi-juillet au nord."
+    previsions_hivernage_2025: "Archive retirée : consulter la publication ANACIM de la campagne en cours. Une prévision saisonnière ne constitue pas une observation locale."
   }
 };
 

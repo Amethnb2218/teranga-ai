@@ -15,13 +15,6 @@ const COUNTRIES = [
   { flag: '\u{1F1F9}\u{1F1E9}', name: 'Tchad' },
 ];
 
-const DEMO_ALERTS = [
-  { id: 1, type: 'drought', severity: 'critical', location: 'Tillabéri, Niger', title: 'Sécheresse critique', description: 'Déficit pluviométrique sévère. Semis compromis pour le mil et le sorgho.', recommendation: 'Reporter les semis. Privilégier les variétés à cycle court.' },
-  { id: 2, type: 'flood', severity: 'high', location: 'Matam, Sénégal', title: 'Risque d\'inondation élevé', description: 'Crue du fleuve attendue dans 7-10 jours. Zones basses menacées.', recommendation: 'Déplacer les stocks. Préparer les parcelles surélevées.' },
-  { id: 3, type: 'food_crisis', severity: 'medium', location: 'Diffa, Niger', title: 'Stress alimentaire', description: 'Prix des céréales en hausse de 40%. Stocks communautaires bas.', recommendation: 'Activer les banques céréalières. Diversifier les sources.' },
-  { id: 4, type: 'pest', severity: 'high', location: 'Kayes, Mali', title: 'Invasion acridienne', description: 'Essaims de criquets détectés. Progression vers les zones cultivées.', recommendation: 'Alerte aux services phytosanitaires. Surveillance renforcée.' },
-];
-
 const SEVERITY_CONFIG = {
   critical: { bg: 'bg-red-50', border: 'border-l-red-600', badge: 'bg-red-100 text-red-800', label: 'Critique' },
   high: { bg: 'bg-orange-50', border: 'border-l-orange-500', badge: 'bg-orange-100 text-orange-800', label: 'Élevé' },
@@ -37,17 +30,20 @@ const HERO_IMAGES = [
 ];
 
 function Hero({ onStart, onNavigate }) {
-  const [alerts, setAlerts] = useState(DEMO_ALERTS);
+  const [alerts, setAlerts] = useState([]);
+  const [alertsNotice, setAlertsNotice] = useState('Chargement des scénarios indicatifs…');
   const [currentImage, setCurrentImage] = useState(0);
 
   useEffect(() => {
     fetchAlerts({ limit: 4 })
       .then(data => {
-        if (data && data.alerts && data.alerts.length > 0) {
-          setAlerts(data.alerts.slice(0, 4));
-        }
+        setAlerts(Array.isArray(data?.alerts) ? data.alerts.slice(0, 4) : []);
+        setAlertsNotice(data?.notice || 'Scénarios indicatifs calculés localement, non alertes institutionnelles.');
       })
-      .catch(() => {});
+      .catch(() => {
+        setAlerts([]);
+        setAlertsNotice('Scénarios indisponibles. Consultez les services officiels locaux.');
+      });
   }, []);
 
   useEffect(() => {
@@ -125,8 +121,8 @@ function Hero({ onStart, onNavigate }) {
               <p className="text-xs text-slate-400 mt-1 font-medium">Pays couverts</p>
             </div>
             <div className="text-center">
-              <div className="text-2xl md:text-3xl font-bold text-purple-400">90%</div>
-              <p className="text-xs text-slate-400 mt-1 font-medium">Femmes dans le r&eacute;seau</p>
+              <div className="text-2xl md:text-3xl font-bold text-purple-400">Estimation</div>
+              <p className="text-xs text-slate-400 mt-1 font-medium">Scénarios à confirmer</p>
             </div>
             <div className="text-center">
               <div className="text-2xl md:text-3xl font-bold text-amber-400">41</div>
@@ -149,8 +145,9 @@ function Hero({ onStart, onNavigate }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 md:py-16">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <p className="section-label mb-1">Situation en cours</p>
-              <h2 className="text-xl md:text-2xl font-bold text-slate-900">Alertes actives</h2>
+              <p className="section-label mb-1">Indications locales</p>
+              <h2 className="text-xl md:text-2xl font-bold text-slate-900">Scénarios de vigilance</h2>
+              <p className="text-xs text-slate-500 mt-1">{alertsNotice}</p>
             </div>
             <button
               onClick={() => onNavigate('alerts')}
@@ -161,7 +158,8 @@ function Hero({ onStart, onNavigate }) {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {alerts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {alerts.slice(0, 4).map((alert, idx) => {
               const config = SEVERITY_CONFIG[alert.severity] || SEVERITY_CONFIG.medium;
               return (
@@ -180,7 +178,12 @@ function Hero({ onStart, onNavigate }) {
                 </div>
               );
             })}
-          </div>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">
+              Aucun scénario disponible. Pour une alerte opérationnelle, consultez les autorités météo et de protection civile.
+            </div>
+          )}
         </div>
       </section>
 
@@ -201,7 +204,7 @@ function Hero({ onStart, onNavigate }) {
               </div>
               <h3 className="font-bold text-slate-900 mb-2">Alertes Pr&eacute;coces</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                D&eacute;tection de s&eacute;cheresses, inondations et crises alimentaires 2-4 semaines avant. 10 pays du Sahel.
+                Scénarios indicatifs de sécheresse, fortes pluies et stress thermique issus d’une climatologie locale. À confirmer auprès des services officiels.
               </p>
             </div>
 
@@ -221,7 +224,7 @@ function Hero({ onStart, onNavigate }) {
               </div>
               <h3 className="font-bold text-slate-900 mb-2">R&eacute;seau Femmes</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                1 700+ agricultrices connect&eacute;es. Observations terrain, alertes communautaires, partage de techniques.
+                Réseau communautaire en développement. Observations terrain, partage de techniques et entraide locale.
               </p>
             </div>
 
@@ -241,7 +244,7 @@ function Hero({ onStart, onNavigate }) {
               </div>
               <h3 className="font-bold text-slate-900 mb-2">M&eacute;t&eacute;o & March&eacute;s</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                M&eacute;t&eacute;o temps r&eacute;el, prix des c&eacute;r&eacute;ales, tendances. Donn&eacute;es OpenWeatherMap + FAO/GIEWS.
+                Météo OpenWeatherMap lorsqu’elle est disponible, climatologie locale estimée et prix de marché simulés clairement signalés.
               </p>
             </div>
 
@@ -258,42 +261,31 @@ function Hero({ onStart, onNavigate }) {
         </div>
       </section>
 
-      {/* Impact Section */}
+      {/* Validation goals */}
       <section className="bg-teal-50 border-y border-teal-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 md:py-16">
           <div className="text-center mb-10">
-            <p className="section-label mb-2">R&eacute;sultats</p>
+            <p className="section-label mb-2">Objectifs de validation</p>
             <h2 className="text-2xl md:text-3xl font-bold text-slate-900">
-              Impact mesurable sur les communaut&eacute;s
+              Impacts à mesurer avec les communautés
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white rounded-xl p-6 border border-teal-100 text-center">
-              <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FiUsers className="text-teal-700" size={22} />
-              </div>
-              <h4 className="font-bold text-slate-900 mb-2">Femmes agricultrices</h4>
-              <p className="text-2xl font-bold text-teal-700 mb-2">+34%</p>
-              <p className="text-sm text-slate-600">de revenus pour les utilisatrices connect&eacute;es aux march&eacute;s</p>
+              <FiUsers className="text-teal-700 mx-auto mb-4" size={24} />
+              <h4 className="font-bold text-slate-900 mb-2">Accès au marché</h4>
+              <p className="text-sm text-slate-600">Mesurer l’évolution des revenus avant toute revendication d’impact.</p>
             </div>
-
             <div className="bg-white rounded-xl p-6 border border-teal-100 text-center">
-              <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FiShield className="text-teal-700" size={22} />
-              </div>
-              <h4 className="font-bold text-slate-900 mb-2">R&eacute;silience climatique</h4>
-              <p className="text-2xl font-bold text-teal-700 mb-2">2-4 sem.</p>
-              <p className="text-sm text-slate-600">d&rsquo;anticipation sur les &eacute;v&eacute;nements climatiques extr&ecirc;mes</p>
+              <FiShield className="text-teal-700 mx-auto mb-4" size={24} />
+              <h4 className="font-bold text-slate-900 mb-2">Décision climatique</h4>
+              <p className="text-sm text-slate-600">Comparer les scénarios locaux aux bulletins officiels et aux observations terrain.</p>
             </div>
-
             <div className="bg-white rounded-xl p-6 border border-teal-100 text-center">
-              <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FiMapPin className="text-teal-700" size={22} />
-              </div>
-              <h4 className="font-bold text-slate-900 mb-2">S&eacute;curit&eacute; alimentaire</h4>
-              <p className="text-2xl font-bold text-teal-700 mb-2">-35%</p>
-              <p className="text-sm text-slate-600">de pertes de r&eacute;coltes &eacute;vitables gr&acirc;ce aux alertes pr&eacute;coces</p>
+              <FiMapPin className="text-teal-700 mx-auto mb-4" size={24} />
+              <h4 className="font-bold text-slate-900 mb-2">Pertes agricoles</h4>
+              <p className="text-sm text-slate-600">Évaluer les pertes évitées par essais pilotes, sans chiffre non vérifié.</p>
             </div>
           </div>
         </div>
@@ -311,7 +303,7 @@ function Hero({ onStart, onNavigate }) {
               Intelligence algorithmique, pas un simple wrapper IA
             </h2>
             <p className="text-slate-400 max-w-2xl mx-auto text-sm leading-relaxed">
-              5 algorithmes impl&eacute;ment&eacute;s sans aucune librairie ML externe. Code math&eacute;matique pur, entra&icirc;n&eacute; sur 10 ans de donn&eacute;es terrain.
+              5 algorithmes impl&eacute;ment&eacute;s sans librairie ML externe. Corpus exp&eacute;rimental embarqu&eacute; : 265 lignes 2015-2024 utilis&eacute;es, aucune encore revendiqu&eacute;e comme v&eacute;rifi&eacute;e.
             </p>
           </div>
 
@@ -395,16 +387,16 @@ function Hero({ onStart, onNavigate }) {
 
           <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-500">
             <span className="flex items-center gap-2">
+              <span className="w-2 h-2 bg-amber-500 rounded-full"></span>
+              Corpus exp&eacute;rimental non v&eacute;rifi&eacute;
+            </span>
+            <span className="flex items-center gap-2">
               <span className="w-2 h-2 bg-teal-500 rounded-full"></span>
-              Donn&eacute;es ISRA (2015-2024)
+              265 lignes d&rsquo;entra&icirc;nement (2015-2024)
             </span>
             <span className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              Climatologie ANACIM / AGRHYMET
-            </span>
-            <span className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-              Statistiques FAO/GIEWS
+              <span className="w-2 h-2 bg-red-400 rounded-full"></span>
+              39 lignes 2025-2026 en quarantaine
             </span>
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 bg-purple-500 rounded-full"></span>

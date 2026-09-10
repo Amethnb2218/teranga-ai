@@ -30,7 +30,7 @@ function isRealUrl(value) {
 }
 
 function NewsSection({ news, provenance }) {
-  if (!news || !news.news || news.news.length === 0) return null;
+  const hasNews = news?.news?.length > 0;
 
   return (
     <section className="mt-8">
@@ -42,18 +42,19 @@ function NewsSection({ news, provenance }) {
         provenance={provenance}
         scope="news"
         title="Origine des actualités"
-        fallback={news.provenance || {
-          type: news.news.some(item => isRealUrl(item.link)) ? 'live' : 'static',
-          availability: news.news.some(item => isRealUrl(item.link)) ? 'available' : 'unavailable',
-          source: news.news.some(item => isRealUrl(item.link)) ? 'Google News RSS' : 'Contenu de démonstration interne',
-          source_url: news.news.some(item => isRealUrl(item.link)) ? 'https://news.google.com/' : null,
-          note: news.news.some(item => isRealUrl(item.link))
+        fallback={news?.provenance || {
+          type: hasNews && news.news.some(item => isRealUrl(item.link)) ? 'live' : 'static',
+          availability: hasNews && news.news.some(item => isRealUrl(item.link)) ? 'available' : 'unavailable',
+          source: 'Google News RSS',
+          source_url: 'https://news.google.com/',
+          note: hasNews && news.news.some(item => isRealUrl(item.link))
             ? 'Articles issus du flux RSS ; seuls les éléments ayant une URL réelle sont cliquables.'
-            : 'Le flux RSS est indisponible. Les titres affichés sont statiques et ne sont pas des actualités vérifiées en direct.'
+            : 'Le flux RSS est indisponible. Aucun faux article ni titre de secours n’est affiché.'
         }}
         className="mb-4"
       />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      {hasNews ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {news.news.slice(0, 6).map((item, i) => {
           const linked = isRealUrl(item.link);
           const Card = linked ? 'a' : 'article';
@@ -83,7 +84,12 @@ function NewsSection({ news, provenance }) {
           </Card>
           );
         })}
-      </div>
+        </div>
+      ) : (
+        <div className="rounded-lg border border-dashed border-stone-300 bg-stone-50 p-6 text-center text-sm text-stone-500">
+          Flux d’actualités indisponible. Aucun article de secours n’est généré.
+        </div>
+      )}
     </section>
   );
 }

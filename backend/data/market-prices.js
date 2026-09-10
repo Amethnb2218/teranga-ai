@@ -1,4 +1,4 @@
-// Prix indicatifs 2025-2026 basés sur données FAO/GIEWS, CSA Sénégal
+// Barèmes locaux indicatifs utilisés pour une simulation; aucune observation récente n'est archivée.
 // Dernière mise à jour : mai 2026
 // Sources : FAO Country Brief Oct 2024, tendances WFP, ARM Sénégal
 const MARKET_DATA = {

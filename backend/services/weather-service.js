@@ -1,5 +1,6 @@
 const { SAHEL_CITIES, MONTH_DATA } = require('../config/constants');
 const { fetchRealWeather } = require('./external/weather-api');
+const { getDatasetProvenance } = require('./provenance-service');
 
 function generateFallbackForecast(cityKey, zone) {
   const now = new Date();
@@ -83,7 +84,13 @@ async function getCityWeather(cityKey) {
     return {
       ...realWeather,
       current_season: season,
-      agricultural_advice: getSeasonalAdvice(season, cityData.zone)
+      agricultural_advice: getSeasonalAdvice(season, cityData.zone),
+      availability: 'available',
+      served_at: new Date().toISOString(),
+      provenance: getDatasetProvenance('weather_openweathermap', {
+        observed_at: realWeather.last_updated,
+        retrieved_at: realWeather.last_updated
+      })
     };
   }
 
@@ -96,7 +103,10 @@ async function getCityWeather(cityKey) {
     forecast: generateFallbackForecast(cityKey, cityData.zone),
     agricultural_advice: getSeasonalAdvice(season, cityData.zone),
     source: 'model',
-    last_updated: new Date().toISOString()
+    last_updated: new Date().toISOString(),
+    served_at: new Date().toISOString(),
+    availability: 'degraded',
+    provenance: getDatasetProvenance('weather_seasonal_fallback')
   };
 }
 

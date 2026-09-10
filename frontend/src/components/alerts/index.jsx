@@ -47,117 +47,10 @@ const TYPE_LABELS = {
   conflict: 'Conflit',
 };
 
-// Demo data for when API is unavailable
-const DEMO_ALERTS = [
-  {
-    id: 1,
-    type: 'drought',
-    severity: 'critical',
-    country: 'niger',
-    location: 'Tillaberi, Niger',
-    title: 'Secheresse critique — Tillaberi',
-    description: 'Deficit pluviometrique de 60% sur les 30 derniers jours. Les semis de mil et sorgho sont severement compromis. La nappe phreatique est au niveau le plus bas depuis 2012.',
-    recommendation: 'Reporter les semis de 2-3 semaines. Privilegier les varietes a cycle court (75 jours). Activer les reserves de semences communautaires.',
-    affected_crops: ['Mil', 'Sorgho', 'Niebe'],
-    timestamp: '2026-07-15T08:30:00Z',
-    expires: '2026-07-22T08:30:00Z',
-  },
-  {
-    id: 2,
-    type: 'flood',
-    severity: 'high',
-    country: 'senegal',
-    location: 'Matam, Senegal',
-    title: 'Risque d\'inondation eleve — Matam',
-    description: 'Montee des eaux du fleuve Senegal. Crue attendue dans 7-10 jours. Les zones de culture de berge sont directement menacees.',
-    recommendation: 'Deplacer les stocks de cereales en hauteur. Preparer les parcelles sureleves pour le repiquage. Alerter les communautes riveraines.',
-    affected_crops: ['Riz', 'Mais', 'Tomate'],
-    timestamp: '2026-07-14T14:00:00Z',
-    expires: '2026-07-28T14:00:00Z',
-  },
-  {
-    id: 3,
-    type: 'food_crisis',
-    severity: 'medium',
-    country: 'niger',
-    location: 'Diffa, Niger',
-    title: 'Stress alimentaire — Diffa',
-    description: 'Prix des cereales en hausse de 40% par rapport a la moyenne saisonniere. Stocks communautaires au niveau le plus bas. Population deplacee en augmentation.',
-    recommendation: 'Activer les banques cerealieres. Diversifier les sources d\'approvisionnement. Coordonner avec PAM et ONG locales.',
-    affected_crops: ['Mil', 'Sorgho', 'Riz'],
-    timestamp: '2026-07-13T10:00:00Z',
-    expires: '2026-08-13T10:00:00Z',
-  },
-  {
-    id: 4,
-    type: 'pest',
-    severity: 'high',
-    country: 'mali',
-    location: 'Kayes, Mali',
-    title: 'Invasion acridienne — Kayes',
-    description: 'Essaims de criquets pelerins detectes en progression vers les zones cultivees. Superficie menacee estimee a 15,000 hectares.',
-    recommendation: 'Alerte aux services phytosanitaires. Traitement preventif des parcelles. Surveillance renforcee avec signalement communautaire.',
-    affected_crops: ['Mil', 'Sorgho', 'Mais', 'Arachide'],
-    timestamp: '2026-07-15T06:00:00Z',
-    expires: '2026-07-25T06:00:00Z',
-  },
-  {
-    id: 5,
-    type: 'drought',
-    severity: 'medium',
-    country: 'burkina_faso',
-    location: 'Sahel, Burkina Faso',
-    title: 'Retard des pluies — Region du Sahel',
-    description: 'Debut de saison des pluies retarde de 15 jours. Impact modere sur les cultures pluviales. Irrigation d\'appoint recommandee.',
-    recommendation: 'Attendre confirmation des pluies avant semis definitifs. Preparer irrigation d\'appoint si disponible.',
-    affected_crops: ['Sorgho', 'Niebe'],
-    timestamp: '2026-07-12T09:00:00Z',
-    expires: '2026-07-26T09:00:00Z',
-  },
-  {
-    id: 6,
-    type: 'flood',
-    severity: 'critical',
-    country: 'cameroun',
-    location: 'Extreme-Nord, Cameroun',
-    title: 'Inondation majeure — Logone',
-    description: 'Debordement du Logone en cours. 3 arrondissements touches. Milliers d\'hectares de riz submerges. Evacuation en cours.',
-    recommendation: 'Evacuation immediate des zones basses. Semences de remplacement a mobiliser pour replantation post-crue.',
-    affected_crops: ['Riz', 'Oignon', 'Mais'],
-    timestamp: '2026-07-15T12:00:00Z',
-    expires: '2026-07-30T12:00:00Z',
-  },
-  {
-    id: 7,
-    type: 'drought',
-    severity: 'high',
-    country: 'mauritanie',
-    location: 'Hodh El Gharbi, Mauritanie',
-    title: 'Secheresse severe — Hodh El Gharbi',
-    description: 'Cumul pluviometrique inferieur a 50% de la normale. Paturages degradees. Transhumance precoce observee.',
-    recommendation: 'Supplementation alimentaire du betail. Points d\'eau a securiser. Alerte eleveurs nomades.',
-    affected_crops: ['Mil', 'Sorgho'],
-    timestamp: '2026-07-14T07:00:00Z',
-    expires: '2026-07-28T07:00:00Z',
-  },
-  {
-    id: 8,
-    type: 'food_crisis',
-    severity: 'critical',
-    country: 'tchad',
-    location: 'Lac, Tchad',
-    title: 'Crise alimentaire — Region du Lac',
-    description: 'Phase 4 IPC (urgence) declaree. Deplacement de populations. Acces humanitaire limite. Recolte precedente perdue a 70%.',
-    recommendation: 'Intervention humanitaire urgente. Distribution alimentaire. Semences et outils pour saison en cours.',
-    affected_crops: ['Mil', 'Sorgho', 'Niebe', 'Arachide'],
-    timestamp: '2026-07-10T08:00:00Z',
-    expires: '2026-08-10T08:00:00Z',
-  },
-];
-
 function Alerts() {
-  const [alerts, setAlerts] = useState(DEMO_ALERTS);
+  const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [notice, setNotice] = useState('Chargement des scénarios indicatifs…');
   const [countryFilter, setCountryFilter] = useState('all');
   const [severityFilter, setSeverityFilter] = useState('all');
   const [summary, setSummary] = useState(null);
@@ -171,17 +64,17 @@ function Alerts() {
     setLoading(true);
     try {
       const data = await fetchAlerts({});
-      if (data && data.alerts && data.alerts.length > 0) {
-        const mapped = data.alerts.map(a => ({
-          ...a,
-          location: a.location || `${formatCity(a.city)}, ${a.country}`,
-          affected_crops: a.affected_crops || a.affectedCrops || [],
-          expires: a.expires || a.expiresAt,
-        }));
-        setAlerts(mapped);
-      }
+      const mapped = (Array.isArray(data?.alerts) ? data.alerts : []).map(a => ({
+        ...a,
+        location: a.location || `${formatCity(a.city)}, ${a.country}`,
+        affected_crops: a.affected_crops || a.affectedCrops || [],
+        expires: a.expires || a.expiresAt,
+      }));
+      setAlerts(mapped);
+      setNotice(data?.notice || 'Scénarios indicatifs calculés localement, non alertes institutionnelles.');
     } catch {
-      // Use demo data
+      setAlerts([]);
+      setNotice('Scénarios indisponibles. Consultez les autorités météo et de protection civile locales.');
     } finally {
       setLoading(false);
     }
@@ -199,7 +92,7 @@ function Alerts() {
       const data = await fetchAlertsSummary();
       if (data) setSummary(data);
     } catch {
-      // Will compute from demo data
+      setSummary(null);
     }
   };
 
@@ -246,9 +139,9 @@ function Alerts() {
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
               <FiAlertTriangle className="text-amber-300" size={22} />
-              Centre d&rsquo;Alertes Climatiques
+              Centre de scénarios climatiques
             </h2>
-            <p className="text-amber-100 text-sm mt-1">Surveillance en temps r&eacute;el &mdash; 10 pays du Sahel</p>
+            <p className="text-amber-100 text-sm mt-1">Scénarios climatiques indicatifs &mdash; 10 pays du Sahel</p>
           </div>
         </div>
       </div>
@@ -259,9 +152,9 @@ function Alerts() {
           <div>
             <h1 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
               <FiAlertTriangle className="text-amber-400" size={20} />
-              Centre d'Alertes — Sahel
+              Scénarios de vigilance — Sahel
             </h1>
-            <p className="text-slate-400 text-sm mt-1">Surveillance en temps réel des risques climatiques et alimentaires</p>
+            <p className="text-slate-400 text-sm mt-1">{notice}</p>
           </div>
           <button
             onClick={loadAlerts}
@@ -276,15 +169,15 @@ function Alerts() {
         <div className="grid grid-cols-3 gap-4 mt-5 pt-5 border-t border-slate-700">
           <div className="text-center">
             <div className="text-2xl font-bold text-white">{stats.total}</div>
-            <p className="text-xs text-slate-400">alertes actives</p>
+            <p className="text-xs text-slate-400">scénarios calculés</p>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-amber-400">{stats.countries}</div>
-            <p className="text-xs text-slate-400">pays touchés</p>
+            <p className="text-xs text-slate-400">pays concernés</p>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-red-400">{stats.critical}</div>
-            <p className="text-xs text-slate-400">en critique</p>
+            <p className="text-xs text-slate-400">scénarios critiques</p>
           </div>
         </div>
       </div>
@@ -331,14 +224,14 @@ function Alerts() {
           {loading && (
             <div className="text-center py-12">
               <div className="inline-block w-6 h-6 border-2 border-teal-700 border-t-transparent rounded-full animate-spin mb-3"></div>
-              <p className="text-sm text-slate-500">Chargement des alertes...</p>
+              <p className="text-sm text-slate-500">Chargement des scénarios...</p>
             </div>
           )}
 
           {!loading && filteredAlerts.length === 0 && (
             <div className="text-center py-12 bg-white rounded-xl border border-slate-200">
               <FiAlertTriangle size={32} className="mx-auto text-slate-300 mb-3" />
-              <p className="text-sm text-slate-500">Aucune alerte pour ces filtres</p>
+              <p className="text-sm text-slate-500">Aucun scénario disponible pour ces filtres. Consultez les services officiels pour les alertes opérationnelles.</p>
             </div>
           )}
 
@@ -476,7 +369,7 @@ function Alerts() {
           {/* Data source notice */}
           <div className="bg-slate-50 rounded-xl border border-slate-200 p-4">
             <p className="text-[10px] text-slate-500 leading-relaxed">
-              <strong className="text-slate-600">Sources :</strong> FEWS NET, IPC/CH, OCHA, AGRHYMET/CILSS, services meteo nationaux. Données actualisées toutes les 6 heures.
+              <strong className="text-slate-600">Statut :</strong> scénarios locaux estimés depuis une climatologie codée. Ils ne sont alimentés ni par FEWS NET, ni par IPC/CH, ni par OCHA ou AGRHYMET et doivent être confirmés auprès des services officiels.
             </p>
           </div>
         </div>

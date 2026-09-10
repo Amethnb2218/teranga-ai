@@ -12,8 +12,8 @@ const SOURCES = [
         name: 'ISRA',
         full: 'Institut Sénégalais de Recherches Agricoles',
         url: 'https://www.isra.sn',
-        desc: 'Variétés certifiées (Souna 3, Fleur 11, 55-437, Sahel 108...), itinéraires techniques, calendriers culturaux, résultats d\'essais variétaux.',
-        data: 'Fiches techniques par culture, rendements en station, recommandations variétales par zone agro-écologique'
+        desc: 'Publications et ressources agronomiques consultables comme références documentaires.',
+        data: 'Référence documentaire uniquement ; aucune alimentation directe du moteur ML n’est démontrée.'
       },
       {
         name: 'ANCAR',
@@ -39,15 +39,15 @@ const SOURCES = [
         name: 'ANACIM',
         full: 'Agence Nationale de l\'Aviation Civile et de la Météorologie',
         url: 'https://www.anacim.sn',
-        desc: 'Données climatologiques sur 30 ans, prévisions saisonnières, bulletins agro-météorologiques décadaires.',
-        data: 'Pluviométrie mensuelle/annuelle par station (1994-2024), températures, ETP, dates d\'installation des pluies'
+        desc: 'Publications climatologiques et bulletins agro-météorologiques à consulter directement comme références officielles.',
+        data: 'Référence documentaire uniquement ; le fallback climatique local n’est pas une observation ANACIM.'
       },
       {
-        name: 'Open-Meteo',
-        full: 'API météo open-source',
-        url: 'https://open-meteo.com',
-        desc: 'Prévisions météorologiques 7 jours, données historiques, modèles de réanalyse ERA5.',
-        data: 'Prévisions température, pluie, humidité, vent — utilisées pour les alertes en temps réel'
+        name: 'OpenWeatherMap',
+        full: 'API météorologique OpenWeather',
+        url: 'https://openweathermap.org/forecast5',
+        desc: 'Prévisions fournisseur sur cinq jours, utilisées seulement lorsque la clé et le service sont disponibles.',
+        data: 'Météo fournisseur en direct ou en cache (30 minutes maximum) ; le fallback local est une estimation distincte.'
       }
     ]
   },
@@ -86,8 +86,8 @@ const SOURCES = [
         name: 'DAPSA',
         full: 'Direction de l\'Analyse, de la Prévision et des Statistiques Agricoles',
         url: 'https://www.dapsa.gouv.sn',
-        desc: 'Statistiques agricoles officielles du Sénégal. Production, superficies, rendements par culture et par région.',
-        data: 'Séries historiques 2015-2024 : production (tonnes), superficie (ha), rendement (kg/ha) — par région et par culture'
+        desc: 'Portail institutionnel de statistiques agricoles à consulter comme source primaire.',
+        data: 'Référence documentaire ; le corpus embarqué ne conserve pas la traçabilité ligne par ligne nécessaire pour lui attribuer ces valeurs.'
       },
       {
         name: 'ANSD',
@@ -101,7 +101,7 @@ const SOURCES = [
 ];
 
 function sourceFallback(source) {
-  if (source.name === 'Open-Meteo') {
+  if (source.name === 'OpenWeatherMap') {
     return {
       type: 'live',
       availability: 'conditional',
@@ -111,11 +111,11 @@ function sourceFallback(source) {
     };
   }
   return {
-    type: 'official',
+    type: 'static',
     availability: 'available',
     source: source.name,
     source_url: source.url,
-    note: 'Référence institutionnelle publique. Sa citation ne signifie pas que chaque valeur de l’application est récupérée directement auprès de cette institution.'
+    note: 'Référence documentaire publique. Sa citation ne signifie pas que les valeurs de l’application proviennent directement de cette institution.'
   };
 }
 
@@ -215,7 +215,7 @@ function Sources() {
           <div>
             <h3 className="font-semibold text-stone-800 mb-2">Prédiction de rendement</h3>
             <ul className="space-y-1.5">
-              <li className="flex gap-2"><span className="text-amber-600">•</span>Régression linéaire multiple (OLS) entraînée sur données DAPSA/ANACIM 2015-2024</li>
+              <li className="flex gap-2"><span className="text-amber-600">•</span>Régression Ridge/OLS entraînée sur 265 lignes embarquées de 2015-2024, encore non examinées</li>
               <li className="flex gap-2"><span className="text-amber-600">•</span>KNN (k=3) avec pondération inverse de la distance euclidienne</li>
               <li className="flex gap-2"><span className="text-amber-600">•</span>Ridge/OLS et KNN combinés avec des poids calculés par le moteur</li>
               <li className="flex gap-2"><span className="text-amber-600">•</span>Variables : pluviométrie, température, mois de semis, zone agro-écologique</li>
@@ -243,7 +243,7 @@ function Sources() {
               <li className="flex gap-2"><span className="text-amber-600">•</span>Les prédictions sont des estimations basées sur les moyennes historiques</li>
               <li className="flex gap-2"><span className="text-amber-600">•</span>Elles ne remplacent pas l'expertise d'un technicien de terrain</li>
               <li className="flex gap-2"><span className="text-amber-600">•</span>Les métriques ML et bandes dérivées de la MAPE sont expérimentales et non calibrées pour un intervalle probabiliste</li>
-              <li className="flex gap-2"><span className="text-amber-600">•</span>La météo peut être en direct ou simulée ; les prix sont indicatifs et simulés, jamais des garanties</li>
+              <li className="flex gap-2"><span className="text-amber-600">•</span>La météo peut être en direct ou estimée par climatologie locale ; les prix sont indicatifs et simulés, jamais des garanties</li>
               <li className="flex gap-2"><span className="text-amber-600">•</span>Toujours consulter l'agent ANCAR de votre zone pour valider</li>
             </ul>
           </div>

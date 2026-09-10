@@ -1,4 +1,5 @@
 const { getDynamicPrices, getPriceHistory } = require('./external/price-updater');
+const { getDatasetProvenance } = require('./provenance-service');
 
 function getMarketPrices(category, city) {
   const currentPrices = getDynamicPrices();
@@ -23,11 +24,16 @@ function getMarketPrices(category, city) {
     result = filtered;
   }
 
+  const servedAt = new Date().toISOString();
   return {
     currency: 'FCFA',
-    last_updated: new Date().toISOString(),
-    source: 'Données actualisées (FAO/CSA/ARM Sénégal)',
-    note: 'Prix indicatifs basés sur les moyennes des marchés locaux, ajustés en temps réel',
+    last_updated: servedAt,
+    served_at: servedAt,
+    observed_at: null,
+    availability: 'degraded',
+    source: 'Simulation locale indicative — aucun relevé de marché en temps réel',
+    note: 'Prix simulés à partir de valeurs statiques et de multiplicateurs saisonniers. Ne pas utiliser comme cotation officielle.',
+    provenance: getDatasetProvenance('market_prices_simulation'),
     data: result
   };
 }
@@ -50,7 +56,14 @@ function getMarketTrends() {
       }
     }
   }
-  return { trends, last_updated: new Date().toISOString() };
+  const servedAt = new Date().toISOString();
+  return {
+    trends,
+    last_updated: servedAt,
+    served_at: servedAt,
+    availability: 'degraded',
+    provenance: getDatasetProvenance('market_prices_simulation')
+  };
 }
 
 function getProductHistory(productName, city, days) {

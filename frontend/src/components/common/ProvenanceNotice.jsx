@@ -50,9 +50,10 @@ function ProvenanceNotice({ provenance, fallback = null, scope, title, className
   const type = TYPE_META[rawType] ? rawType : 'static';
   const meta = TYPE_META[type];
   const availability = availabilityLabel(record.available ?? record.availability ?? record.status);
-  const source = record.source_name || record.source || record.provider || record.name;
-  const url = record.source_url || record.url || record.link;
-  const detail = record.note || record.description || record.details;
+  const sourceRecord = record.source && typeof record.source === 'object' ? record.source : null;
+  const source = record.source_name || sourceRecord?.organization || sourceRecord?.name || record.source || record.provider || record.name;
+  const url = record.source_url || sourceRecord?.url || record.url || record.link;
+  const detail = record.note || record.description || record.details || record.limitations?.join(' ');
 
   return (
     <div className={`rounded-lg border border-stone-200 bg-white px-3 py-2.5 text-xs text-stone-600 ${className}`}>
@@ -63,7 +64,7 @@ function ProvenanceNotice({ provenance, fallback = null, scope, title, className
           {meta.label}
         </span>
         {availability && <span className="text-stone-500">{availability}</span>}
-        {source && <span className="text-stone-500">Source : {source}</span>}
+        {source && <span className="text-stone-500">Source : {typeof source === 'string' ? source : source.name}</span>}
         {isRealUrl(url) && (
           <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-medium text-amber-800 hover:underline">
             Consulter <FiExternalLink size={11} aria-hidden="true" />

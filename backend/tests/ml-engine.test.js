@@ -32,12 +32,14 @@ console.log('▸ Model Metrics');
 const corpus = getCorpusManifest();
 assert(corpus.corpus_status === 'experimental', 'Corpus is explicitly experimental');
 assert(corpus.record_counts.total === 304, 'Corpus exposes its exact record count');
+assert(corpus.record_counts.training === 265, 'Only pre-2025 records are used for training');
 assert(corpus.record_counts.verified === 0, 'No records are claimed as verified without lineage');
-assert(corpus.record_counts.quarantined === 0, 'No records are claimed as quarantined without a manifest');
-assert(corpus.record_counts.unreviewed === corpus.record_counts.total, 'Records without review evidence are counted as unreviewed');
+assert(corpus.record_counts.quarantined === 39, 'The 2025-2026 records are explicitly quarantined');
+assert(corpus.record_counts.unreviewed === corpus.record_counts.training, 'Pre-2025 records without review evidence are counted as unreviewed');
 assert(corpus.features.count === 13, 'Manifest reports the 13 implemented features');
 assert(corpus.crops.count === 9, 'Manifest reports the 9 trained crops');
-assert(corpus.period.min_year === 2015 && corpus.period.max_year === 2026, 'Manifest period matches embedded records');
+assert(corpus.period.min_year === 2015 && corpus.period.max_year === 2024, 'Training period excludes quarantined records');
+assert(corpus.embedded_period.min_year === 2015 && corpus.embedded_period.max_year === 2026, 'Embedded period remains disclosed');
 
 const metrics = getModelMetrics();
 assert(metrics !== null, 'getModelMetrics() returns data');
@@ -46,7 +48,7 @@ assert(cropKeys.length >= 6, 'At least 6 crops trained');
 
 for (const [crop, stats] of Object.entries(metrics.crops || metrics)) {
   assertRange(parseFloat(stats.r_squared), 0.5, 1.0, `${crop} R² is valid`);
-  assertRange(stats.n_samples || stats.training_samples, 10, 500, `${crop} has sufficient training samples`);
+  assertRange(stats.n_samples || stats.training_samples, 5, 500, `${crop} has sufficient training samples`);
 }
 
 // --- Test 2: Yield Predictions within expected experimental ranges ---

@@ -1,5 +1,6 @@
 const express = require('express');
 const { getActiveAlerts, getAlertsSummary, getCityAlerts } = require('../services/alerts-service');
+const { getDatasetProvenance } = require('../services/provenance-service');
 const router = express.Router();
 
 // GET /api/alerts — all active alerts (with optional filters)
@@ -12,9 +13,15 @@ router.get('/', (req, res) => {
 
   const alerts = getActiveAlerts(filters);
 
+  const servedAt = new Date().toISOString();
   res.json({
     count: alerts.length,
     filters: Object.keys(filters).length > 0 ? filters : 'none',
+    served_at: servedAt,
+    observed_at: null,
+    availability: 'degraded',
+    notice: 'Scénarios indicatifs calculés localement — à confirmer auprès des services officiels.',
+    provenance: getDatasetProvenance('alert_scenarios_local'),
     alerts
   });
 });
@@ -22,18 +29,20 @@ router.get('/', (req, res) => {
 // GET /api/alerts/summary — counts by country, type, severity
 router.get('/summary', (req, res) => {
   const summary = getAlertsSummary();
-  res.json(summary);
+  const servedAt = new Date().toISOString();
+  res.json({
+    ...summary,
+    served_at: servedAt,
+    observed_at: null,
+    availability: 'degraded',
+    notice: 'Résumé de scénarios indicatifs, non d’alertes institutionnelles observées.',
+    provenance: getDatasetProvenance('alert_scenarios_local')
+  });
 });
 
 // GET /api/alerts/:city — alerts for a specific city
 router.get('/:city', (req, res) => {
   const cityKey = req.params.city.toLowerCase().replace(/[- ]/g, '_');
-
-  // Avoid matching 'summary' as a city
-  if (cityKey === 'summary') {
-    const summary = getAlertsSummary();
-    return res.json(summary);
-  }
 
   const result = getCityAlerts(cityKey);
   if (!result) {
@@ -44,7 +53,14 @@ router.get('/:city', (req, res) => {
     });
   }
 
-  res.json(result);
+  res.json({
+    ...result,
+    served_at: new Date().toISOString(),
+    observed_at: null,
+    availability: 'degraded',
+    notice: 'Scénarios indicatifs calculés localement — à confirmer auprès des services officiels.',
+    provenance: getDatasetProvenance('alert_scenarios_local')
+  });
 });
 
 module.exports = router;
