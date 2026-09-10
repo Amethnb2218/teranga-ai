@@ -1,12 +1,12 @@
 /**
- * ML Engine Tests — Verify predictions stay within FAOSTAT-verified ranges
+ * ML Engine Tests — Validate experimental model contracts and output ranges
  * Run: node backend/tests/ml-engine.test.js
  */
 
 const path = require('path');
 process.chdir(path.join(__dirname, '..'));
 
-const { predictYield, optimizeCropCalendar, assessRiskBayesian, getModelMetrics } = require('../services/ml-engine');
+const { predictYield, optimizeCropCalendar, assessRiskBayesian, getModelMetrics, getCorpusManifest } = require('../services/ml-engine');
 
 let passed = 0;
 let failed = 0;
@@ -29,6 +29,16 @@ console.log('\n=== Teranga AI — ML Engine Tests ===\n');
 
 // --- Test 1: Model Metrics ---
 console.log('▸ Model Metrics');
+const corpus = getCorpusManifest();
+assert(corpus.corpus_status === 'experimental', 'Corpus is explicitly experimental');
+assert(corpus.record_counts.total === 304, 'Corpus exposes its exact record count');
+assert(corpus.record_counts.verified === 0, 'No records are claimed as verified without lineage');
+assert(corpus.record_counts.quarantined === 0, 'No records are claimed as quarantined without a manifest');
+assert(corpus.record_counts.unreviewed === corpus.record_counts.total, 'Records without review evidence are counted as unreviewed');
+assert(corpus.features.count === 13, 'Manifest reports the 13 implemented features');
+assert(corpus.crops.count === 9, 'Manifest reports the 9 trained crops');
+assert(corpus.period.min_year === 2015 && corpus.period.max_year === 2026, 'Manifest period matches embedded records');
+
 const metrics = getModelMetrics();
 assert(metrics !== null, 'getModelMetrics() returns data');
 const cropKeys = metrics.crops ? Object.keys(metrics.crops) : Object.keys(metrics);
@@ -39,10 +49,10 @@ for (const [crop, stats] of Object.entries(metrics.crops || metrics)) {
   assertRange(stats.n_samples || stats.training_samples, 10, 500, `${crop} has sufficient training samples`);
 }
 
-// --- Test 2: Yield Predictions within FAOSTAT ranges ---
-console.log('\n▸ Yield Predictions (FAOSTAT ranges)');
+// --- Test 2: Yield Predictions within expected experimental ranges ---
+console.log('\n▸ Yield Predictions (experimental corpus ranges)');
 
-const FAOSTAT_RANGES = {
+const EXPECTED_RANGES = {
   arachide: { min: 600, max: 2200 },
   mil: { min: 400, max: 1800 },
   mais: { min: 800, max: 3500 },
@@ -68,8 +78,8 @@ for (const tc of TEST_CASES) {
 
   if (result && result.ensemble) {
     const yieldKg = result.ensemble.predicted_yield_kg;
-    const range = FAOSTAT_RANGES[tc.crop];
-    assertRange(yieldKg, range.min, range.max, `${tc.crop}@${tc.city} yield=${yieldKg} within FAOSTAT range`);
+    const range = EXPECTED_RANGES[tc.crop];
+    assertRange(yieldKg, range.min, range.max, `${tc.crop}@${tc.city} yield=${yieldKg} within expected range`);
   }
 }
 
@@ -80,19 +90,26 @@ assert(ensResult.regression !== undefined, 'Has regression component');
 assert(ensResult.knn !== undefined, 'Has KNN component');
 assert(ensResult.ensemble !== undefined, 'Has ensemble');
 assert(ensResult.ensemble.method && ensResult.ensemble.method.includes('Ensemble'), 'Ensemble method is correct');
-assert(ensResult.ensemble.accuracy !== undefined, 'Has accuracy metric');
+assert(ensResult.ensemble.accuracy !== undefined, 'Keeps accuracy for compatibility');
+assert(ensResult.ensemble.deprecated === true, 'Marks accuracy as deprecated');
+assert(ensResult.ensemble.accuracy_definition === '100 - MAPE (MAPE from LOOCV)', 'Defines compatibility accuracy as 100 - MAPE');
 const accNum = parseFloat(ensResult.ensemble.accuracy);
-assertRange(accNum, 80, 99, 'Accuracy in valid range');
-
-if (ensResult.ensemble.data_source) {
-  assert(ensResult.ensemble.data_source.includes('FAOSTAT'), 'Data source mentions FAOSTAT');
-}
+assertRange(accNum, 0, 100, 'Deprecated accuracy follows percentage bounds');
+assert(Math.abs(accNum - (100 - parseFloat(ensResult.ensemble.cv_mape))) < 0.11, 'Accuracy equals 100 - MAPE');
+assert(ensResult.ensemble.error_band?.kind === 'mape_error_band', 'Prediction exposes a MAPE error band');
+assert(ensResult.ensemble.error_band?.level === null, 'Error band has no confidence level');
+assert(ensResult.ensemble.error_band?.calibrated === false, 'Error band is explicitly uncalibrated');
+assert(ensResult.ensemble.confidence_interval === undefined, 'Prediction has no misleading confidence interval');
+assert(ensResult.provenance?.corpus_status === 'experimental', 'Prediction exposes experimental provenance');
+assert(ensResult.ensemble.provenance?.source_verification === 'unverified', 'Ensemble does not claim verified sources');
+assert(!/verified|official/i.test(ensResult.ensemble.data_source), 'Data source has no verified/official claim');
 
 // --- Test 4: Genetic Algorithm ---
 console.log('\n▸ Genetic Algorithm (Calendar Optimization)');
 const gaResult = optimizeCropCalendar(['arachide', 'mil'], 'kaolack', { parcels: 2 });
 assert(gaResult !== null, 'optimizeCropCalendar returns data');
 assert(gaResult.calendar && gaResult.calendar.length === 2, 'Returns 2 parcels');
+assert(gaResult.provenance?.operation === 'calendar_optimization', 'Optimization exposes provenance');
 
 for (const entry of gaResult.calendar || []) {
   assertRange(entry.sowMonth, 1, 12, `Sow month valid for ${entry.crop}`);
@@ -113,6 +130,7 @@ assertRange(riskResult.safetyScore, 0, 100, 'Safety score in [0, 100]');
 assert(riskResult.factors !== undefined, 'Has risk factors');
 assert(riskResult.outcomes !== undefined, 'Has outcomes');
 assert(riskResult.recommendation !== undefined, 'Has recommendation string');
+assert(riskResult.provenance?.operation === 'risk_assessment', 'Risk assessment exposes provenance');
 
 // Dry season should have higher drought risk
 const dryResult = assessRiskBayesian('arachide', 'louga', 3);

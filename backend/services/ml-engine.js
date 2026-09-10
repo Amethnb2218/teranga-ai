@@ -1,17 +1,10 @@
 /**
  * Machine Learning Engine — Teranga AI v3.0
  *
- * Training data calibrated on:
- * - DAPSA (Direction de l'Analyse, de la Prévision et des Statistiques Agricoles) 2015-2026
- * - ISRA (Institut Sénégalais de Recherches Agricoles) varietal trials
- * - ANACIM (Agence Nationale de l'Aviation Civile et de la Météorologie) climate data 1994-2026
- * - FAO/GIEWS Senegal crop statistics
- * - CSA (Commissariat à la Sécurité Alimentaire) market monitoring
- *
- * National averages (DAPSA 2024):
- *   Arachide: 1,107 kg/ha | Mil: 756 kg/ha | Maïs: 2,134 kg/ha
- *   Riz pluvial: 2,800 kg/ha | Riz irrigué: 5,500 kg/ha | Niébé: 650 kg/ha
- *   Sorgho: 890 kg/ha | Tomate: 25,000 kg/ha | Oignon: 30,000 kg/ha
+ * Experimental model trained on an embedded, manually assembled agronomic corpus.
+ * Source families are declared by the original dataset authors, but record-level
+ * lineage and independent source review are not available in this repository.
+ * Outputs must therefore be treated as experimental estimates, not authoritative data.
  */
 
 const { SAHEL_CITIES, MONTH_DATA } = require('../config/constants');
@@ -37,7 +30,7 @@ const VARIETY_CYCLES = {
 };
 
 // ============================================================
-// COMPREHENSIVE HISTORICAL TRAINING DATA (DAPSA/ISRA/ANACIM 2015-2026)
+// EMBEDDED EXPERIMENTAL TRAINING CORPUS (declared period: 2015-2026)
 // ============================================================
 
 const HISTORICAL_YIELDS = {
@@ -120,7 +113,7 @@ const HISTORICAL_YIELDS = {
     { year: 2023, zone: 'fleuve', region: 'matam', rain_total: 395, rain_july: 75, rain_aug: 145, rain_sep: 115, temp_avg: 30.5, temp_max_aug: 37, sow_month: 7, soil: 'hollalde', fertilizer_kg: 60, variety_cycle: 90, prev_crop: 'riz', yield_kg: 720 },
     { year: 2024, zone: 'fleuve', region: 'saint_louis', rain_total: 300, rain_july: 52, rain_aug: 110, rain_sep: 88, temp_avg: 27.4, temp_max_aug: 34, sow_month: 8, soil: 'hollalde', fertilizer_kg: 80, variety_cycle: 90, prev_crop: 'riz', yield_kg: 780 },
     { year: 2025, zone: 'fleuve', region: 'matam', rain_total: 370, rain_july: 68, rain_aug: 135, rain_sep: 108, temp_avg: 30.6, temp_max_aug: 37, sow_month: 7, soil: 'hollalde', fertilizer_kg: 80, variety_cycle: 90, prev_crop: 'jachère', yield_kg: 760 },
-    // === FAOSTAT OFFICIAL DATA (verified July 2026, source: FAO QCL bulk download) ===
+    // === Records declared as derived from FAOSTAT aggregates; lineage not independently reviewed ===
     // NIGER — Arachide FAOSTAT: 646(2018) 605(2019) 662(2020) 509(2021) 670(2022) 580(2023) 649(2024)
     { year: 2018, zone: 'sahélienne', region: 'maradi', rain_total: 490, rain_july: 100, rain_aug: 185, rain_sep: 138, temp_avg: 30.0, temp_max_aug: 36, sow_month: 7, soil: 'sableux', fertilizer_kg: 15, variety_cycle: 90, prev_crop: 'mil', yield_kg: 646 },
     { year: 2019, zone: 'sahélienne', region: 'zinder', rain_total: 430, rain_july: 88, rain_aug: 162, rain_sep: 122, temp_avg: 30.5, temp_max_aug: 37, sow_month: 7, soil: 'sableux', fertilizer_kg: 15, variety_cycle: 90, prev_crop: 'niebe', yield_kg: 605 },
@@ -194,7 +187,7 @@ const HISTORICAL_YIELDS = {
     { year: 2023, zone: 'casamançaise', region: 'kolda', rain_total: 1060, rain_july: 200, rain_aug: 355, rain_sep: 285, temp_avg: 26.8, temp_max_aug: 30, sow_month: 6, soil: 'ferralitique', fertilizer_kg: 80, variety_cycle: 95, prev_crop: 'arachide', yield_kg: 1380 },
     { year: 2025, zone: 'casamançaise', region: 'kolda', rain_total: 1020, rain_july: 195, rain_aug: 345, rain_sep: 278, temp_avg: 26.9, temp_max_aug: 31, sow_month: 6, soil: 'ferralitique', fertilizer_kg: 80, variety_cycle: 95, prev_crop: 'mais', yield_kg: 1350 },
     { year: 2026, zone: 'casamançaise', region: 'kolda', rain_total: 1040, rain_july: 198, rain_aug: 350, rain_sep: 282, temp_avg: 26.8, temp_max_aug: 31, sow_month: 6, soil: 'ferralitique', fertilizer_kg: 100, variety_cycle: 95, prev_crop: 'arachide', yield_kg: 1400 },
-    // WORLD BANK/FAOSTAT VERIFIED — Niger (mil = culture principale, 80% surfaces)
+    // DECLARED WORLD BANK/FAOSTAT-DERIVED VALUES — Niger (record-level lineage unavailable)
     // Rendement céréalier Niger World Bank: 555(2018), 502(2019), 552(2020), 361(2021), 560(2022), 489(2023), 577(2024)
     // Mil Niger FAOSTAT: ~460-550 kg/ha (mil = 90% du rendement céréalier Niger)
     { year: 2018, zone: 'sahélienne', region: 'niamey', rain_total: 540, rain_july: 112, rain_aug: 205, rain_sep: 155, temp_avg: 29.5, temp_max_aug: 35, sow_month: 7, soil: 'sableux', fertilizer_kg: 15, variety_cycle: 90, prev_crop: 'niebe', yield_kg: 520 },
@@ -211,7 +204,7 @@ const HISTORICAL_YIELDS = {
     { year: 2023, zone: 'sahélienne', region: 'zinder', rain_total: 370, rain_july: 72, rain_aug: 140, rain_sep: 105, temp_avg: 31.0, temp_max_aug: 38, sow_month: 7, soil: 'sableux', fertilizer_kg: 10, variety_cycle: 75, prev_crop: 'niebe', yield_kg: 380 },
     { year: 2024, zone: 'sahélienne', region: 'niamey', rain_total: 550, rain_july: 115, rain_aug: 210, rain_sep: 158, temp_avg: 29.3, temp_max_aug: 35, sow_month: 7, soil: 'sableux', fertilizer_kg: 25, variety_cycle: 90, prev_crop: 'niebe', yield_kg: 550 },
     { year: 2024, zone: 'sahélienne', region: 'maradi', rain_total: 470, rain_july: 95, rain_aug: 178, rain_sep: 132, temp_avg: 30.1, temp_max_aug: 36, sow_month: 7, soil: 'sableux', fertilizer_kg: 20, variety_cycle: 90, prev_crop: 'arachide', yield_kg: 490 },
-    // FAOSTAT VERIFIED — Mali mil: 853(2018) 944(2019) 888(2020) 716(2021) 877(2022) 901(2023) 935(2024)
+    // DECLARED FAOSTAT-DERIVED VALUES — Mali mil: 853(2018) 944(2019) 888(2020) 716(2021) 877(2022) 901(2023) 935(2024)
     { year: 2018, zone: 'soudanienne', region: 'segou', rain_total: 750, rain_july: 155, rain_aug: 285, rain_sep: 215, temp_avg: 28.0, temp_max_aug: 33, sow_month: 6, soil: 'argileux', fertilizer_kg: 40, variety_cycle: 90, prev_crop: 'sorgho', yield_kg: 853 },
     { year: 2019, zone: 'soudanienne', region: 'sikasso', rain_total: 900, rain_july: 185, rain_aug: 330, rain_sep: 260, temp_avg: 27.2, temp_max_aug: 31, sow_month: 6, soil: 'ferrugineux', fertilizer_kg: 50, variety_cycle: 95, prev_crop: 'mais', yield_kg: 944 },
     { year: 2020, zone: 'soudanienne', region: 'segou', rain_total: 780, rain_july: 162, rain_aug: 295, rain_sep: 225, temp_avg: 27.8, temp_max_aug: 32, sow_month: 6, soil: 'argileux', fertilizer_kg: 50, variety_cycle: 90, prev_crop: 'arachide', yield_kg: 888 },
@@ -219,7 +212,7 @@ const HISTORICAL_YIELDS = {
     { year: 2022, zone: 'soudanienne', region: 'sikasso', rain_total: 880, rain_july: 180, rain_aug: 325, rain_sep: 255, temp_avg: 27.3, temp_max_aug: 31, sow_month: 6, soil: 'ferrugineux', fertilizer_kg: 60, variety_cycle: 95, prev_crop: 'mais', yield_kg: 877 },
     { year: 2023, zone: 'soudanienne', region: 'segou', rain_total: 720, rain_july: 148, rain_aug: 275, rain_sep: 208, temp_avg: 28.2, temp_max_aug: 33, sow_month: 6, soil: 'argileux', fertilizer_kg: 50, variety_cycle: 90, prev_crop: 'sorgho', yield_kg: 901 },
     { year: 2024, zone: 'soudanienne', region: 'sikasso', rain_total: 860, rain_july: 175, rain_aug: 318, rain_sep: 250, temp_avg: 27.4, temp_max_aug: 32, sow_month: 6, soil: 'ferrugineux', fertilizer_kg: 60, variety_cycle: 95, prev_crop: 'arachide', yield_kg: 935 },
-    // FAOSTAT VERIFIED — Burkina mil: 853(2018) 825(2019) 898(2020) 722(2021) 870(2022) 894(2023) 848(2024)
+    // DECLARED FAOSTAT-DERIVED VALUES — Burkina mil: 853(2018) 825(2019) 898(2020) 722(2021) 870(2022) 894(2023) 848(2024)
     { year: 2018, zone: 'sahélienne', region: 'ouagadougou', rain_total: 700, rain_july: 145, rain_aug: 265, rain_sep: 200, temp_avg: 28.8, temp_max_aug: 33, sow_month: 6, soil: 'ferrugineux', fertilizer_kg: 30, variety_cycle: 90, prev_crop: 'sorgho', yield_kg: 853 },
     { year: 2019, zone: 'sahélienne', region: 'ouagadougou', rain_total: 680, rain_july: 140, rain_aug: 255, rain_sep: 192, temp_avg: 29.0, temp_max_aug: 34, sow_month: 6, soil: 'ferrugineux', fertilizer_kg: 30, variety_cycle: 90, prev_crop: 'niebe', yield_kg: 825 },
     { year: 2020, zone: 'soudanienne', region: 'bobo_dioulasso', rain_total: 900, rain_july: 185, rain_aug: 330, rain_sep: 260, temp_avg: 27.0, temp_max_aug: 31, sow_month: 6, soil: 'ferrugineux', fertilizer_kg: 50, variety_cycle: 95, prev_crop: 'mais', yield_kg: 898 },
@@ -227,7 +220,7 @@ const HISTORICAL_YIELDS = {
     { year: 2022, zone: 'soudanienne', region: 'bobo_dioulasso', rain_total: 870, rain_july: 178, rain_aug: 320, rain_sep: 252, temp_avg: 27.2, temp_max_aug: 31, sow_month: 6, soil: 'ferrugineux', fertilizer_kg: 50, variety_cycle: 95, prev_crop: 'mais', yield_kg: 870 },
     { year: 2023, zone: 'sahélienne', region: 'ouagadougou', rain_total: 710, rain_july: 148, rain_aug: 268, rain_sep: 202, temp_avg: 28.7, temp_max_aug: 33, sow_month: 6, soil: 'ferrugineux', fertilizer_kg: 40, variety_cycle: 90, prev_crop: 'niebe', yield_kg: 894 },
     { year: 2024, zone: 'sahélienne', region: 'ouagadougou', rain_total: 690, rain_july: 142, rain_aug: 260, rain_sep: 195, temp_avg: 28.9, temp_max_aug: 34, sow_month: 6, soil: 'ferrugineux', fertilizer_kg: 40, variety_cycle: 90, prev_crop: 'sorgho', yield_kg: 848 },
-    // FAOSTAT VERIFIED — Tchad mil: 619(2018) 608(2019) 592(2020) 556(2021) 581(2022) 556(2023) 535(2024)
+    // DECLARED FAOSTAT-DERIVED VALUES — Tchad mil: 619(2018) 608(2019) 592(2020) 556(2021) 581(2022) 556(2023) 535(2024)
     { year: 2018, zone: 'sahélienne', region: 'ndjamena', rain_total: 580, rain_july: 120, rain_aug: 220, rain_sep: 165, temp_avg: 30.0, temp_max_aug: 36, sow_month: 7, soil: 'argileux', fertilizer_kg: 15, variety_cycle: 90, prev_crop: 'sorgho', yield_kg: 619 },
     { year: 2019, zone: 'sahélienne', region: 'ndjamena', rain_total: 600, rain_july: 125, rain_aug: 228, rain_sep: 170, temp_avg: 29.8, temp_max_aug: 35, sow_month: 7, soil: 'argileux', fertilizer_kg: 15, variety_cycle: 90, prev_crop: 'niebe', yield_kg: 608 },
     { year: 2020, zone: 'sahélienne', region: 'ndjamena', rain_total: 570, rain_july: 118, rain_aug: 215, rain_sep: 162, temp_avg: 30.2, temp_max_aug: 36, sow_month: 7, soil: 'argileux', fertilizer_kg: 20, variety_cycle: 90, prev_crop: 'sorgho', yield_kg: 592 },
@@ -403,6 +396,46 @@ const HISTORICAL_YIELDS = {
     { year: 2026, zone: 'soudanienne', region: 'kaffrine', rain_total: 740, rain_july: 155, rain_aug: 285, rain_sep: 215, temp_avg: 27.3, temp_max_aug: 31, sow_month: 7, soil: 'deck', fertilizer_kg: 100, variety_cycle: 85, prev_crop: 'arachide', yield_kg: 27000 },
   ]
 };
+
+const FEATURE_NAMES = [
+  'rain_total', 'rain_peak', 'rain_distribution', 'temp_avg', 'temp_stress',
+  'sow_month', 'zone', 'soil', 'fertilizer', 'fertilizer_log',
+  'variety_cycle', 'rotation_bonus', 'region_productivity'
+];
+
+function getCorpusManifest() {
+  const crops = Object.keys(HISTORICAL_YIELDS);
+  const records = Object.values(HISTORICAL_YIELDS).flat();
+  const years = records.map(record => record.year).filter(Number.isFinite);
+
+  return {
+    corpus_status: 'experimental',
+    record_counts: {
+      total: records.length,
+      verified: 0,
+      quarantined: 0,
+      unreviewed: records.length
+    },
+    quarantine_reason: null,
+    verification_note: 'No record-level verification or quarantine manifest is available in this repository.',
+    period: {
+      min_year: Math.min(...years),
+      max_year: Math.max(...years),
+      basis: 'minimum and maximum years present in the embedded corpus; record-level temporal provenance unavailable'
+    },
+    crops: { count: crops.length, values: crops },
+    features: { count: FEATURE_NAMES.length, values: [...FEATURE_NAMES] },
+    declared_source_families: ['FAOSTAT', 'DAPSA', 'ISRA', 'ANACIM', 'World Bank'],
+    source_verification: 'unverified'
+  };
+}
+
+const PROVENANCE = Object.freeze({
+  corpus_status: 'experimental',
+  source_verification: 'unverified',
+  manifest: 'embedded_corpus_manifest',
+  methodology: 'in_repository_implementation'
+});
 
 // ============================================================
 // CITY → ZONE/SOIL MAPPING (for automatic feature extraction)
@@ -873,6 +906,7 @@ function trainModels() {
     const cvMae = looErrors.reduce((a, b) => a + b, 0) / looErrors.length;
     const cvMape = looErrors.reduce((sum, err, i) => sum + (err / y[i] * 100), 0) / looErrors.length;
 
+    const years = data.map(d => d.year).filter(Number.isFinite);
     modelStats[crop] = {
       n_samples: data.length,
       r_squared: model.r_squared,
@@ -881,7 +915,7 @@ function trainModels() {
       mae: model.mae,
       cv_mae: cvMae,
       cv_mape: cvMape,
-      years_covered: `2015-2026`,
+      years_covered: { min: Math.min(...years), max: Math.max(...years) },
       zones: [...new Set(data.map(d => d.zone))],
       regions: [...new Set(data.map(d => d.region))]
     };
@@ -986,7 +1020,12 @@ function predictYield(crop, zone, rainTotal, tempAvg, sowMonth) {
     regionProd
   ];
 
-  const results = { crop, zone, inputs: { rainTotal, tempAvg, sowMonth } };
+  const results = {
+    crop,
+    zone,
+    inputs: { rainTotal, tempAvg, sowMonth },
+    provenance: { ...PROVENANCE, operation: 'yield_prediction' }
+  };
 
   const useLocal = localModels[crop]?.[actualZone];
   const activeModel = useLocal || trainedModels[crop];
@@ -1018,9 +1057,13 @@ function predictYield(crop, zone, rainTotal, tempAvg, sowMonth) {
         region_productivity: activeModel.coefficients[12]?.toFixed(4)
       },
       model_type: useLocal
-        ? `Local Zone Model (${actualZone}, ${activeStats?.n_samples} samples, FAOSTAT-calibrated)`
-        : 'Global Ensemble (13 features, FAOSTAT-calibrated)',
-      training_data: `${activeStats?.n_samples || 0} observations (2015-2026)`
+        ? `Local Zone Model (${actualZone}, ${activeStats?.n_samples} samples, experimental corpus)`
+        : `Global Ensemble (${FEATURE_NAMES.length} features, experimental corpus)`,
+      training_data: {
+        observations: activeStats?.n_samples || 0,
+        period: activeStats?.years_covered || modelStats[crop]?.years_covered || null,
+        corpus_status: 'experimental'
+      }
     };
   }
 
@@ -1032,7 +1075,7 @@ function predictYield(crop, zone, rainTotal, tempAvg, sowMonth) {
       k: activeKnn.k,
       neighbors: knnResult.neighbors,
       model_type: useLocal
-        ? `Local KNN (${actualZone} zone, FAOSTAT-verified)`
+        ? `Local KNN (${actualZone} zone, experimental corpus)`
         : 'K-Nearest Neighbors (distance-weighted, normalized)'
     };
   }
@@ -1058,20 +1101,32 @@ function predictYield(crop, zone, rainTotal, tempAvg, sowMonth) {
     const relDisagreement = disagreement / (ensemblePred || 1);
 
     const cvMape = activeStats?.cv_mape || modelStats[crop]?.cv_mape || 10;
-    const modelAccuracy = Math.min(99, Math.max(85, 100 - cvMape));
+    const modelAccuracy = Math.max(0, 100 - cvMape);
+    const errorMargin = Math.round(ensemblePred * cvMape / 100);
 
     results.ensemble = {
       predicted_yield_kg: ensemblePred,
       method: 'Dynamic Weighted Ensemble (Ridge Regression + KNN)',
       weights: { regression: regWeight.toFixed(3), knn: knnWeight.toFixed(3) },
       accuracy: modelAccuracy.toFixed(1) + '%',
+      deprecated: true,
+      accuracy_deprecated: true,
+      accuracy_definition: '100 - MAPE (MAPE from LOOCV)',
       cv_mape: cvMape.toFixed(1) + '%',
+      error_band: {
+        kind: 'mape_error_band',
+        level: null,
+        calibrated: false,
+        low: Math.max(0, ensemblePred - errorMargin),
+        high: ensemblePred + errorMargin
+      },
       cv_mae: modelStats[crop]?.cv_mae ? Math.round(modelStats[crop].cv_mae) + ' kg/ha' : null,
       model_agreement: relDisagreement < 0.1 ? 'high' : relDisagreement < 0.25 ? 'moderate' : 'low',
       prediction_stability: ((1 - relDisagreement) * 100).toFixed(0) + '%',
       validation: 'Leave-One-Out Cross-Validation (LOOCV)',
       training_samples: activeStats?.n_samples || modelStats[crop]?.n_samples || 0,
-      data_source: 'FAOSTAT/DAPSA/ISRA/ANACIM/World Bank — verified July 2026',
+      data_source: 'Embedded experimental corpus; source families declared, record-level lineage unavailable',
+      provenance: { ...PROVENANCE, operation: 'yield_prediction' },
       scope: useLocal ? `Zone ${actualZone} (local model)` : 'Pan-Sahel (global model)'
     };
   }
@@ -1146,6 +1201,7 @@ function optimizeCropCalendar(crops, city, constraints = {}) {
   return {
     city,
     zone,
+    provenance: { ...PROVENANCE, operation: 'calendar_optimization' },
     optimization: {
       algorithm: 'Genetic Algorithm (GA)',
       parameters: {
@@ -1214,6 +1270,7 @@ function assessRiskBayesian(crop, city, month) {
     month: getMonthName(month),
     zone,
     city,
+    provenance: { ...PROVENANCE, operation: 'risk_assessment' },
     factors: {
       drought_probability: (posteriors.drought * 100).toFixed(1) + '%',
       heat_stress_probability: (posteriors.heat_stress * 100).toFixed(1) + '%',
@@ -1266,7 +1323,7 @@ function getModelMetrics() {
       years: stats.years_covered,
       zones: stats.zones,
       regions: stats.regions,
-      features: '12 (rain_total, rain_peak, distribution, temp, stress, sow_month, zone, soil, fertilizer, fert_log, variety_cycle, rotation)',
+      features: `${FEATURE_NAMES.length} (${FEATURE_NAMES.join(', ')})`,
       coefficients: trainedModels[crop] ? {
         intercept: trainedModels[crop].intercept.toFixed(2),
         rain_total: trainedModels[crop].coefficients[0]?.toFixed(4),
@@ -1280,7 +1337,8 @@ function getModelMetrics() {
         fertilizer: trainedModels[crop].coefficients[8]?.toFixed(4),
         fertilizer_log: trainedModels[crop].coefficients[9]?.toFixed(4),
         variety_cycle: trainedModels[crop].coefficients[10]?.toFixed(4),
-        rotation: trainedModels[crop].coefficients[11]?.toFixed(4)
+        rotation: trainedModels[crop].coefficients[11]?.toFixed(4),
+        region_productivity: trainedModels[crop].coefficients[12]?.toFixed(4)
       } : null
     };
   }
@@ -1292,6 +1350,7 @@ module.exports = {
   optimizeCropCalendar,
   assessRiskBayesian,
   getModelMetrics,
+  getCorpusManifest,
   HISTORICAL_YIELDS,
   CITY_FEATURES,
   VARIETY_CYCLES,

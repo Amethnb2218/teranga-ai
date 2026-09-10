@@ -1,11 +1,14 @@
 const express = require('express');
-const { predictYield, optimizeCropCalendar, assessRiskBayesian, getModelMetrics } = require('../services/ml-engine');
+const { predictYield, optimizeCropCalendar, assessRiskBayesian, getModelMetrics, getCorpusManifest } = require('../services/ml-engine');
 const { fetchRealWeather } = require('../services/external/weather-api');
 const router = express.Router();
 
 // GET /api/ml/metrics — Model performance metrics
 router.get('/metrics', (req, res) => {
+  const corpus = getCorpusManifest();
   res.json({
+    corpus_status: corpus.corpus_status,
+    corpus,
     models: getModelMetrics(),
     algorithms: {
       regression: 'Ridge-regularized Multiple Linear Regression (13 features, local zone models)',
@@ -15,13 +18,15 @@ router.get('/metrics', (req, res) => {
       pattern_matching: 'K-Nearest Neighbors (distance-weighted, min-max normalized)'
     },
     training_data: {
-      source: 'FAOSTAT (official FAO crop statistics), ISRA, ANACIM, World Bank',
-      observations: '300+ data points across 5 Sahel countries (Senegal, Niger, Mali, Burkina Faso, Tchad)',
-      features: '13: rain_total, rain_peak, distribution, temp_avg, temp_stress, sow_month, zone, soil, fertilizer, fert_log, variety_cycle, rotation_bonus, region_productivity',
+      source: 'Embedded experimental corpus; declared source families are listed in corpus.declared_source_families',
+      observations: `${corpus.record_counts.total} records across ${corpus.crops.count} crops; ${corpus.record_counts.verified} verified, ${corpus.record_counts.quarantined} quarantined, ${corpus.record_counts.unreviewed} unreviewed`,
+      period: `${corpus.period.min_year}-${corpus.period.max_year} (${corpus.period.basis})`,
+      features: `${corpus.features.count}: ${corpus.features.values.join(', ')}`,
+      crops: `${corpus.crops.count}: ${corpus.crops.values.join(', ')}`,
       target: 'yield_kg_per_hectare',
       validation: 'Leave-One-Out Cross-Validation (LOOCV)',
-      accuracy: '93%+ (100 - MAPE)',
-      local_models: 'Separate OLS per agroclimatic zone (R²=0.92 soudanienne)'
+      accuracy: { deprecated: true, definition: '100 - MAPE (MAPE from LOOCV)' },
+      local_models: 'Separate ridge-regression models where a zone has at least 8 records'
     },
     realtime_integration: {
       weather_source: 'OpenWeatherMap API (30min cache)',
@@ -79,15 +84,17 @@ router.get('/predict-yield/:crop/:city', async (req, res) => {
 
   const result = predictYield(crop, cityKey, rainTotal, tempAvg, sowMonth);
 
-  // Add confidence interval and weather source
+  // MAPE-derived error band; this is not a calibrated confidence interval.
   if (result.ensemble) {
     const yieldPred = result.ensemble.predicted_yield_kg;
     const mape = parseFloat(result.ensemble.cv_mape) || 15;
     const margin = Math.round(yieldPred * mape / 100);
-    result.ensemble.confidence_interval = {
+    result.ensemble.error_band = {
+      kind: 'mape_error_band',
+      level: null,
+      calibrated: false,
       low: Math.max(0, yieldPred - margin),
-      high: yieldPred + margin,
-      level: '90%'
+      high: yieldPred + margin
     };
   }
 
