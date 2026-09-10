@@ -70,6 +70,11 @@ export async function fetchNews() {
   return response.json();
 }
 
+export async function fetchProvenance() {
+  const response = await fetchWithRetry(`${API_BASE}/api/provenance`);
+  return response.json();
+}
+
 export async function fetchPrediction(crop, city) {
   const response = await fetchWithRetry(`${API_BASE}/api/predict/${crop}/${city}`, {}, { timeoutMs: 20000 });
   return response.json();

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchWeather, fetchMarketPrices, fetchMarketTrends, fetchNews } from '../services/api';
+import { fetchWeather, fetchMarketPrices, fetchMarketTrends, fetchNews, fetchProvenance } from '../services/api';
 
 export function useDashboard() {
   const [city, setCity] = useState('dakar');
@@ -7,6 +7,7 @@ export function useDashboard() {
   const [market, setMarket] = useState(null);
   const [trends, setTrends] = useState(null);
   const [news, setNews] = useState(null);
+  const [provenance, setProvenance] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -22,17 +23,20 @@ export function useDashboard() {
       fetchWeather(city),
       fetchMarketPrices(city),
       fetchMarketTrends(),
-      fetchNews()
+      fetchNews(),
+      fetchProvenance()
     ]);
 
-    const [weatherRes, marketRes, trendsRes, newsRes] = results;
+    const [weatherRes, marketRes, trendsRes, newsRes, provenanceRes] = results;
 
     if (weatherRes.status === 'fulfilled') setWeather(weatherRes.value);
     if (marketRes.status === 'fulfilled') setMarket(marketRes.value);
     if (trendsRes.status === 'fulfilled') setTrends(trendsRes.value);
     if (newsRes.status === 'fulfilled') setNews(newsRes.value);
+    if (provenanceRes.status === 'fulfilled') setProvenance(provenanceRes.value);
 
-    const allFailed = results.every(r => r.status === 'rejected');
+    const primaryResults = results.slice(0, 4);
+    const allFailed = primaryResults.every(r => r.status === 'rejected');
     if (allFailed) {
       setError('Le serveur démarre, veuillez patienter 30s puis actualiser.');
     }
@@ -40,5 +44,5 @@ export function useDashboard() {
     setLoading(false);
   };
 
-  return { city, setCity, weather, market, trends, news, loading, error };
+  return { city, setCity, weather, market, trends, news, provenance, loading, error };
 }

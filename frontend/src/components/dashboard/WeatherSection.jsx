@@ -1,6 +1,7 @@
 import WeatherCard from './WeatherCard'
+import ProvenanceNotice from '../common/ProvenanceNotice'
 
-function WeatherSection({ weather, city }) {
+function WeatherSection({ weather, city, provenance }) {
   if (!weather) return null;
 
   return (
@@ -14,6 +15,22 @@ function WeatherSection({ weather, city }) {
         </div>
         <span className="text-xs text-stone-400">{weather.current_season === 'hivernage' ? 'Saison des pluies' : 'Saison sèche'}</span>
       </div>
+
+      <ProvenanceNotice
+        provenance={provenance}
+        scope="weather"
+        title="Origine météo"
+        fallback={weather.provenance || {
+          type: weather.source === 'openweathermap' ? 'live' : 'simulated',
+          availability: weather.forecast?.length ? 'available' : 'unavailable',
+          source: weather.source === 'openweathermap' ? 'OpenWeatherMap' : 'Modèle saisonnier interne',
+          source_url: weather.source === 'openweathermap' ? 'https://openweathermap.org/' : null,
+          note: weather.source === 'openweathermap'
+            ? 'Prévisions reçues de l’API ; elles restent susceptibles d’évoluer.'
+            : 'Prévisions synthétiques produites à partir de moyennes mensuelles et de variations déterministes. Elles ne constituent pas des observations météo.'
+        }}
+        className="mb-4"
+      />
 
       {weather.agricultural_advice && (
         <div className="bg-leaf-50 border border-leaf-200 rounded-lg p-4 mb-4">

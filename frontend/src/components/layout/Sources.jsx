@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { FiExternalLink, FiDatabase, FiBook, FiGlobe, FiBarChart2, FiChevronDown } from 'react-icons/fi'
+import ProvenanceNotice from '../common/ProvenanceNotice'
+import { fetchProvenance } from '../../services/api'
 
 const SOURCES = [
   {
@@ -98,8 +100,32 @@ const SOURCES = [
   }
 ];
 
+function sourceFallback(source) {
+  if (source.name === 'Open-Meteo') {
+    return {
+      type: 'live',
+      availability: 'conditional',
+      source: source.name,
+      source_url: source.url,
+      note: 'Service externe consultable en direct, mais son utilisation effective dépend du module et de sa disponibilité.'
+    };
+  }
+  return {
+    type: 'official',
+    availability: 'available',
+    source: source.name,
+    source_url: source.url,
+    note: 'Référence institutionnelle publique. Sa citation ne signifie pas que chaque valeur de l’application est récupérée directement auprès de cette institution.'
+  };
+}
+
 function Sources() {
   const [openSections, setOpenSections] = useState({0: true, 1: true, 2: true, 3: true});
+  const [provenance, setProvenance] = useState(null);
+
+  useEffect(() => {
+    fetchProvenance().then(setProvenance).catch(() => {});
+  }, []);
 
   const toggleSection = (idx) => {
     setOpenSections(prev => ({...prev, [idx]: !prev[idx]}));
@@ -111,9 +137,22 @@ function Sources() {
         <p className="section-label mb-2">Transparence</p>
         <h1 className="text-xl sm:text-2xl font-bold text-stone-900 mb-2">Sources et méthodologie</h1>
         <p className="text-stone-600 text-sm leading-relaxed max-w-2xl">
-          Toutes les données utilisées par Teranga AI proviennent de sources institutionnelles publiques et vérifiables.
-          Aucune donnée n'est inventée ou générée par l'IA.
+          Teranga AI combine des références publiques, des valeurs statiques et des sorties estimées ou simulées.
+          Les badges ci-dessous distinguent leur nature et leur disponibilité ; une institution citée n'implique pas que chaque valeur affichée provienne directement de son API.
         </p>
+        <ProvenanceNotice
+          provenance={provenance}
+          scope="catalog"
+          fallback={{
+            type: 'static',
+            availability: provenance ? 'available' : 'conditional',
+            source: 'Inventaire documentaire Teranga AI',
+            note: provenance
+              ? 'Le registre de provenance du backend est disponible et complète les mentions affichées dans chaque module.'
+              : 'Le registre de provenance du backend n’est pas disponible sur cette version ; les modules utilisent leurs mentions de compatibilité.'
+          }}
+          className="mt-4 max-w-3xl"
+        />
       </div>
 
       <div className="space-y-4 sm:space-y-8">
@@ -151,10 +190,16 @@ function Sources() {
                   <p className="text-sm text-stone-600 leading-relaxed mb-3">{source.desc}</p>
                   <div className="bg-stone-50 rounded-lg p-3 border border-stone-100">
                     <p className="text-xs text-stone-500">
-                      <span className="font-semibold text-stone-700">Données utilisées : </span>
+                      <span className="font-semibold text-stone-700">Référence revendiquée : </span>
                       {source.data}
                     </p>
                   </div>
+                  <ProvenanceNotice
+                    provenance={provenance}
+                    scope={source.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}
+                    fallback={sourceFallback(source)}
+                    className="mt-3"
+                  />
                 </div>
               ))}
             </div>
@@ -172,7 +217,7 @@ function Sources() {
             <ul className="space-y-1.5">
               <li className="flex gap-2"><span className="text-amber-600">•</span>Régression linéaire multiple (OLS) entraînée sur données DAPSA/ANACIM 2015-2024</li>
               <li className="flex gap-2"><span className="text-amber-600">•</span>KNN (k=3) avec pondération inverse de la distance euclidienne</li>
-              <li className="flex gap-2"><span className="text-amber-600">•</span>Ensemble : moyenne pondérée OLS (60%) + KNN (40%)</li>
+              <li className="flex gap-2"><span className="text-amber-600">•</span>Ridge/OLS et KNN combinés avec des poids calculés par le moteur</li>
               <li className="flex gap-2"><span className="text-amber-600">•</span>Variables : pluviométrie, température, mois de semis, zone agro-écologique</li>
             </ul>
           </div>
@@ -188,7 +233,7 @@ function Sources() {
             <h3 className="font-semibold text-stone-800 mb-2">Analyse de risques</h3>
             <ul className="space-y-1.5">
               <li className="flex gap-2"><span className="text-amber-600">•</span>Réseau bayésien à 6 nœuds : sécheresse, chaleur, parasites, inondation → échec cultural</li>
-              <li className="flex gap-2"><span className="text-amber-600">•</span>Probabilités conditionnelles calibrées sur historique ANACIM (30 ans)</li>
+              <li className="flex gap-2"><span className="text-amber-600">•</span>Probabilités paramétrées dans le code ; calibration terrain indépendante non établie</li>
               <li className="flex gap-2"><span className="text-amber-600">•</span>Inférence exacte par énumération (graphe acyclique dirigé)</li>
             </ul>
           </div>
@@ -197,7 +242,8 @@ function Sources() {
             <ul className="space-y-1.5">
               <li className="flex gap-2"><span className="text-amber-600">•</span>Les prédictions sont des estimations basées sur les moyennes historiques</li>
               <li className="flex gap-2"><span className="text-amber-600">•</span>Elles ne remplacent pas l'expertise d'un technicien de terrain</li>
-              <li className="flex gap-2"><span className="text-amber-600">•</span>Les prix du marché évoluent et ne sont pas des garanties</li>
+              <li className="flex gap-2"><span className="text-amber-600">•</span>Les métriques ML et bandes dérivées de la MAPE sont expérimentales et non calibrées pour un intervalle probabiliste</li>
+              <li className="flex gap-2"><span className="text-amber-600">•</span>La météo peut être en direct ou simulée ; les prix sont indicatifs et simulés, jamais des garanties</li>
               <li className="flex gap-2"><span className="text-amber-600">•</span>Toujours consulter l'agent ANCAR de votre zone pour valider</li>
             </ul>
           </div>

@@ -1,4 +1,5 @@
 import { FiTrendingUp, FiTrendingDown, FiMinus } from 'react-icons/fi'
+import ProvenanceNotice from '../common/ProvenanceNotice'
 
 function getTrendIcon(trend) {
   if (trend === 'hausse') return <FiTrendingUp size={12} className="text-red-500" />;
@@ -25,7 +26,7 @@ function formatDate(dateStr) {
   }
 }
 
-function MarketSection({ market }) {
+function MarketSection({ market, provenance }) {
   if (!market) return null;
 
   return (
@@ -35,8 +36,22 @@ function MarketSection({ market }) {
         <span className="text-xs text-stone-400">FCFA/kg · Mis à jour le {formatDate(market.last_updated)}</span>
       </div>
 
+      <ProvenanceNotice
+        provenance={provenance}
+        scope="market"
+        title="Origine des prix"
+        fallback={market.provenance || {
+          type: 'simulated',
+          availability: Object.keys(market.data || {}).length ? 'available' : 'unavailable',
+          source: 'Barème statique inspiré de FAO/GIEWS, CSA et ARM Sénégal',
+          source_url: 'https://www.fao.org/giews/food-prices/',
+          note: 'Prix indicatifs : les valeurs de base locales sont ajustées par saison et variation pseudo-aléatoire. Ce ne sont pas des cotations de marché en direct.'
+        }}
+        className="mb-4"
+      />
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {Object.entries(market.data).map(([category, products]) => (
+        {Object.entries(market.data || {}).map(([category, products]) => (
           products.length > 0 && (
             <div key={category} className="bg-white rounded-lg border border-stone-200 overflow-hidden">
               <div className="px-4 py-2.5 bg-stone-50 border-b border-stone-100">

@@ -1,13 +1,19 @@
 import { useState, useEffect } from 'react'
-import { fetchYieldPrediction, fetchOptimizeCalendar, fetchBayesianRisk } from '../../services/api'
+import { fetchYieldPrediction, fetchOptimizeCalendar, fetchBayesianRisk, fetchProvenance } from '../../services/api'
+import ProvenanceNotice from '../common/ProvenanceNotice'
 
 function MLResults({ crop, city }) {
   const [yieldData, setYieldData] = useState(null);
   const [optimization, setOptimization] = useState(null);
   const [bayesian, setBayesian] = useState(null);
+  const [provenance, setProvenance] = useState(null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('yield');
   const [viewMode, setViewMode] = useState('simple');
+
+  useEffect(() => {
+    fetchProvenance().then(setProvenance).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!crop || !city) return;
@@ -81,7 +87,7 @@ function MLResults({ crop, city }) {
               {viewMode === 'simple' ? 'Analyse de votre parcelle' : 'Modèles prédictifs — vue technique'}
             </h3>
             <p className="text-xs text-stone-400 mt-0.5">
-              {viewMode === 'simple' ? 'Résultats basés sur 10 ans de données ISRA/ANACIM' : 'Régression OLS + KNN (ensemble) • Algorithme génétique • Réseau bayésien'}
+              {viewMode === 'simple' ? 'Résultats expérimentaux issus du corpus embarqué' : 'Régression Ridge/OLS + KNN • Algorithme génétique • Réseau bayésien — expérimental'}
             </p>
           </div>
           <div className="flex items-center bg-stone-100 rounded-lg p-0.5">
@@ -104,6 +110,20 @@ function MLResults({ crop, city }) {
           </div>
         </div>
       </div>
+
+      <ProvenanceNotice
+        provenance={provenance}
+        scope="ml"
+        title="Statut du modèle"
+        fallback={yieldData.provenance || {
+          type: 'estimated',
+          availability: 'available',
+          source: yieldData.ensemble?.data_source || 'Corpus expérimental embarqué',
+          source_url: 'https://www.fao.org/faostat/',
+          note: 'Prototype expérimental : les sorties ne sont pas validées comme recommandations agronomiques de terrain. Le corpus combine valeurs codées et références institutionnelles revendiquées.'
+        }}
+        className="mx-5 mt-4"
+      />
 
       {/* Tabs */}
       <div className="flex border-b border-stone-200 bg-white">
@@ -139,11 +159,18 @@ function MLResults({ crop, city }) {
                         <span className={`text-sm font-semibold ${level.color} px-2 py-0.5 rounded`}>{level.label}</span>
                       </div>
                       <p className="text-xs text-stone-500 mt-3">
-                        Ce chiffre est une moyenne calculée par 2 méthodes différentes pour plus de fiabilité.
+                        Estimation expérimentale obtenue en combinant deux méthodes ; cette combinaison ne garantit pas sa fiabilité sur votre parcelle.
                       </p>
                     </div>
                   );
                 })()}
+
+                {yieldData.ensemble?.confidence_interval && (
+                  <div className="bg-amber-50 rounded-lg p-3 border border-amber-200">
+                    <p className="text-xs font-semibold text-amber-900">Bande indicative dérivée de la MAPE : {yieldData.ensemble.confidence_interval.low}–{yieldData.ensemble.confidence_interval.high} kg/ha</p>
+                    <p className="text-[10px] text-amber-800 mt-1">Bande non calibrée : l’étiquette « {yieldData.ensemble.confidence_interval.level || 'niveau non fourni'} » du backend ne constitue pas un intervalle de confiance statistique validé.</p>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="bg-white rounded-lg p-4 border border-stone-200">
@@ -183,7 +210,12 @@ function MLResults({ crop, city }) {
                         <div>Pondération : OLS {yieldData.ensemble.weights?.regression} | KNN {yieldData.ensemble.weights?.knn}</div>
                       </div>
                     </div>
-                  </div>
+                  {yieldData.ensemble.confidence_interval && (
+                    <div className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-2 text-[10px] text-amber-900">
+                      Bande MAPE indicative : {yieldData.ensemble.confidence_interval.low}–{yieldData.ensemble.confidence_interval.high} kg/ha. Non calibrée comme intervalle probabiliste.
+                    </div>
+                  )}
+                </div>
                 )}
 
                 <div className="grid grid-cols-2 gap-3">
@@ -443,16 +475,15 @@ function MLResults({ crop, city }) {
           </div>
         )}
       </div>
-      {/* Accuracy badge + Footer */}
+      {/* Métrique expérimentale + Footer */}
       <div className="px-5 py-3 bg-stone-100 border-t border-stone-200">
-        {yieldData?.ensemble?.accuracy && (
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800 border border-green-200">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6L9 17l-5-5"/></svg>
-              Précision {yieldData.ensemble.accuracy}%
+        {yieldData?.ensemble?.cv_mape && (
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+              MAPE LOOCV expérimentale : {yieldData.ensemble.cv_mape}
             </span>
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-100">
-              FAOSTAT • LOOCV
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium bg-stone-50 text-stone-700 border border-stone-200">
+              Non calibrée terrain
             </span>
             {yieldData.ensemble.scope && (
               <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-100">
@@ -463,8 +494,8 @@ function MLResults({ crop, city }) {
         )}
         <p className="text-[10px] text-stone-400 text-center">
           {viewMode === 'simple'
-            ? 'Données : FAOSTAT/ISRA/ANACIM 2015-2024 • Entraîné sur 300+ observations réelles • Calculs en temps réel'
-            : 'OLS (R²=0.86-0.94) + KNN (k=3, dist. euclid.) • GA (pop=50, gen=80, BLX-α) • BBN (6 nœuds, inférence exacte) — FAOSTAT 2015-2024 • 5 pays'
+            ? `Corpus expérimental embarqué • ${yieldData.ensemble?.training_samples || 'Nombre non fourni'} observations pour ce modèle • Sortie estimée, pas une mesure de parcelle`
+            : `Ridge/OLS + KNN (k=3) • GA (pop=50, gen=80, BLX-α) • BBN paramétré — métriques internes expérimentales, validation terrain indépendante non établie`
           }
         </p>
       </div>

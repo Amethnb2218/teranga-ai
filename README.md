@@ -1,6 +1,6 @@
 # Teranga AI — Intelligent Agricultural Decision Support System
 
-An AI-powered agricultural decision support system for West African farmers, combining **real-time weather data**, **machine learning ensemble**, and **multi-factor optimization** to minimize crop risk and maximize yield — accessible in **9 languages** including 6 African languages via voice.
+An AI-powered agricultural decision support prototype for West African farmers, combining **live OpenWeatherMap data when configured (otherwise simulated seasonal weather)**, an **experimental machine-learning ensemble**, and multi-factor optimization — accessible in **9 languages** including 6 African languages via voice.
 
 **Live Demo:** [https://teranga-assistant.onrender.com](https://teranga-assistant.onrender.com)  
 **Backend API:** [https://teranga-ai.onrender.com/api/health](https://teranga-ai.onrender.com/api/health)
@@ -27,11 +27,11 @@ These factors combined cause an estimated **30-40% preventable crop loss** annua
 
 Teranga AI provides **algorithmic decision support** through:
 
-1. **Yield Prediction** — Ridge-regularized Regression (13 features) + KNN ensemble, trained on 300+ observations from FAOSTAT/ISRA/ANACIM (2015-2024)
-2. **Calendar Optimization** — Genetic Algorithm (BLX-α crossover, tournament selection) finding optimal multi-parcel sowing dates
-3. **Risk Assessment** — Bayesian Belief Network with crop-specific Conditional Probability Tables
-4. **Dynamic Ensemble** — Weighted model aggregation with R²-based confidence scoring and prediction stability metrics
-5. **Real-time Weather Integration** — OpenWeatherMap data injected directly into ML predictions (not just displayed)
+1. **Experimental Yield Prediction** — Ridge-regularized Regression (13 features) + KNN ensemble evaluated on an embedded research corpus whose rows combine coded agronomic assumptions and institution-referenced values
+2. **Calendar Optimization** — Genetic Algorithm (BLX-α crossover, tournament selection) finding candidate multi-parcel sowing dates
+3. **Risk Assessment** — Bayesian Belief Network with crop-specific, code-defined Conditional Probability Tables
+4. **Weighted Ensemble** — Model aggregation with weights computed from in-sample R² and KNN confidence; not an independently calibrated weighting policy
+5. **Conditional Weather Integration** — OpenWeatherMap data is injected into ML estimates when an API key and upstream service are available; otherwise the application uses simulated seasonal values
 6. **Multilingual Voice I/O** — Speech-to-text via Groq Whisper + Meta MMS (6 African languages), text-to-speech in all 9 languages
 7. **Neural Machine Translation** — Meta NLLB-200 for Wolof, Pulaar, Sérère, Diola, Mandinka, Soninké
 
@@ -87,7 +87,7 @@ Teranga AI provides **algorithmic decision support** through:
 │  │  │  R²=0.82-0.94 │  │   50pop×80gen │  │   (Risk CPTs)   │  │ │
 │  │  └───────────────┘  └───────────────┘  └─────────────────┘  │ │
 │  │  ┌───────────────┐  ┌───────────────┐                        │ │
-│  │  │  KNN Pattern  │  │   Dynamic     │                        │ │
+│  │  │  KNN Pattern  │  │   Weighted    │                        │ │
 │  │  │  Matching     │  │   Ensemble    │                        │ │
 │  │  │  (norm, dwt)  │  │   (R²+conf)   │                        │ │
 │  │  └───────────────┘  └───────────────┘                        │ │
@@ -133,18 +133,17 @@ Predicts crop yield `ŷ` (kg/ha) from 13 agro-environmental features.
 Where:
 - `X ∈ ℝⁿˣ¹³` — feature matrix (13 agro-environmental features incl. region productivity)
 - `y ∈ ℝⁿ` — yield observations (kg/ha)
-- `n = 300+` observations across 5 Sahel countries × 6 crops (FAOSTAT 2015-2024)
+- `n` — number of embedded corpus rows available to a model; these rows are an experimental mix of coded agronomic assumptions and institution-referenced values, not a published field-observation dataset
 
 **Local Zone Models:** Separate OLS trained per agroclimatic zone (soudanienne, sahélienne, guinéenne) for reduced inter-zone variance.
 
-**Validation:** Leave-One-Out Cross-Validation (LOOCV)
+**Experimental internal validation:** Leave-One-Out Cross-Validation (LOOCV) on the embedded corpus
 ```
-R² = 0.86–0.94 (global) | R² = 0.92 (local soudanienne)
-MAPE = 7–13% (cross-validated)
-Ensemble Accuracy = 93%+ (100 - MAPE)
+The API reports per-model R² and MAPE values from this internal evaluation.
+`100 - MAPE` is not presented as statistical accuracy, and the MAPE-derived display band is not a calibrated prediction interval.
 ```
 
-**Real-time weather injection:** OpenWeatherMap forecast data replaces static averages when available.
+**Conditional weather injection:** OpenWeatherMap forecast data replaces static averages only when the API is configured and responds successfully; otherwise historical seasonal estimates are used.
 
 **Implementation:** Gauss-Jordan elimination with partial pivoting + adaptive Ridge λ.
 
@@ -236,16 +235,18 @@ Parameters: k=3, ε=0.001 (Laplace smoothing)
 
 ---
 
-### 5. Adaptive Ensemble — Model Aggregation
+### 5. Weighted Ensemble — Model Aggregation
 
-Dynamically weights models based on regression confidence:
+Computes request-time weights from the regression model's in-sample R² and the KNN neighbor-confidence heuristic:
 ```
+reg_score = R² × 0.8
+knn_score = KNN_confidence × 0.6
+w_reg = reg_score / (reg_score + knn_score)
+w_knn = 1 - w_reg
 ŷ = w_reg · ŷ_OLS + w_knn · ŷ_KNN
-where  w_reg = min(0.7, R² × 0.8)
-       w_knn = 1 - w_reg
 ```
 
-Higher R² → more weight to parametric OLS. Lower R² → more weight to non-parametric KNN.
+These weights are an experimental heuristic; they are not learned or calibrated against an independent validation set.
 
 ---
 
@@ -268,13 +269,13 @@ Deterministic scoring engine combining domain expertise:
 
 | Source | Data Type | Coverage | Update |
 |--------|-----------|----------|--------|
-| [FAOSTAT](https://www.fao.org/faostat) | Official crop yields (2015-2024) | Senegal, Niger, Mali, Burkina, Tchad | Training data (300+ obs) |
-| [World Bank](https://data.worldbank.org) | Cereal yields verification | 5 Sahel countries | Cross-validation |
-| [ISRA](https://www.isra.sn) | Crop profiles, varieties | Senegal (6 crops) | Research-validated |
-| [ANACIM](https://www.anacim.sn) | Rainfall, temperature (2015-2024) | 14 stations | Climate features |
-| [FAO/GIEWS](https://www.fao.org/giews) | Market prices (20+ products) | West Africa | Daily simulation |
-| [OpenWeatherMap](https://openweathermap.org) | Real-time weather | 28 cities, 5 countries | 30-min cache |
-| [Google News RSS](https://news.google.com) | Agricultural news | Senegal | Real-time |
+| [FAOSTAT](https://www.fao.org/faostat) | Official national crop-yield reference series | Senegal, Niger, Mali, Burkina, Tchad | Static references embedded in experimental corpus |
+| [World Bank](https://data.worldbank.org) | Cereal-yield reference | 5 Sahel countries | Static reference |
+| [ISRA](https://www.isra.sn) | Crop profiles, varieties | Senegal (6 crops) | Static agronomic reference |
+| [ANACIM](https://www.anacim.sn) | Climate reference | Senegal | Static/historical assumptions; no live API ingestion |
+| [FAO/GIEWS](https://www.fao.org/giews/food-prices/) | Market-price reference | West Africa | Static baselines with simulated seasonal/daily adjustments |
+| [OpenWeatherMap](https://openweathermap.org/) | Weather forecasts | Configured Sahel cities | Live with 30-min cache when available; simulated fallback otherwise |
+| [Google News](https://news.google.com/) | Agricultural news RSS | Senegal | Live when reachable; static fallback titles otherwise |
 
 ---
 
@@ -285,8 +286,8 @@ Deterministic scoring engine combining domain expertise:
 | Yield Prediction | OLS Regression + KNN (13 feat.) | Ridge normal equation, distance-weighted interpolation, local zone models |
 | Calendar Optimization | Genetic Algorithm | BLX-α crossover, tournament selection |
 | Risk Assessment | Bayesian Network | Forward propagation, CPT inference |
-| Weather Forecasting | OpenWeatherMap + Calibration | Coastal temperature offset model |
-| Market Intelligence | Dynamic pricing engine | Seasonal multipliers + pseudo-random daily variance |
+| Weather Forecasting | OpenWeatherMap + simulated fallback | Live API values when available; otherwise deterministic seasonal estimates |
+| Market Intelligence | Simulated pricing engine | Static baselines + seasonal multipliers + pseudo-random daily variance |
 | AI Chat | Gemini 2.5 Flash + Groq fallback | Context-aware NLP with domain prompting |
 | Voice Output | Web Speech API | Multilingual TTS (FR, Wolof, EN, AR) |
 | Offline Mode | Keyword matching | TF-IDF-inspired topic detection |
@@ -300,7 +301,7 @@ Deterministic scoring engine combining domain expertise:
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `POST` | `/api/chat` | AI agricultural advisor |
-| `GET` | `/api/weather/:city` | Real-time weather |
+| `GET` | `/api/weather/:city` | Live weather when configured, simulated seasonal fallback otherwise |
 | `GET` | `/api/market?city=X` | Market prices by city |
 | `GET` | `/api/news` | Agricultural news feed |
 
@@ -421,11 +422,11 @@ teranga-ai/
 
 | Criteria | Implementation |
 |----------|---------------|
-| Algorithmic excellence | 5 ML algorithms coded from scratch (no sklearn/tensorflow/pytorch), trained on FAOSTAT verified data |
-| Innovation | Dynamic ensemble (Ridge+KNN) with real-time weather injection + voice in 6 African languages |
+| Algorithmic excellence | 5 algorithms coded from scratch (no sklearn/tensorflow/pytorch), evaluated on an experimental embedded corpus |
+| Innovation | Weighted Ridge+KNN prototype with conditional live-weather injection + voice in 6 African languages |
 | Scalability | REST API, stateless, zero ML framework dependencies, runs on free tier |
 | Real-world impact | 300M+ smallholder farmers in West Africa, 80% who speak only local languages |
-| Technical implementation | Full-stack deploy, real-time OpenWeatherMap, Meta MMS/NLLB, Groq Whisper |
+| Technical implementation | Full-stack deploy, conditional OpenWeatherMap integration with simulated fallback, Meta MMS/NLLB, Groq Whisper |
 | Usability & UX | 9 languages, voice input/output, mobile-responsive, works on basic smartphones |
 
 ---
@@ -439,7 +440,7 @@ teranga-ai/
 | LLM | Gemini 2.5 Flash + Groq GPT-OSS fallback | Agricultural Q&A with offline fallback |
 | Speech-to-Text | Groq Whisper v3 + Meta MMS | Voice input (9 languages) |
 | Translation | Meta NLLB-200 (HuggingFace) | 6 African languages |
-| Weather | OpenWeatherMap API | Real-time forecasts |
+| Weather | OpenWeatherMap API + internal seasonal model | Live forecasts when configured; simulated fallback otherwise |
 | ML | Custom (from scratch) | Regression, KNN, GA, BBN |
 | Deployment | Render (frontend + backend) | Production hosting |
 

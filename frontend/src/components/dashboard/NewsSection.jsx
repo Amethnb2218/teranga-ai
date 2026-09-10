@@ -1,3 +1,5 @@
+import ProvenanceNotice from '../common/ProvenanceNotice'
+
 function formatNewsDate(dateStr) {
   if (!dateStr) return '';
   // Si déjà formaté ("Il y a 2h", "Hier", etc.)
@@ -17,23 +19,49 @@ function formatNewsDate(dateStr) {
   } catch { return dateStr; }
 }
 
-function NewsSection({ news }) {
+function isRealUrl(value) {
+  if (typeof value !== 'string') return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' || url.protocol === 'http:';
+  } catch {
+    return false;
+  }
+}
+
+function NewsSection({ news, provenance }) {
   if (!news || !news.news || news.news.length === 0) return null;
 
   return (
     <section className="mt-8">
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-semibold text-stone-900 text-sm">Actualités agricoles</h3>
-        <span className="text-xs text-stone-400">Sources : presse sénégalaise (temps réel)</span>
+        <span className="text-xs text-stone-400">Flux externe si disponible</span>
       </div>
+      <ProvenanceNotice
+        provenance={provenance}
+        scope="news"
+        title="Origine des actualités"
+        fallback={news.provenance || {
+          type: news.news.some(item => isRealUrl(item.link)) ? 'live' : 'static',
+          availability: news.news.some(item => isRealUrl(item.link)) ? 'available' : 'unavailable',
+          source: news.news.some(item => isRealUrl(item.link)) ? 'Google News RSS' : 'Contenu de démonstration interne',
+          source_url: news.news.some(item => isRealUrl(item.link)) ? 'https://news.google.com/' : null,
+          note: news.news.some(item => isRealUrl(item.link))
+            ? 'Articles issus du flux RSS ; seuls les éléments ayant une URL réelle sont cliquables.'
+            : 'Le flux RSS est indisponible. Les titres affichés sont statiques et ne sont pas des actualités vérifiées en direct.'
+        }}
+        className="mb-4"
+      />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {news.news.slice(0, 6).map((item, i) => (
-          <a
+        {news.news.slice(0, 6).map((item, i) => {
+          const linked = isRealUrl(item.link);
+          const Card = linked ? 'a' : 'article';
+          return (
+          <Card
             key={i}
-            href={item.link || '#'}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block bg-white rounded-lg border border-stone-200 p-4 hover:border-amber-300 hover:shadow-sm transition-all cursor-pointer"
+            {...(linked ? { href: item.link, target: '_blank', rel: 'noopener noreferrer' } : {})}
+            className={`block bg-white rounded-lg border border-stone-200 p-4 transition-all ${linked ? 'hover:border-amber-300 hover:shadow-sm cursor-pointer' : ''}`}
           >
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 bg-amber-50 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -46,12 +74,15 @@ function NewsSection({ news }) {
                   {item.date && <span className="text-xs text-stone-400">{formatNewsDate(item.date)}</span>}
                 </div>
               </div>
-              <svg className="w-4 h-4 text-stone-300 flex-shrink-0 mt-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
+              {linked && (
+                <svg className="w-4 h-4 text-stone-300 flex-shrink-0 mt-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              )}
             </div>
-          </a>
-        ))}
+          </Card>
+          );
+        })}
       </div>
     </section>
   );
