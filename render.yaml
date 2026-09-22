@@ -8,6 +8,8 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: AI_PRIMARY
+        value: groq
       - key: GROQ_API_KEY
         sync: false
       - key: GROQ_MODEL

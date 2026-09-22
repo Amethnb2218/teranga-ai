@@ -183,9 +183,10 @@ async function getAIResponse(messages, language = 'fr') {
     if (process.env.GROQ_API_KEY || process.env.GEMINI_API_KEY) {
       try {
         const result = await callAIAPI(messages, language);
-        const fallbackNotice = result.provider === 'groq' && result.providerFailures?.length
-          ? 'Groq a pris le relais car Gemini était indisponible.'
-          : result.provider === 'groq' && result.usedFallback ? 'Le modèle Groq secondaire a été utilisé.' : null;
+        const providerNames = { groq: 'Groq', gemini: 'Gemini' };
+        const fallbackNotice = result.providerFailures?.length
+          ? `${providerNames[result.provider] || result.provider} a pris le relais (fournisseur principal indisponible).`
+          : result.usedFallback ? 'Un modèle de secours a été utilisé.' : null;
         return {
           message: result.content,
           source: result.provider,

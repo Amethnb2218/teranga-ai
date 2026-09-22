@@ -26,28 +26,43 @@ async function fetchWithRetry(url, options = {}, { timeoutMs = 15000, retries = 
 }
 
 export async function sendChatMessage(messages, language = 'fr') {
-  let response;
-  try {
-    response = await fetchWithTimeout(`${API_BASE}/api/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages, language })
-    }, 30000);
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      throw new Error('Le conseiller met trop de temps à répondre. Veuillez réessayer.');
+  // Le backend gratuit (Render) peut etre "endormi" : le 1er appel le reveille
+  // (30-60 s). On reessaie donc au lieu d'echouer instantanement, pour que la
+  // 2e tentative tombe sur un serveur deja chaud.
+  const body = JSON.stringify({ messages, language });
+  let lastError;
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    let response;
+    try {
+      response = await fetchWithTimeout(`${API_BASE}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body
+      }, 30000);
+    } catch (error) {
+      lastError = error.name === 'AbortError'
+        ? new Error('Le conseiller met trop de temps à répondre. Veuillez réessayer.')
+        : new Error('Impossible de joindre le conseiller. Vérifiez votre connexion puis réessayez.');
+      continue; // reveil du serveur / coupure reseau -> on retente
     }
-    throw new Error('Impossible de joindre le conseiller. Vérifiez votre connexion puis réessayez.');
+
+    const data = await response.json().catch(() => null);
+    if (!response.ok) {
+      // 5xx transitoire -> on retente ; sinon on remonte le message serveur
+      if (response.status >= 500 && attempt === 0) {
+        lastError = new Error(data?.message || 'Le conseiller est temporairement indisponible.');
+        continue;
+      }
+      throw new Error(data?.message || 'Le conseiller est temporairement indisponible.');
+    }
+    if (!data?.message || typeof data.message !== 'string') {
+      throw new Error('La réponse du conseiller est invalide. Veuillez réessayer.');
+    }
+    return data;
   }
 
-  const data = await response.json().catch(() => null);
-  if (!response.ok) {
-    throw new Error(data?.message || 'Le conseiller est temporairement indisponible.');
-  }
-  if (!data?.message || typeof data.message !== 'string') {
-    throw new Error('La réponse du conseiller est invalide. Veuillez réessayer.');
-  }
-  return data;
+  throw lastError || new Error('Le conseiller est temporairement indisponible.');
 }
 
 export async function fetchWeather(city) {

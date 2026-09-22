@@ -8,6 +8,7 @@ const originalEnv = {
   GROQ_FALLBACK_MODEL: process.env.GROQ_FALLBACK_MODEL,
   GEMINI_API_KEY: process.env.GEMINI_API_KEY,
   GEMINI_MODEL: process.env.GEMINI_MODEL,
+  AI_PRIMARY: process.env.AI_PRIMARY,
   HF_API_KEY: process.env.HF_API_KEY,
   HUGGINGFACE_API_KEY: process.env.HUGGINGFACE_API_KEY
 };
@@ -70,27 +71,48 @@ async function run() {
   process.env.GROQ_MODEL = 'primary-test-model';
   process.env.GROQ_FALLBACK_MODEL = 'secondary-test-model';
   process.env.GEMINI_MODEL = 'gemini-test-model';
+  delete process.env.AI_PRIMARY; // defaut = groq primaire
 
-  const calls = [];
+  // Groq est primaire (rapide + intelligent) : quand il repond, Gemini n'est pas appele.
+  const healthyCalls = [];
   global.fetch = async (url, options) => {
-    calls.push({ url, body: JSON.parse(options.body) });
+    healthyCalls.push({ url, body: JSON.parse(options.body) });
     if (url.includes('generativelanguage.googleapis.com')) {
-      return jsonResponse(503, { error: { status: 'UNAVAILABLE' } });
+      return jsonResponse(200, { candidates: [{ content: { parts: [{ text: 'Gemini (ne devrait pas etre appele).' }] } }] });
     }
     return jsonResponse(200, {
       choices: [{ message: { content: 'Conseil Groq contextuel pour Bakel.' } }]
     });
   };
-
-  const groqFallback = await createAICompletion([
+  const groqPrimary = await createAICompletion([
     { role: 'system', content: 'Réponds en français.' },
     { role: 'user', content: 'Que cultiver à Bakel ?' }
   ]);
-  assert(groqFallback.provider === 'groq', 'Groq prend le relais quand Gemini échoue');
-  assert(groqFallback.usedFallback === true, 'Le relais Groq est signalé comme dégradé');
-  assert(groqFallback.content.includes('Bakel'), 'La réponse Groq est renvoyée');
-  assert(calls[0].url.includes('gemini-test-model'), 'Le modèle Gemini vient de l’environnement');
-  assert(calls[1].body.model === 'primary-test-model', 'Le modèle Groq vient de l’environnement');
+  assert(groqPrimary.provider === 'groq', 'Groq est le fournisseur primaire par defaut');
+  assert(groqPrimary.usedFallback === false, 'Groq primaire n’est pas marqué comme dégradé');
+  assert(groqPrimary.content.includes('Bakel'), 'La réponse Groq est renvoyée');
+  assert(healthyCalls.length === 1 && healthyCalls[0].body.model === 'primary-test-model',
+    'Gemini n’est pas appelé tant que Groq répond');
+
+  // Quand Groq echoue, Gemini prend le relais et le degradé est signalé.
+  const fallbackCalls = [];
+  global.fetch = async (url, options) => {
+    fallbackCalls.push({ url, body: JSON.parse(options.body) });
+    if (url.includes('api.groq.com')) {
+      return jsonResponse(503, { error: { code: 'service_unavailable' } });
+    }
+    return jsonResponse(200, {
+      candidates: [{ content: { parts: [{ text: 'Conseil Gemini pour Bakel.' }] }, finishReason: 'STOP' }]
+    });
+  };
+  const geminiFallback = await createAICompletion([{ role: 'user', content: 'Que cultiver à Bakel ?' }]);
+  assert(geminiFallback.provider === 'gemini', 'Gemini prend le relais quand Groq échoue');
+  assert(geminiFallback.usedFallback === true, 'Le relais Gemini est signalé comme dégradé');
+  assert(geminiFallback.providerFailures?.some(f => f.provider === 'groq'), 'L’échec Groq est tracé dans providerFailures');
+  assert(fallbackCalls.some(c => c.url.includes('gemini-test-model')), 'Le modèle Gemini vient de l’environnement');
+
+  // --- Regressions specifiques Gemini : on force Gemini primaire pour les isoler ---
+  process.env.AI_PRIMARY = 'gemini';
 
   global.fetch = async url => {
     if (url.includes('generativelanguage.googleapis.com')) {
@@ -129,6 +151,7 @@ async function run() {
   const maxTokensFallback = await createAICompletion([{ role: 'user', content: 'Question' }]);
   assert(maxTokensFallback.provider === 'groq', 'Une reponse Gemini tronquee (MAX_TOKENS) bascule sur Groq');
 
+  delete process.env.AI_PRIMARY;
   delete process.env.GROQ_API_KEY;
   global.fetch = async () => jsonResponse(200, {
     candidates: [{ content: { parts: [{ text: 'Gemini seul fonctionne.' }] } }]

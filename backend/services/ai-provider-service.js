@@ -10,29 +10,36 @@ function sanitizedDiagnostic(provider, error) {
   };
 }
 
+// Groq (LPU) repond en 1-3 s avec un modele 120B -> primaire par defaut :
+// rapide ET intelligent. Gemini 3.x flash est un modele "thinking" (lent, budget
+// de sortie consomme par le raisonnement) -> garde en secours quand Groq est
+// indisponible ou a atteint son quota journalier.
+// AI_PRIMARY=gemini permet d'inverser l'ordre sans toucher au code.
+function getProviderOrder() {
+  const providers = [
+    { name: 'gemini', enabled: !!process.env.GEMINI_API_KEY, run: createGeminiCompletion },
+    { name: 'groq', enabled: !!process.env.GROQ_API_KEY, run: createChatCompletion }
+  ];
+  const primary = (process.env.AI_PRIMARY || 'groq').toLowerCase();
+  providers.sort((a, b) => (a.name === primary ? -1 : b.name === primary ? 1 : 0));
+  return providers.filter(p => p.enabled);
+}
+
 async function createAICompletion(messages, options = {}) {
   const failures = [];
+  const order = getProviderOrder();
 
-  if (process.env.GEMINI_API_KEY) {
+  for (const provider of order) {
     try {
-      const result = await createGeminiCompletion(messages, options);
-      return { ...result, provider: 'gemini' };
-    } catch (error) {
-      failures.push(sanitizedDiagnostic('gemini', error));
-    }
-  }
-
-  if (process.env.GROQ_API_KEY) {
-    try {
-      const result = await createChatCompletion(messages, options);
+      const result = await provider.run(messages, options);
       return {
         ...result,
-        provider: 'groq',
+        provider: provider.name,
         usedFallback: failures.length > 0 || result.usedFallback,
         providerFailures: failures
       };
     } catch (error) {
-      failures.push(sanitizedDiagnostic('groq', error));
+      failures.push(sanitizedDiagnostic(provider.name, error));
     }
   }
 

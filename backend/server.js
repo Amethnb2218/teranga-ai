@@ -43,11 +43,18 @@ app.use('/api/provenance', provenanceRoutes);
 app.get('/api/health', (req, res) => {
   const groq = getGroqStatus();
   const gemini = getGeminiStatus();
-  const aiMode = gemini.status === 'available' || gemini.status === 'degraded'
-    ? 'gemini'
-    : groq.status === 'available' || groq.status === 'degraded' ? 'groq'
-      : groq.status === 'not_configured' && gemini.status === 'not_configured' ? 'offline'
-        : 'configured_unverified';
+
+  // Ordre reel des fournisseurs (cf. ai-provider-service) : Groq primaire par
+  // defaut (rapide + intelligent), Gemini en secours. AI_PRIMARY peut l'inverser.
+  const primary = (process.env.AI_PRIMARY || 'groq').toLowerCase();
+  const providerOrder = (primary === 'gemini' ? ['gemini', 'groq'] : ['groq', 'gemini'])
+    .filter(name => (name === 'groq' ? !!process.env.GROQ_API_KEY : !!process.env.GEMINI_API_KEY));
+  const statusByName = { groq, gemini };
+  const isLive = s => s.status === 'available' || s.status === 'degraded';
+  const activeProvider = providerOrder.find(name => isLive(statusByName[name]));
+  const aiMode = activeProvider
+    ? activeProvider
+    : providerOrder.length === 0 ? 'offline' : 'configured_unverified';
 
   res.json({
     status: 'ok',
@@ -55,7 +62,7 @@ app.get('/api/health', (req, res) => {
     version: '3.1.0',
     ai_mode: aiMode,
     ai_providers: { groq, gemini },
-    ai_fallback_order: ['gemini', 'groq', 'offline'],
+    ai_fallback_order: [...providerOrder, 'offline'],
     translation: (process.env.HF_API_KEY || process.env.HUGGINGFACE_API_KEY) ? 'nllb (active)' : 'unavailable',
     weather_source: process.env.OPENWEATHER_API_KEY ? 'openweathermap (live)' : 'climatologie locale (estimated)',
     ml_engine: 'v3.1 expérimental (13 features, 9 cultures, corpus partiellement traçable)',
