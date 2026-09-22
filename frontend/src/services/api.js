@@ -124,6 +124,28 @@ export async function fetchBayesianRisk(crop, city, month) {
   return response.json();
 }
 
+// Synthèse vocale locale (Meta MMS-TTS via le backend). Renvoie une URL blob
+// audio jouable, ou null si aucune voix locale n'est dispo -> le navigateur
+// (Web Speech) prend le relais côté appelant.
+export async function synthesizeSpeech(text, language = 'fr') {
+  try {
+    const response = await fetchWithTimeout(`${API_BASE}/api/tts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, language })
+    }, 25000);
+
+    if (response.status === 204 || !response.ok) return null; // pas de voix locale / échec
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.startsWith('audio/')) return null;
+
+    const blob = await response.blob();
+    return URL.createObjectURL(blob);
+  } catch {
+    return null;
+  }
+}
+
 export async function transcribeAudio(audioBase64, language = 'fr') {
   const response = await fetch(`${API_BASE}/api/speech/transcribe`, {
     method: 'POST',

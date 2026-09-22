@@ -8,6 +8,7 @@ const newsRoutes = require('./routes/news');
 const predictRoutes = require('./routes/predict');
 const mlRoutes = require('./routes/ml');
 const speechRoutes = require('./routes/speech');
+const ttsRoutes = require('./routes/tts');
 const translateRoutes = require('./routes/translate');
 const alertsRoutes = require('./routes/alerts');
 const communityRoutes = require('./routes/community');
@@ -30,6 +31,7 @@ app.use(express.json({ limit: '10mb' }));
 
 app.use('/api/chat', chatRoutes);
 app.use('/api/speech', speechRoutes);
+app.use('/api/tts', ttsRoutes);
 app.use('/api/translate', translateRoutes);
 app.use('/api/weather', weatherRoutes);
 app.use('/api/market', marketRoutes);

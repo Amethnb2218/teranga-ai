@@ -5,6 +5,7 @@ import ChatBubble from './ChatBubble'
 import ChatInput from './ChatInput'
 import Suggestions from './Suggestions'
 import LoadingDots from '../common/LoadingDots'
+import { LANG_CONFIG } from '../../config/languages'
 
 function Chat() {
   const {
@@ -53,7 +54,9 @@ function Chat() {
               className="appearance-none flex items-center gap-1.5 pl-7 pr-2 py-1.5 rounded-md bg-stone-100 hover:bg-stone-200 text-xs font-medium text-stone-600 transition-colors cursor-pointer outline-none"
             >
               {Object.entries(LANG_LABELS).map(([key, label]) => (
-                <option key={key} value={key}>{label}</option>
+                <option key={key} value={key}>
+                  {label}{LANG_CONFIG[key]?.tier === 'beta' ? ' (beta)' : ''}
+                </option>
               ))}
             </select>
             <FiGlobe size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-stone-500 pointer-events-none" />

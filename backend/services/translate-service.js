@@ -5,25 +5,18 @@
  */
 
 const { createAICompletion } = require('./ai-provider-service');
+const { LANGUAGES, LOCAL_LANGS, nllbCode, hasTranslation } = require('../config/languages');
 
-const NLLB_LANG_CODES = {
-  fr: 'fra_Latn',
-  wo: 'wol_Latn',
-  pu: 'ful_Latn',
-  sr: 'srr_Latn',
-  di: 'dyu_Latn',
-  mn: 'bam_Latn',
-  sn: 'snk_Latn',
-  en: 'eng_Latn',
-  ar: 'arb_Arab'
-};
+// Codes NLLB dérivés de la matrice centrale (config/languages.js) — plus de
+// codes en dur : les langues sans code NLLB (sérère, diola, mandinka, soninké)
+// ne sont PAS envoyées à NLLB (échec silencieux évité).
+const NLLB_LANG_CODES = Object.fromEntries(
+  Object.entries(LANGUAGES).filter(([, cfg]) => cfg.nllb).map(([code, cfg]) => [code, cfg.nllb])
+);
 
-const LANG_NAMES = {
-  wo: 'wolof', pu: 'pulaar', sr: 'sérère', di: 'diola',
-  mn: 'mandinka', sn: 'soninké', en: 'English', ar: 'arabe'
-};
-
-const LOCAL_LANGS = ['wo', 'pu', 'sr', 'di', 'mn', 'sn'];
+const LANG_NAMES = Object.fromEntries(
+  Object.entries(LANGUAGES).map(([code, cfg]) => [code, cfg.label.toLowerCase()])
+);
 
 let nllbWarm = false;
 
@@ -53,8 +46,11 @@ async function translateWithNLLB(text, sourceLang, targetLang, retries = 3) {
   const apiKey = process.env.HF_API_KEY || process.env.HUGGINGFACE_API_KEY;
   if (!apiKey) return null;
 
-  const srcCode = NLLB_LANG_CODES[sourceLang] || 'fra_Latn';
-  const tgtCode = NLLB_LANG_CODES[targetLang] || 'wol_Latn';
+  const srcCode = nllbCode(sourceLang);
+  const tgtCode = nllbCode(targetLang);
+  // Langue absente de NLLB (sérère, diola, mandinka, soninké) -> on n'appelle pas
+  // l'API (elle échouerait ou renverrait du charabia).
+  if (!srcCode || !tgtCode) return null;
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {

@@ -81,7 +81,7 @@ function Hero({ onStart, onNavigate }) {
               <span className="text-teal-300">R&eacute;silience du Sahel</span>
             </h1>
             <p className="text-slate-300 text-base md:text-lg mb-8 leading-relaxed max-w-xl">
-              Syst&egrave;me d&rsquo;alerte pr&eacute;coce et d&rsquo;aide &agrave; la d&eacute;cision agricole propuls&eacute; par l&rsquo;IA. 10 pays. 9 langues. Gratuit.
+              Syst&egrave;me d&rsquo;alerte pr&eacute;coce et d&rsquo;aide &agrave; la d&eacute;cision agricole propuls&eacute; par l&rsquo;IA. Tout le Sahel. 15 langues. Gratuit.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 mb-8">

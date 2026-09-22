@@ -2,6 +2,7 @@ const { getSystemPrompt } = require('../config/prompts');
 const { OFFLINE_RESPONSES } = require('../data/offline-responses');
 const { translateForChat, isTranslationAvailable } = require('./translate-service');
 const { createAICompletion } = require('./ai-provider-service');
+const { LOCAL_LANGS, LANGUAGES } = require('../config/languages');
 
 const ZONE_DATA = {
   dakar: { zone: 'Niayes', cultures: 'tomate, oignon, chou, piment, salade', sol: 'sablonneux riche (Niayes)', pluviometrie: '400mm', irrigation: 'nappe phréatique accessible', conseil: 'Zone maraîchère par excellence. Culture toute l\'année avec irrigation. Privilégiez les légumes à haute valeur (tomate, oignon, piment).' },
@@ -112,7 +113,8 @@ async function callAIAPI(messages, language) {
   return createAICompletion([systemMessage, ...messages], { maxTokens: 1500, temperature: 0.55 });
 }
 
-const LANGS_NEED_TRANSLATION = ['wo', 'pu', 'sr', 'di', 'mn', 'sn'];
+// Toutes les langues locales (full + beta) passent par le pivot français.
+const LANGS_NEED_TRANSLATION = LOCAL_LANGS;
 
 // Local language agricultural vocabulary → French equivalents
 const LOCAL_VOCAB = {
@@ -163,7 +165,7 @@ async function translateUserInput(text, language) {
 
   // Fallback: AI provider with vocabulary hints
   if (!process.env.GROQ_API_KEY && !process.env.GEMINI_API_KEY) return vocabTranslation;
-  const langName = { wo: 'wolof', pu: 'pulaar', sr: 'sérère', di: 'diola', mn: 'mandinka', sn: 'soninké' }[language];
+  const langName = (LANGUAGES[language]?.label || 'wolof').toLowerCase();
   try {
     const result = await createAICompletion([{
       role: 'user',
@@ -278,12 +280,18 @@ async function getAIResponse(messages, language = 'fr') {
   if (process.env.GROQ_API_KEY || process.env.GEMINI_API_KEY) {
     try {
       const langConfig = {
-        wo: { name: 'wolof', greeting: 'Jërejëf ci sa laaj.', style: 'wolof-français comme on parle au Sénégal' },
-        pu: { name: 'pulaar', greeting: 'A jaaraama.', style: 'pulaar-français comme on parle en Afrique de l\'Ouest' },
-        sr: { name: 'sérère', greeting: 'Mbind a fiid.', style: 'sérère-français' },
-        di: { name: 'diola', greeting: 'Kasumay.', style: 'diola-français' },
-        mn: { name: 'mandinka', greeting: 'I ni ce.', style: 'mandinka-français' },
-        sn: { name: 'soninké', greeting: 'An maarandi.', style: 'soninké-français' }
+        wo:  { name: 'wolof',    greeting: 'Jërejëf ci sa laaj.', style: 'wolof-français comme on parle au Sénégal' },
+        pu:  { name: 'pulaar',   greeting: 'A jaaraama.',         style: 'pulaar-français comme on parle en Afrique de l\'Ouest' },
+        ha:  { name: 'haoussa',  greeting: 'Sannu.',              style: 'haoussa-français comme on parle au Niger/Nigéria' },
+        bm:  { name: 'bambara',  greeting: 'I ni ce.',            style: 'bambara-français comme on parle au Mali' },
+        mos: { name: 'mooré',    greeting: 'Ne y windga.',        style: 'mooré-français comme on parle au Burkina Faso' },
+        dyu: { name: 'dioula',   greeting: 'I ni ce.',            style: 'dioula-français' },
+        kr:  { name: 'kanouri',  greeting: ' Wushe.',             style: 'kanouri-français' },
+        tmh: { name: 'tamasheq', greeting: 'Oyiwan.',             style: 'tamasheq-français' },
+        sr:  { name: 'sérère',   greeting: 'Mbind a fiid.',       style: 'sérère-français' },
+        di:  { name: 'diola',    greeting: 'Kasumay.',            style: 'diola-français' },
+        mn:  { name: 'mandinka', greeting: 'I ni ce.',            style: 'mandinka-français' },
+        sn:  { name: 'soninké',  greeting: 'An maarandi.',        style: 'soninké-français' }
       };
       const cfg = langConfig[language] || langConfig.wo;
       const result = await createAICompletion([{

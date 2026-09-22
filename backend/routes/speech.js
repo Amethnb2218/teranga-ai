@@ -1,32 +1,23 @@
 const express = require('express');
+const { LANGUAGES } = require('../config/languages');
 const router = express.Router();
 
-const WHISPER_LANGS = {
-  fr: 'fr', en: 'en', ar: 'ar',
-  wo: 'wo', pu: 'ff', sr: 'fr', di: 'fr', mn: 'fr', sn: 'fr'
-};
+// Modèle MMS multilingue (1162 langues) pour la reconnaissance vocale locale.
+const MMS_ASR_MODEL = 'facebook/mms-1b-all';
 
-const MMS_MODELS = {
-  wo: 'facebook/mms-1b-fl102',
-  pu: 'facebook/mms-1b-fl102',
-  sr: 'facebook/mms-1b-fl102',
-  di: 'facebook/mms-1b-fl102',
-  mn: 'facebook/mms-1b-fl102',
-  sn: 'facebook/mms-1b-fl102'
-};
-
-const MMS_LANG_CODES = {
-  wo: 'wol',
-  pu: 'ful',
-  sr: 'srr',
-  di: 'jol',
-  mn: 'mnk',
-  sn: 'snk'
-};
+// Whisper ne connaît qu'un sous-ensemble de langues : on n'y envoie que celles
+// réellement supportées (cf. config/languages.js -> whisper). Sinon MMS, puis
+// dernier recours Whisper en français pour au moins capter les mots techniques.
+function whisperCode(language) {
+  return LANGUAGES[language]?.whisper || 'fr';
+}
+function mmsAsrCode(language) {
+  return LANGUAGES[language]?.mmsAsr || null;
+}
 
 async function transcribeWithWhisper(audioBuffer, language) {
   const boundary = '----FormBoundary' + Math.random().toString(36).slice(2);
-  const langCode = WHISPER_LANGS[language] || 'fr';
+  const langCode = whisperCode(language);
 
   const isMp4 = audioBuffer.length > 8 && audioBuffer.toString('ascii', 4, 8) === 'ftyp';
   const ext = isMp4 ? 'mp4' : 'webm';
@@ -64,11 +55,12 @@ async function transcribeWithMMS(audioBuffer, language) {
   const hfKey = process.env.HF_API_KEY || process.env.HUGGINGFACE_API_KEY;
   if (!hfKey) throw new Error('No HF API key');
 
-  const model = MMS_MODELS[language];
-  const langCode = MMS_LANG_CODES[language];
+  const langCode = mmsAsrCode(language);
+  if (!langCode) throw new Error(`Pas d'adaptateur MMS pour la langue ${language}`);
 
+  // MMS-1b-all sélectionne la langue via l'adaptateur target_lang (ISO 639-3).
   const response = await fetch(
-    `https://api-inference.huggingface.co/models/${model}`,
+    `https://api-inference.huggingface.co/models/${MMS_ASR_MODEL}?target_lang=${encodeURIComponent(langCode)}`,
     {
       method: 'POST',
       headers: {
@@ -107,7 +99,7 @@ router.post('/transcribe', async (req, res) => {
     const audioBuffer = Buffer.from(audio, 'base64');
     let text = '';
 
-    if (MMS_MODELS[language]) {
+    if (mmsAsrCode(language)) {
       const hfKey = process.env.HF_API_KEY || process.env.HUGGINGFACE_API_KEY;
       if (hfKey) {
         try {
