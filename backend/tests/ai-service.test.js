@@ -103,6 +103,32 @@ async function run() {
   const malformedFallback = await createAICompletion([{ role: 'user', content: 'Question' }]);
   assert(malformedFallback.provider === 'groq', 'Une réponse Gemini malformée déclenche Groq');
 
+  // Regression gemini-3.x "thinking" : maxOutputTokens doit reserver une marge de
+  // raisonnement AU-DESSUS de la reponse demandee, sinon reponse vide -> bascule Groq inutile.
+  let geminiBody = null;
+  global.fetch = async (url, options) => {
+    if (url.includes('generativelanguage.googleapis.com')) {
+      geminiBody = JSON.parse(options.body);
+      return jsonResponse(200, {
+        candidates: [{ content: { parts: [{ text: 'Reponse Gemini.' }] }, finishReason: 'STOP' }]
+      });
+    }
+    return jsonResponse(200, { choices: [{ message: { content: 'Groq.' } }] });
+  };
+  const geminiHeadroom = await createAICompletion([{ role: 'user', content: 'Question' }], { maxTokens: 1500 });
+  assert(geminiHeadroom.provider === 'gemini', 'Gemini repond quand le budget de tokens est suffisant');
+  assert(geminiBody?.generationConfig?.maxOutputTokens > 1500, 'maxOutputTokens reserve une marge de raisonnement au-dessus de la reponse demandee');
+
+  // Regression : une reponse vide avec finishReason MAX_TOKENS bascule proprement sur Groq
+  global.fetch = async url => {
+    if (url.includes('generativelanguage.googleapis.com')) {
+      return jsonResponse(200, { candidates: [{ finishReason: 'MAX_TOKENS' }] });
+    }
+    return jsonResponse(200, { choices: [{ message: { content: 'Groq apres troncature.' } }] });
+  };
+  const maxTokensFallback = await createAICompletion([{ role: 'user', content: 'Question' }]);
+  assert(maxTokensFallback.provider === 'groq', 'Une reponse Gemini tronquee (MAX_TOKENS) bascule sur Groq');
+
   delete process.env.GROQ_API_KEY;
   global.fetch = async () => jsonResponse(200, {
     candidates: [{ content: { parts: [{ text: 'Gemini seul fonctionne.' }] } }]

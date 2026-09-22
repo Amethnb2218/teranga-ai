@@ -17,7 +17,7 @@ services:
       - key: GEMINI_API_KEY
         sync: false
       - key: GEMINI_MODEL
-        value: gemini-2.5-flash
+        value: gemini-3.6-flash
       - key: OPENWEATHER_API_KEY
         sync: false
       - key: HF_API_KEY

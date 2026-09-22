@@ -1,5 +1,11 @@
 const DEFAULT_MODEL = 'gemini-3.6-flash';
-const DEFAULT_TIMEOUT_MS = 20000;
+const DEFAULT_TIMEOUT_MS = 30000;
+// gemini-3.x flash sont des modeles "thinking" : maxOutputTokens est un plafond dur
+// qui inclut AUSSI les tokens de raisonnement interne. Un plafond trop bas est
+// consomme par le raisonnement et renvoie un texte vide (finishReason=MAX_TOKENS),
+// ce qui donnait l'impression que "Gemini est indisponible". On reserve donc une
+// marge au-dessus de la longueur de reponse demandee.
+const DEFAULT_THINKING_HEADROOM = 6000;
 
 let state = {
   status: 'configured_unverified',
@@ -11,7 +17,8 @@ function getGeminiConfig() {
   return {
     apiKey: process.env.GEMINI_API_KEY,
     model: process.env.GEMINI_MODEL || DEFAULT_MODEL,
-    timeoutMs: Number(process.env.GEMINI_TIMEOUT_MS) || DEFAULT_TIMEOUT_MS
+    timeoutMs: Number(process.env.GEMINI_TIMEOUT_MS) || DEFAULT_TIMEOUT_MS,
+    thinkingHeadroom: Number(process.env.GEMINI_THINKING_HEADROOM) || DEFAULT_THINKING_HEADROOM
   };
 }
 
@@ -67,7 +74,9 @@ async function createGeminiCompletion(messages, options = {}) {
       body: JSON.stringify({
         ...toGeminiRequest(messages),
         generationConfig: {
-          maxOutputTokens: options.maxTokens || 1500,
+          // maxOutputTokens inclut les tokens de raisonnement (cf. DEFAULT_THINKING_HEADROOM) :
+          // on reserve une marge au-dessus de la reponse demandee pour ne pas etre tronque.
+          maxOutputTokens: (options.maxTokens || 1500) + config.thinkingHeadroom,
           temperature: options.temperature ?? 0.7
         }
       })
@@ -93,11 +102,16 @@ async function createGeminiCompletion(messages, options = {}) {
       });
     }
 
+    const finishReason = data?.candidates?.[0]?.finishReason;
     const content = data?.candidates?.[0]?.content?.parts
       ?.map(part => part.text || '')
       .join('')
       .trim();
     if (!content) {
+      if (finishReason === 'MAX_TOKENS') {
+        console.error(`Gemini (${config.model}) tronque : budget de sortie epuise par le raisonnement (finishReason=MAX_TOKENS). Augmenter GEMINI_THINKING_HEADROOM.`);
+        throw createGeminiError('Reponse Gemini tronquee', { code: 'max_tokens', category: 'provider' });
+      }
       throw createGeminiError('Réponse Gemini vide', { code: 'empty_response' });
     }
 
