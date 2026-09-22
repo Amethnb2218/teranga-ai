@@ -1,6 +1,6 @@
 # Teranga AI — Intelligent Agricultural Decision Support System
 
-An AI-powered agricultural decision support prototype for West African farmers, combining **live OpenWeatherMap data when configured (otherwise simulated seasonal weather)**, an **experimental machine-learning ensemble**, and multi-factor optimization — accessible in **9 languages** including 6 African languages via voice.
+An AI-powered agricultural decision support prototype for West African farmers, combining **live OpenWeatherMap data when configured (otherwise simulated seasonal weather)**, an **experimental machine-learning ensemble**, and multi-factor optimization — accessible in **15 languages** including 12 Sahelian languages, with **LLM-based translation** and voice output.
 
 **Live Demo:** [https://teranga-assistant.onrender.com](https://teranga-assistant.onrender.com)  
 **Backend API:** [https://teranga-ai.onrender.com/api/health](https://teranga-ai.onrender.com/api/health)
@@ -32,22 +32,32 @@ Teranga AI provides **algorithmic decision support** through:
 3. **Risk Assessment** — Bayesian Belief Network with crop-specific, code-defined Conditional Probability Tables
 4. **Weighted Ensemble** — Model aggregation with weights computed from in-sample R² and KNN confidence; not an independently calibrated weighting policy
 5. **Conditional Weather Integration** — OpenWeatherMap data is injected into ML estimates when an API key and upstream service are available; otherwise the application uses simulated seasonal values
-6. **Multilingual Voice I/O** — Speech-to-text via Groq Whisper + Meta MMS (6 African languages), text-to-speech in all 9 languages
-7. **Neural Machine Translation** — Meta NLLB-200 for Wolof, Pulaar, Sérère, Diola, Mandinka, Soninké
+6. **Multilingual Voice I/O** — Speech-to-text via Groq Whisper; text-to-speech via Web Speech (a dedicated local-voice backend can be plugged via `MMS_TTS_URL`)
+7. **LLM Translation** — Gemini/Groq translate the advisor's answers into the farmer's language (the legacy HuggingFace/NLLB inference endpoint was retired by the provider)
 
 ### Languages Supported
 
-| Language | Input (STT) | Output (TTS) | Translation | Engine |
-|----------|:-----------:|:------------:|:-----------:|--------|
-| French | Whisper | Web Speech | Native | Groq |
-| English | Whisper | Web Speech | Native | Groq |
-| Arabic | Whisper | Web Speech | Groq LLM | Groq |
-| Wolof | Meta MMS | Web Speech | NLLB-200 | HuggingFace |
-| Pulaar | Meta MMS | Web Speech | NLLB-200 | HuggingFace |
-| Sérère | Meta MMS | Web Speech | NLLB-200 | HuggingFace |
-| Diola | Meta MMS | Web Speech | NLLB-200 | HuggingFace |
-| Mandinka | Meta MMS | Web Speech | NLLB-200 | HuggingFace |
-| Soninké | Meta MMS | Web Speech | NLLB-200 | HuggingFace |
+**Tiers:** `full` = reliable LLM translation + language covered end-to-end · `beta` = spoken input best-effort, answer returned in French (translation not reliable for these very low-resource languages).
+
+| Language | Region | Tier | Translation | Voice output |
+|----------|--------|:----:|:-----------:|:------------:|
+| French | Sahel | native | — | Web Speech |
+| Wolof | Senegal | full | LLM (Gemini/Groq) | Web Speech¹ |
+| Pulaar / Fulfulde | Sahel (SN→Chad) | full | LLM | Web Speech¹ |
+| Haoussa | Niger/Nigeria/Chad | full | LLM | Web Speech¹ |
+| Bambara | Mali | full | LLM | Web Speech¹ |
+| Mooré | Burkina Faso | full | LLM | Web Speech¹ |
+| Dioula | Burkina/Côte d'Ivoire | full | LLM | Web Speech¹ |
+| Kanouri | Niger/Chad/Nigeria | full | LLM | Web Speech¹ |
+| Tamasheq | Mali/Niger | full | LLM | Web Speech¹ |
+| English | — | native | LLM | Web Speech |
+| Arabic | Mauritania/Chad | native | LLM | Web Speech |
+| Sérère | Senegal | beta | — (French output) | Web Speech |
+| Diola | Casamance | beta | — (French output) | Web Speech |
+| Mandinka | Senegal/Gambia | beta | — (French output) | Web Speech |
+| Soninké | Mali/SN/Mauritania | beta | — (French output) | Web Speech |
+
+> ¹ Native local voices (Meta MMS-TTS) require a dedicated TTS backend: no free hosted endpoint currently serves these languages, so the browser's Web Speech voice is used by default. Set `MMS_TTS_URL` to enable a real local voice.
 
 ---
 
@@ -74,7 +84,7 @@ Teranga AI provides **algorithmic decision support** through:
 │  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────────┐  │
 │  │ AI Chat Service │  │  Weather Service │  │  Market Engine   │  │
 │  │ Gemini + Groq   │  │  OpenWeatherMap  │  │  FAO/GIEWS       │  │
-│  │ + NLLB + MMS   │  │  + RT Injection  │  │  + Seasonal Adj  │  │
+│  │ + Translate    │  │  + RT Injection  │  │  + Seasonal Adj  │  │
 │  └─────────────────┘  └─────────────────┘  └──────────────────┘  │
 │                                                                    │
 │  ┌──────────────────────────────────────────────────────────────┐ │
@@ -105,7 +115,7 @@ Teranga AI provides **algorithmic decision support** through:
         ▼              ▼              ▼
 ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
 │  Gemini API  │ │  Groq API    │ │OpenWeatherMap│ │ Google News  │ │ HuggingFace  │
-│ (Primary LLM)│ │(Fallback+STT)│ │  (RT weather)│ │    RSS       │ │ (NLLB+MMS)   │
+│ (Primary LLM)│ │(Fallback+STT)│ │  (RT weather)│ │    RSS       │ │ (opt. TTS)   │
 └──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘
 ```
 
@@ -289,7 +299,7 @@ Deterministic scoring engine combining domain expertise:
 | Weather Forecasting | OpenWeatherMap + simulated fallback | Live API values when available; otherwise deterministic seasonal estimates |
 | Market Intelligence | Simulated pricing engine | Static baselines + seasonal multipliers + pseudo-random daily variance |
 | AI Chat | Gemini 2.5 Flash + Groq fallback | Context-aware NLP with domain prompting |
-| Voice Output | Web Speech API | Multilingual TTS (FR, Wolof, EN, AR) |
+| Voice Output | Web Speech API (+ optional MMS-TTS backend) | Multilingual TTS |
 | Offline Mode | Keyword matching | TF-IDF-inspired topic detection |
 
 ---
@@ -423,11 +433,11 @@ teranga-ai/
 | Criteria | Implementation |
 |----------|---------------|
 | Algorithmic excellence | 5 algorithms coded from scratch (no sklearn/tensorflow/pytorch), evaluated on an experimental embedded corpus |
-| Innovation | Weighted Ridge+KNN prototype with conditional live-weather injection + voice in 6 African languages |
+| Innovation | Weighted Ridge+KNN prototype with conditional live-weather injection + LLM translation across 12 Sahelian languages |
 | Scalability | REST API, stateless, zero ML framework dependencies, runs on free tier |
 | Real-world impact | 300M+ smallholder farmers in West Africa, 80% who speak only local languages |
-| Technical implementation | Full-stack deploy, conditional OpenWeatherMap integration with simulated fallback, Meta MMS/NLLB, Groq Whisper |
-| Usability & UX | 9 languages, voice input/output, mobile-responsive, works on basic smartphones |
+| Technical implementation | Full-stack deploy, conditional OpenWeatherMap integration with simulated fallback, LLM translation, Groq Whisper |
+| Usability & UX | 15 languages, voice input/output, mobile-responsive, works on basic smartphones |
 
 ---
 
@@ -438,8 +448,8 @@ teranga-ai/
 | Frontend | React 18 + Vite + TailwindCSS | SPA, responsive UI |
 | Backend | Node.js + Express | REST API, ML engine |
 | LLM | Gemini 2.5 Flash + Groq GPT-OSS fallback | Agricultural Q&A with offline fallback |
-| Speech-to-Text | Groq Whisper v3 + Meta MMS | Voice input (9 languages) |
-| Translation | Meta NLLB-200 (HuggingFace) | 6 African languages |
+| Speech-to-Text | Groq Whisper v3 | Voice input |
+| Translation | LLM (Gemini / Groq) | 12 Sahelian languages |
 | Weather | OpenWeatherMap API + internal seasonal model | Live forecasts when configured; simulated fallback otherwise |
 | ML | Custom (from scratch) | Regression, KNN, GA, BBN |
 | Deployment | Render (frontend + backend) | Production hosting |
@@ -471,7 +481,7 @@ GEMINI_API_KEY=      # Google AI Studio — primary LLM
 GROQ_API_KEY=        # groq.com — fallback LLM + Whisper
 GROQ_MODEL=openai/gpt-oss-120b
 GROQ_FALLBACK_MODEL=openai/gpt-oss-20b
-HF_API_KEY=          # huggingface.co (free) — NLLB + MMS
+HF_API_KEY=          # huggingface.co (free) — optional, only if MMS_TTS_URL is set
 OPENWEATHER_API_KEY= # openweathermap.org (free) — Weather
 ```
 
