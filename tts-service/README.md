@@ -43,45 +43,37 @@ curl -s -X POST http://localhost:8000/ -H "Content-Type: application/json" \
   -d '{"text":"Dalal jamm, naka nga def?","lang":"wol"}' --output test.wav
 ```
 
-## Déployer GRATUITEMENT sur Hugging Face Spaces (recommandé, coût 0)
+## État de la voix locale par langue (recherche à jour, sans carte bancaire)
 
-HF Spaces offre un CPU gratuit avec ~16 Go de RAM — largement suffisant pour
-MMS-TTS, et **sans carte bancaire**.
+| Langue | Voix locale gratuite ? | Comment |
+|--------|------------------------|---------|
+| **Haoussa** | ✅ **marche déjà** | Google Translate TTS (gratuit, sans clé) — câblé dans le backend, aucun serveur |
+| Pulaar, Bambara, Mooré, Dioula, Tamasheq, Diola, Mandinka | ✅ possible, sans carte | modèles **ONNX** (`willwade/mms-tts-multilingual-models-onnx`, format sherpa-onnx `model.onnx`+`tokens.txt`) → exécutables **dans le navigateur** (sherpa-onnx WASM) ou en Node, sans serveur payant |
+| Wolof | ✅ modèles dédiés existent | `galsenai/wolof-tts`, `bilalfaye/speecht5_tts-wolof`… mais en PyTorch → nécessitent un serveur (pas d'ONNX prêt) |
+| Kanouri, Sérère, Soninké | ❌ pas de voix libre prête | seul MMS PyTorch les couvre (serveur requis) |
 
-1. Va sur https://huggingface.co/new-space
-2. **Space SDK : Docker** (template *Blank*), visibilité **Public**, hardware
-   **CPU basic (gratuit)**.
-3. Téléverse les 3 fichiers de ce dossier dans le Space (bouton *Files* →
-   *Add file* → *Upload files*) : `app.py`, `requirements.txt`, `Dockerfile`,
-   et ce `README.md` (son frontmatter configure le Space).
-4. Attends la fin du *build* (onglet *Logs*). L'URL publique sera du type
-   `https://<ton-user>-teranga-tts.hf.space`.
-5. (Recommandé) *Settings → Variables and secrets* : ajoute un secret
-   `TTS_AUTH_TOKEN` (une chaîne aléatoire), puis mets la **même valeur** côté
-   backend Render.
+### Le chemin 100 % gratuit et sans carte : ONNX côté navigateur
 
-> Le Space gratuit se met en veille après ~48 h d'inactivité et se réveille au
-> premier appel (chargement du modèle ~10-30 s), comme le backend Render.
+Les modèles ONNX ci-dessus tournent **dans le navigateur** via **sherpa-onnx
+WASM** — aucun serveur, aucune carte. Le téléphone télécharge le modèle
+(~30 Mo/langue, mis en cache) la première fois, puis synthétise en local.
+Couvre 8 langues (haoussa + les 7 de la 2ᵉ ligne).
+> Compromis : ~30 Mo par langue à télécharger sur le téléphone de l'agriculteur.
 
-### Brancher le backend (Render)
+### Ce micro-service Python (app.py / Dockerfile)
 
-Sur le service `teranga-ai`, définis :
+Reste utile si un jour tu as un hébergeur avec ≥ 1 Go de RAM. Il couvre **les
+12 langues** (MMS PyTorch, y compris Wolof/Kanouri/Sérère/Soninké). Hébergeurs :
+- **HF Spaces (Docker)** — gratuit *si* ton compte y a droit (le tien affiche
+  « Paid » → moyen de paiement exigé).
+- **Render Standard** ou VM **Oracle Always Free** — carte à l'inscription.
+
+## Contrat & variables (service Docker/HF)
 
 ```
-MMS_TTS_URL=https://<ton-user>-teranga-tts.hf.space/
-TTS_AUTH_TOKEN=<le même secret que le Space>   # optionnel mais recommandé
+POST /   { "text": "Dalal jamm", "lang": "wol" }   ->  audio/wav
+GET  /health
 ```
-
-Le backend enverra `{text, lang}` et renverra l'audio au frontend, qui le
-joue automatiquement (voix locale) au lieu du Web Speech du navigateur.
-
-### Alternative payante (Render)
-
-Si tu préfères tout garder sur Render : plan **Standard** (≥ 1 Go RAM ;
-le free tier 512 Mo ne suffit pas pour PyTorch). Non nécessaire si tu utilises
-HF Spaces.
-
-## Variables d'environnement
 
 | Var | Défaut | Rôle |
 |-----|--------|------|

@@ -26,7 +26,7 @@ const LANGUAGES = {
   // --- Couverture COMPLÈTE (NLLB + voix MMS) ---
   wo:  { label: 'Wolof',    tier: 'full', region: 'Sénégal',                 nllb: 'wol_Latn', whisper: null, mmsAsr: 'wol', mmsTts: 'wol', speechLang: 'fr-FR' },
   pu:  { label: 'Pulaar',   tier: 'full', region: 'Sahel (SN→Tchad)',        nllb: 'fuv_Latn', whisper: null, mmsAsr: 'fuv', mmsTts: 'fuv', speechLang: 'fr-FR' },
-  ha:  { label: 'Haoussa',  tier: 'full', region: 'Niger/Nigéria/Tchad',     nllb: 'hau_Latn', whisper: 'ha', mmsAsr: 'hau', mmsTts: 'hau', speechLang: 'fr-FR' },
+  ha:  { label: 'Haoussa',  tier: 'full', region: 'Niger/Nigéria/Tchad',     nllb: 'hau_Latn', whisper: 'ha', mmsAsr: 'hau', mmsTts: 'hau', googleTts: 'ha', speechLang: 'fr-FR' },
   bm:  { label: 'Bambara',  tier: 'full', region: 'Mali',                    nllb: 'bam_Latn', whisper: null, mmsAsr: 'bam', mmsTts: 'bam', speechLang: 'fr-FR' },
   mos: { label: 'Mooré',    tier: 'full', region: 'Burkina Faso',            nllb: 'mos_Latn', whisper: null, mmsAsr: 'mos', mmsTts: 'mos', speechLang: 'fr-FR' },
   dyu: { label: 'Dioula',   tier: 'full', region: 'Burkina/Côte d’Ivoire',   nllb: 'dyu_Latn', whisper: null, mmsAsr: 'dyu', mmsTts: 'dyu', speechLang: 'fr-FR' },
@@ -67,6 +67,11 @@ function ttsCode(code) {
   return LANGUAGES[code]?.mmsTts || null;
 }
 
+// Code Google Translate TTS (voix gratuite, sans clé) quand disponible.
+function googleTtsCode(code) {
+  return LANGUAGES[code]?.googleTts || null;
+}
+
 module.exports = {
   LANGUAGES,
   DISPLAY_ORDER,
@@ -75,5 +80,6 @@ module.exports = {
   getLanguage,
   nllbCode,
   hasTranslation,
-  ttsCode
+  ttsCode,
+  googleTtsCode
 };
