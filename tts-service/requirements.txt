@@ -1,0 +1,8 @@
+# Torch CPU (léger, pas de CUDA) — index dédié pour la roue CPU
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.4.1
+transformers==4.44.2
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+scipy==1.13.1
+numpy==1.26.4

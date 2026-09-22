@@ -6,42 +6,35 @@ const router = express.Router();
 // (wolof, haoussa, bambara...), contrairement au Web Speech du navigateur qui
 // n'a aucune voix africaine. Essentiel pour les analphabètes.
 //
-// ATTENTION (sept. 2026) : l'API d'inférence HuggingFace historique est hors
-// service et ne sert plus MMS-TTS. Ce chemin est donc DÉSACTIVÉ par défaut
-// (MMS_TTS_URL vide) : la route renvoie 204 et le frontend lit via Web Speech.
-// Pour réactiver, pointer MMS_TTS_URL vers un backend TTS fonctionnel (self-host
-// transformers.js, Replicate, etc.) qui accepte {inputs} et renvoie de l'audio.
-// La langue est injectée à la place de {lang} dans l'URL.
-const MMS_TTS_URL = process.env.MMS_TTS_URL || ''; // ex: https://.../facebook/mms-tts-{lang}
+// L'API d'inférence HuggingFace historique est hors service ; on délègue donc à
+// un micro-service TTS dédié (voir /tts-service), pointé par MMS_TTS_URL. S'il
+// n'est pas configuré, la route renvoie 204 -> le frontend lit via Web Speech.
+// Contrat du service : POST {text, lang} -> audio/wav.
+const MMS_TTS_URL = process.env.MMS_TTS_URL || ''; // ex: https://teranga-tts.onrender.com/
+const TTS_AUTH_TOKEN = process.env.TTS_AUTH_TOKEN || '';
 const TTS_TIMEOUT_MS = Number(process.env.TTS_TIMEOUT_MS) || 25000;
 const MAX_CHARS = 800; // les modèles MMS-TTS coupent au-delà ; on borne l'entrée
 
 async function synthesizeWithMMS(text, langCode) {
-  const hfKey = process.env.HF_API_KEY || process.env.HUGGINGFACE_API_KEY;
-  if (!hfKey) throw Object.assign(new Error('No HF API key'), { code: 'not_configured', status: 503 });
-
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TTS_TIMEOUT_MS);
   try {
-    const url = MMS_TTS_URL.includes('{lang}')
-      ? MMS_TTS_URL.replace('{lang}', langCode)
-      : `${MMS_TTS_URL}${langCode}`;
-    const response = await fetch(url, {
+    const headers = { 'Content-Type': 'application/json' };
+    if (TTS_AUTH_TOKEN) headers['Authorization'] = `Bearer ${TTS_AUTH_TOKEN}`;
+    const response = await fetch(MMS_TTS_URL, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${hfKey}`, 'Content-Type': 'application/json' },
+      headers,
       signal: controller.signal,
-      body: JSON.stringify({ inputs: text, options: { wait_for_model: true, use_cache: true } })
+      body: JSON.stringify({ text, lang: langCode })
     });
 
-    if (response.status === 503) {
-      throw Object.assign(new Error('Modèle TTS en cours de chargement'), { code: 'model_loading', status: 503 });
-    }
     if (!response.ok) {
       const detail = await response.text().catch(() => '');
-      throw Object.assign(new Error(`MMS-TTS ${response.status}: ${detail.slice(0, 120)}`), { code: 'tts_error', status: 502 });
+      const code = response.status === 503 ? 'model_loading' : 'tts_error';
+      throw Object.assign(new Error(`TTS ${response.status}: ${detail.slice(0, 120)}`), { code, status: response.status });
     }
 
-    const contentType = response.headers.get('content-type') || 'audio/flac';
+    const contentType = response.headers.get('content-type') || 'audio/wav';
     const buffer = Buffer.from(await response.arrayBuffer());
     return { buffer, contentType };
   } catch (error) {
