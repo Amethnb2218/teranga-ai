@@ -26,31 +26,14 @@ services:
         sync: false
       - key: FRONTEND_URL
         value: https://teranga-assistant.onrender.com
-      # Voix locale : URL du micro-service TTS (ci-dessous). Vide -> Web Speech.
+      # Voix locale : URL du service TTS deploye GRATUITEMENT sur HF Spaces
+      # (voir tts-service/README.md). Vide -> le frontend lit via Web Speech.
+      # ex: https://<user>-teranga-tts.hf.space/
       - key: MMS_TTS_URL
-        value: https://teranga-tts.onrender.com/
-      # Secret partage avec le service TTS (genere par teranga-tts, repris ici).
+        sync: false
+      # Meme secret que le Space HF (facultatif mais recommande).
       - key: TTS_AUTH_TOKEN
-        fromService:
-          type: web
-          name: teranga-tts
-          envVarKey: TTS_AUTH_TOKEN
-
-  # Micro-service de synthese vocale locale (Meta MMS-TTS, Python).
-  # ATTENTION : prevoir >= 1 Go de RAM (plan standard). Le free tier 512 Mo ne
-  # suffit pas pour PyTorch + modele. Voir tts-service/README.md.
-  - type: web
-    name: teranga-tts
-    runtime: python
-    rootDir: tts-service
-    plan: standard
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
-    envVars:
-      - key: TTS_MAX_MODELS
-        value: "2"
-      - key: TTS_AUTH_TOKEN
-        generateValue: true
+        sync: false
 
   - type: web
     name: teranga-assistant

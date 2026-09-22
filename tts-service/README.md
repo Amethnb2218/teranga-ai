@@ -1,4 +1,18 @@
+---
+title: Teranga TTS
+emoji: 🗣️
+colorFrom: green
+colorTo: yellow
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # Teranga TTS — voix locale (Meta MMS-TTS)
+
+> Ce dossier est déployable tel quel sur **Hugging Face Spaces** (SDK Docker,
+> **gratuit**, ~16 Go RAM) ou sur n'importe quel hébergeur Docker. Le
+> frontmatter ci-dessus configure le Space HF.
 
 Micro-service Python qui synthétise une **vraie voix** dans les langues du
 Sahel (wolof, haoussa, bambara, sérère, diola, soninké, mooré, dioula,
@@ -29,29 +43,43 @@ curl -s -X POST http://localhost:8000/ -H "Content-Type: application/json" \
   -d '{"text":"Dalal jamm, naka nga def?","lang":"wol"}' --output test.wav
 ```
 
-## Déployer sur Render
+## Déployer GRATUITEMENT sur Hugging Face Spaces (recommandé, coût 0)
 
-Le service est déclaré dans `render.yaml` (`teranga-tts`). Points importants :
+HF Spaces offre un CPU gratuit avec ~16 Go de RAM — largement suffisant pour
+MMS-TTS, et **sans carte bancaire**.
 
-- **RAM** : prévoir au moins **1 Go** (instance *Standard*). Le free tier
-  512 Mo ne suffit pas pour PyTorch + un modèle. `TTS_MAX_MODELS` (défaut 2)
-  limite le nombre de modèles gardés en mémoire (cache LRU).
-- **Premier appel par langue** : lent (téléchargement + chargement du modèle,
-  ~10–30 s), puis mis en cache. Prévoir de « chauffer » les langues courantes.
-- **Sécurité** : définir `TTS_AUTH_TOKEN` (même valeur côté backend) pour que
-  seul le backend puisse appeler le service.
+1. Va sur https://huggingface.co/new-space
+2. **Space SDK : Docker** (template *Blank*), visibilité **Public**, hardware
+   **CPU basic (gratuit)**.
+3. Téléverse les 3 fichiers de ce dossier dans le Space (bouton *Files* →
+   *Add file* → *Upload files*) : `app.py`, `requirements.txt`, `Dockerfile`,
+   et ce `README.md` (son frontmatter configure le Space).
+4. Attends la fin du *build* (onglet *Logs*). L'URL publique sera du type
+   `https://<ton-user>-teranga-tts.hf.space`.
+5. (Recommandé) *Settings → Variables and secrets* : ajoute un secret
+   `TTS_AUTH_TOKEN` (une chaîne aléatoire), puis mets la **même valeur** côté
+   backend Render.
 
-### Brancher le backend
+> Le Space gratuit se met en veille après ~48 h d'inactivité et se réveille au
+> premier appel (chargement du modèle ~10-30 s), comme le backend Render.
 
-Sur le service backend (`teranga-ai`), définir :
+### Brancher le backend (Render)
+
+Sur le service `teranga-ai`, définis :
 
 ```
-MMS_TTS_URL=https://teranga-tts.onrender.com/
-TTS_AUTH_TOKEN=<le même secret que le service TTS>   # optionnel mais recommandé
+MMS_TTS_URL=https://<ton-user>-teranga-tts.hf.space/
+TTS_AUTH_TOKEN=<le même secret que le Space>   # optionnel mais recommandé
 ```
 
 Le backend enverra `{text, lang}` et renverra l'audio au frontend, qui le
 joue automatiquement (voix locale) au lieu du Web Speech du navigateur.
+
+### Alternative payante (Render)
+
+Si tu préfères tout garder sur Render : plan **Standard** (≥ 1 Go RAM ;
+le free tier 512 Mo ne suffit pas pour PyTorch). Non nécessaire si tu utilises
+HF Spaces.
 
 ## Variables d'environnement
 
