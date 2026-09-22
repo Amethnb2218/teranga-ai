@@ -1,6 +1,63 @@
 import { useState, useCallback, useRef } from 'react';
 import { sendChatMessage, synthesizeSpeech } from '../services/api';
-import { LANG_CONFIG, LANGUAGE_ORDER, LANG_LABELS, SPEECH_RATE } from '../config/languages';
+import { LANG_CONFIG, LANGUAGE_ORDER, LANG_LABELS, SPEECH_RATE, browserSpeechLang } from '../config/languages';
+
+// Les voix du navigateur se chargent parfois de façon asynchrone (event
+// 'voiceschanged'). On attend qu'elles soient prêtes pour ne pas rater la
+// sélection de voix au 1er appel.
+function getVoicesAsync(timeoutMs = 1500) {
+  return new Promise((resolve) => {
+    if (!window.speechSynthesis) return resolve([]);
+    const existing = window.speechSynthesis.getVoices();
+    if (existing && existing.length) return resolve(existing);
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      resolve(window.speechSynthesis.getVoices() || []);
+    };
+    window.speechSynthesis.addEventListener?.('voiceschanged', finish, { once: true });
+    setTimeout(finish, timeoutMs);
+  });
+}
+
+// Choisit la meilleure voix disponible pour une locale (préfère les voix
+// "neural/enhanced/Google/Microsoft", puis correspondance de langue, puis genre).
+function pickVoice(voices, speechLang, gender) {
+  const base = speechLang.split('-')[0];
+  const byLang = voices.filter(v => v.lang?.toLowerCase().startsWith(base));
+  const pool = byLang.length ? byLang : voices;
+  const score = (v) => {
+    const n = (v.name || '').toLowerCase();
+    let s = 0;
+    if (v.lang?.toLowerCase() === speechLang.toLowerCase()) s += 4;
+    if (/(neural|enhanced|premium|natural)/.test(n)) s += 3;
+    if (/(google|microsoft)/.test(n)) s += 2;
+    const wantMale = gender === 'male';
+    if (wantMale && /(male|homme|thomas|daniel|paul)/.test(n)) s += 1;
+    if (!wantMale && /(female|femme|amelie|marie|julie|denise)/.test(n)) s += 1;
+    return s;
+  };
+  return pool.slice().sort((a, b) => score(b) - score(a))[0] || null;
+}
+
+// Découpe un texte en morceaux courts (phrases) : les navigateurs mobiles
+// coupent les longues énonciations. On enchaîne les morceaux proprement.
+function splitForSpeech(text, max = 200) {
+  const sentences = text.replace(/\s+/g, ' ').trim().split(/(?<=[.!?…])\s+/);
+  const chunks = [];
+  let cur = '';
+  for (const s of sentences) {
+    if ((cur + ' ' + s).trim().length > max) {
+      if (cur) chunks.push(cur.trim());
+      cur = s.length > max ? s.slice(0, max) : s;
+    } else {
+      cur = (cur + ' ' + s).trim();
+    }
+  }
+  if (cur) chunks.push(cur.trim());
+  return chunks;
+}
 
 const LANGUAGES = LANGUAGE_ORDER;
 
@@ -36,37 +93,40 @@ export function useChat() {
   const [voiceGender, setVoiceGender] = useState('male');
   const audioRef = useRef(null);
 
-  // Synthèse navigateur (Web Speech) — repli quand aucune voix locale MMS.
-  const webSpeak = useCallback((text, cfg) => {
+  // Synthèse navigateur (Web Speech) — voix intégrée du téléphone, hors-ligne,
+  // gratuite. Lit le texte (déjà traduit) langue par langue, découpé en phrases
+  // pour la fiabilité mobile, avec la meilleure voix disponible.
+  const webSpeak = useCallback(async (text, cfg) => {
     if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
 
-    const cleaned = text.replace(/[*#_`|>\-•]/g, '').replace(/\[.*?\]/g, '').replace(/\n+/g, '. ');
-    const utterance = new SpeechSynthesisUtterance(cleaned);
-    utterance.lang = cfg.speechLang || 'fr-FR';
-    utterance.rate = SPEECH_RATE[language] || 0.9;
-    utterance.pitch = voiceGender === 'male' ? 0.85 : 1.1;
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
+    const speechLang = browserSpeechLang(language);
+    const cleaned = text
+      .replace(/[*#_`|>]/g, '')
+      .replace(/\[[^\]]*\]\([^)]*\)/g, '')
+      .replace(/^[-•]\s*/gm, '')
+      .replace(/\n+/g, '. ');
+    const chunks = splitForSpeech(cleaned);
+    if (!chunks.length) return;
 
-    const voices = window.speechSynthesis.getVoices();
-    const langCode = (cfg.speechLang || 'fr-FR').split('-')[0];
-    let selectedVoice;
-    if (voiceGender === 'male') {
-      selectedVoice = voices.find(v =>
-        v.lang.startsWith(langCode) && (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('homme') || v.name.includes('Thomas') || v.name.includes('Daniel') || (v.name.includes('Google') && !v.name.toLowerCase().includes('female')))
-      );
-    } else {
-      selectedVoice = voices.find(v =>
-        v.lang.startsWith(langCode) && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('femme') || v.name.includes('Amelie') || v.name.includes('Marie'))
-      );
-    }
-    const fallbackVoice = voices.find(v => v.lang.startsWith(langCode));
-    if (selectedVoice) utterance.voice = selectedVoice;
-    else if (fallbackVoice) utterance.voice = fallbackVoice;
+    const voices = await getVoicesAsync();
+    const voice = pickVoice(voices, speechLang, voiceGender);
+    const rate = SPEECH_RATE[language] || 0.85;
+    const pitch = voiceGender === 'male' ? 0.9 : 1.1;
 
-    window.speechSynthesis.speak(utterance);
+    setIsSpeaking(true);
+    chunks.forEach((chunk, i) => {
+      const u = new SpeechSynthesisUtterance(chunk);
+      u.lang = speechLang;
+      u.rate = rate;
+      u.pitch = pitch;
+      if (voice) u.voice = voice;
+      if (i === chunks.length - 1) {
+        u.onend = () => setIsSpeaking(false);
+        u.onerror = () => setIsSpeaking(false);
+      }
+      window.speechSynthesis.speak(u);
+    });
   }, [language, voiceGender]);
 
   const stopSpeaking = useCallback(() => {
@@ -83,9 +143,10 @@ export function useChat() {
     stopSpeaking();
     const cfg = LANG_CONFIG[language] || LANG_CONFIG.fr;
 
-    // 1) Voix locale réelle (Meta MMS-TTS) — indispensable pour les analphabètes
-    //    en wolof, haoussa, bambara, etc. (le navigateur n'a pas ces voix).
-    if (cfg.hasLocalVoice) {
+    // 1) Vraie voix hébergée (petit audio, OK faible connectivité) quand elle
+    //    existe — aujourd'hui le haoussa (Google TTS). Sinon on ne fait AUCUN
+    //    appel réseau : on lit direct avec la voix du téléphone.
+    if (cfg.serverVoice) {
       const url = await synthesizeSpeech(text, language);
       if (url) {
         const audio = new Audio(url);
