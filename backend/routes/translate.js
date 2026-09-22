@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { translateText, isTranslationAvailable, NLLB_LANG_CODES } = require('../services/translate-service');
+const { translateText, isTranslationAvailable } = require('../services/translate-service');
+const { LANGUAGES, hasTranslation } = require('../config/languages');
 
 router.post('/', async (req, res) => {
   try {
@@ -20,7 +21,7 @@ router.post('/', async (req, res) => {
       translated: result || text,
       source,
       target,
-      model: 'nllb-200-distilled-600M',
+      engine: 'llm',
       success: wasTranslated
     });
   } catch (error) {
@@ -31,13 +32,13 @@ router.post('/', async (req, res) => {
 
 router.get('/languages', (req, res) => {
   res.json({
-    supported: Object.entries(NLLB_LANG_CODES).map(([code, nllb]) => ({
-      code, nllb, name: {
-        fr: 'Français', wo: 'Wolof', pu: 'Pulaar', sr: 'Sérère',
-        di: 'Diola', mn: 'Mandinka', sn: 'Soninké', en: 'English', ar: 'العربية'
-      }[code]
+    supported: Object.entries(LANGUAGES).map(([code, cfg]) => ({
+      code,
+      name: cfg.label,
+      tier: cfg.tier,
+      translatable: hasTranslation(code) || cfg.tier === 'native'
     })),
-    model: 'facebook/nllb-200-distilled-600M',
+    engine: 'llm (Gemini/Groq)',
     available: isTranslationAvailable()
   });
 });

@@ -2,10 +2,17 @@ const express = require('express');
 const { LANGUAGES, ttsCode } = require('../config/languages');
 const router = express.Router();
 
-// Synthèse vocale locale via Meta MMS-TTS (HuggingFace) — donne une VRAIE voix
-// dans la langue (wolof, haoussa, bambara...), contrairement au Web Speech du
-// navigateur qui n'a aucune voix africaine. Essentiel pour les analphabètes.
-const MMS_TTS_BASE = 'https://api-inference.huggingface.co/models/facebook/mms-tts-';
+// Synthèse vocale locale via Meta MMS-TTS — donne une VRAIE voix dans la langue
+// (wolof, haoussa, bambara...), contrairement au Web Speech du navigateur qui
+// n'a aucune voix africaine. Essentiel pour les analphabètes.
+//
+// ATTENTION (sept. 2026) : l'API d'inférence HuggingFace historique est hors
+// service et ne sert plus MMS-TTS. Ce chemin est donc DÉSACTIVÉ par défaut
+// (MMS_TTS_URL vide) : la route renvoie 204 et le frontend lit via Web Speech.
+// Pour réactiver, pointer MMS_TTS_URL vers un backend TTS fonctionnel (self-host
+// transformers.js, Replicate, etc.) qui accepte {inputs} et renvoie de l'audio.
+// La langue est injectée à la place de {lang} dans l'URL.
+const MMS_TTS_URL = process.env.MMS_TTS_URL || ''; // ex: https://.../facebook/mms-tts-{lang}
 const TTS_TIMEOUT_MS = Number(process.env.TTS_TIMEOUT_MS) || 25000;
 const MAX_CHARS = 800; // les modèles MMS-TTS coupent au-delà ; on borne l'entrée
 
@@ -16,7 +23,10 @@ async function synthesizeWithMMS(text, langCode) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TTS_TIMEOUT_MS);
   try {
-    const response = await fetch(`${MMS_TTS_BASE}${langCode}`, {
+    const url = MMS_TTS_URL.includes('{lang}')
+      ? MMS_TTS_URL.replace('{lang}', langCode)
+      : `${MMS_TTS_URL}${langCode}`;
+    const response = await fetch(url, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${hfKey}`, 'Content-Type': 'application/json' },
       signal: controller.signal,
@@ -66,6 +76,10 @@ router.post('/', async (req, res) => {
   // Langues sans voix MMS (fr, en, ar) : le navigateur gère via Web Speech.
   if (!langCode) {
     return res.status(204).json({ fallback: 'web-speech', reason: 'no_mms_voice' });
+  }
+  // Aucun backend MMS-TTS configuré (HF hors service) -> Web Speech côté client.
+  if (!MMS_TTS_URL) {
+    return res.status(204).json({ fallback: 'web-speech', reason: 'tts_backend_not_configured' });
   }
 
   try {
