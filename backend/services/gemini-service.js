@@ -1,4 +1,4 @@
-const DEFAULT_MODEL = 'gemini-2.5-flash';
+const DEFAULT_MODEL = 'gemini-3.6-flash';
 const DEFAULT_TIMEOUT_MS = 20000;
 
 let state = {
@@ -85,6 +85,7 @@ async function createGeminiCompletion(messages, options = {}) {
       const category = response.status === 401 || response.status === 403 ? 'authentication'
         : response.status === 429 ? 'rate_limit'
           : 'provider';
+      console.error(`Gemini API ${response.status} (${config.model}):`, data?.error?.message || rawBody?.slice(0, 200));
       throw createGeminiError('Appel Gemini impossible', {
         status: response.status,
         code: data?.error?.status?.toLowerCase() || `http_${response.status}`,
